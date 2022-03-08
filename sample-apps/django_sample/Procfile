@@ -1,2 +1,2 @@
 proxy: npx judoscale-adapter-proxy-server
-app: python manage.py runserver $PORT
+web: python manage.py runserver $PORT
