@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'judoscale.django',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,34 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
-from datetime import datetime
-import re
-
-class JudoscaleMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        request_start_header = request.META.get("HTTP_X_REQUEST_START", "")
-
-        # Remove non-digits. This removes the "t=" prefix added by some web servers (NGINX).
-        # NGINX also reports this time as fractional seconds with millisecond resolution,
-        # so removing the decimal gives us integer milliseconds (same as Heroku).
-        request_start_header = re.sub(r"\D", '', request_start_header)
-        print('request_start_header={}'.format(request_start_header))
-
-        request_start_timestamp_ms = int(request_start_header)
-        current_timestamp_ms = datetime.now().timestamp() * 1000
-        print('request_start_timestamp_ms={}'.format(request_start_timestamp_ms))
-        print('current_timestamp_ms={}'.format(current_timestamp_ms))
-
-        queue_time_ms = current_timestamp_ms - request_start_timestamp_ms
-        print('queue_time_ms={}'.format(queue_time_ms))
-
-        return self.get_response(request)
-
 MIDDLEWARE = [
-    'django_sample.settings.JudoscaleMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
