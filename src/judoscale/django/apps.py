@@ -1,4 +1,5 @@
 from django.apps import AppConfig
+from judoscale.core.reporter import Reporter
 
 class JudoscaleDjangoConfig(AppConfig):
     name = "judoscale"
@@ -6,7 +7,7 @@ class JudoscaleDjangoConfig(AppConfig):
 
     def ready(self):
         self.install_middleware()
-        # TODO: Start reporter
+        Reporter.start()
 
     def install_middleware(self):
         print("Installing Judoscale middleware")

@@ -17,6 +17,6 @@ class RequestQueueTimeMiddleware:
         current_timestamp_ms = datetime.now().timestamp() * 1000
 
         queue_time_ms = current_timestamp_ms - request_start_timestamp_ms
-        print('queue_time={}ms'.format(round(queue_time_ms)))
+        print('TODO: store queue_time ({}ms)'.format(round(queue_time_ms)))
 
         return self.get_response(request)
