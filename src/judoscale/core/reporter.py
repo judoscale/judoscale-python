@@ -11,7 +11,7 @@ class Reporter:
 
     @classmethod
     def start(cls):
-        logger.debug("Starting Judoscale reporter")
+        logger.info("[Judoscale] Starting reporter")
         cls._thread = threading.Thread(target=cls.loop, daemon=True)
         cls._thread.start()
 
