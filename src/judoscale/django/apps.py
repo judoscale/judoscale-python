@@ -1,5 +1,10 @@
+import logging
+
 from django.apps import AppConfig
 from judoscale.core.reporter import Reporter
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
 
 class JudoscaleDjangoConfig(AppConfig):
     name = "judoscale"
@@ -10,7 +15,7 @@ class JudoscaleDjangoConfig(AppConfig):
         Reporter.start()
 
     def install_middleware(self):
-        print("Installing Judoscale middleware")
+        logger.debug("Installing Judoscale middleware")
 
         from django.conf import settings
 

@@ -3,12 +3,12 @@ import threading
 import time
 import logging
 
-logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def loop():
-    logging.debug("start loop")
+    logger.debug("start loop")
     while True:
-        logging.debug("TODO: report")
+        logger.debug("TODO: report")
         time.sleep(2)
 
 class Reporter:
@@ -16,6 +16,6 @@ class Reporter:
 
     @classmethod
     def start(cls):
-        logging.debug("starting reporter")
+        logger.debug("starting reporter")
         cls._thread = threading.Thread(target=loop, daemon=True)
         cls._thread.start()
