@@ -40,6 +40,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
+JUDOSCALE = {
+    # This sample app is intended to be run locally, so Judoscale API requests are
+    # sent to a mock endpoint.
+    'API_BASE_URL': 'https://judoscale-python.requestcatcher.com',
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

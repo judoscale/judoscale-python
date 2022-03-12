@@ -1,6 +1,7 @@
 import logging
 
 from django.apps import AppConfig
+from django.conf import settings
 from judoscale.core.reporter import Reporter
 from judoscale.core.config import config
 
@@ -11,13 +12,12 @@ class JudoscaleDjangoConfig(AppConfig):
     verbose_name = "Judoscale (Django)"
 
     def ready(self):
+        config.merge(getattr(settings, 'JUDOSCALE', {}))
         self.install_middleware()
         Reporter.start()
 
     def install_middleware(self):
         logger.info("[Judoscale] Installing middleware")
-
-        from django.conf import settings
 
         if getattr(settings, "MIDDLEWARE", None) is None:
             return False

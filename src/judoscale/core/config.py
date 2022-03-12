@@ -9,4 +9,7 @@ class Config:
         log_level = logging.getLevelName(self.log_level.upper())
         logging.basicConfig(level=log_level, format='%(levelname)s - %(message)s')
 
+    def merge(self, settings):
+        logger.debug("TODO: merge settings {}".format(settings))
+
 config = Config()
