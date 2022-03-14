@@ -1,5 +1,7 @@
 import setuptools
 
+INSTALL_REQUIRES = ["requests<3.0.0"]
+
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
@@ -22,5 +24,6 @@ setuptools.setup(
     ],
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
+    install_requires=INSTALL_REQUIRES,
     python_requires=">=3.6",
 )
