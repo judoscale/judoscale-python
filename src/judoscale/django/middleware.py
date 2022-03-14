@@ -18,10 +18,11 @@ class RequestQueueTimeMiddleware:
         # so removing the decimal gives us integer milliseconds (same as Heroku).
         request_start_header = re.sub(r"\D", '', request_start_header)
 
+        now = datetime.now()
         request_start_timestamp_ms = int(request_start_header)
-        current_timestamp_ms = datetime.now().timestamp() * 1000
+        current_timestamp_ms = now.timestamp() * 1000
         queue_time_ms = current_timestamp_ms - request_start_timestamp_ms
-        metric = Metric(measurement="queue_time", value=queue_time_ms)
+        metric = Metric(measurement="queue_time", datetime=now, value=queue_time_ms)
 
         metrics_store.add(metric)
 

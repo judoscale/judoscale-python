@@ -4,6 +4,7 @@ import logging
 from judoscale.core.config import config
 from judoscale.core.metrics_store import metrics_store
 from judoscale.core.adapter_api_client import api_client
+from judoscale.core.report import Report
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +20,11 @@ class Reporter:
     @classmethod
     def _run_loop(cls):
         while True:
-            cls._report()
+            cls._report_metrics()
             time.sleep(config.report_interval_seconds)
 
     @classmethod
-    def _report(cls):
+    def _report_metrics(cls):
         metrics = metrics_store.flush()
-        logger.debug("TODO: construct payload with metrics and config")
-        api_client.post_metrics({'size': len(metrics)})
+        report = Report(metrics, config)
+        api_client.post_report(report)
