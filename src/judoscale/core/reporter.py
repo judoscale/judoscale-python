@@ -20,4 +20,4 @@ class Reporter:
         while True:
             metrics = metrics_store.flush()
             logger.debug("TODO: report {} metrics".format(len(metrics)))
-            time.sleep(2)
+            time.sleep(config.report_interval_seconds)

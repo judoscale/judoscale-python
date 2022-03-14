@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 class Config:
     def __init__(self):
         self.log_level = os.environ.get('LOG_LEVEL', 'INFO')
+        self.report_interval_seconds = 10
         self.api_base_url = None
         self._prepare_logging()
 
