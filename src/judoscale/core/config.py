@@ -6,10 +6,16 @@ logger = logging.getLogger(__name__)
 class Config:
     def __init__(self):
         self.log_level = os.environ.get('LOG_LEVEL', 'INFO')
-        log_level = logging.getLevelName(self.log_level.upper())
-        logging.basicConfig(level=log_level, format='%(levelname)s - %(message)s')
+        self.api_base_url = None
+        self._prepare_logging()
 
     def merge(self, settings):
-        logger.debug("TODO: merge settings {}".format(settings))
+        for key in settings:
+            setattr(self, key.lower(), settings[key])
+        self._prepare_logging()
+
+    def _prepare_logging(self):
+        log_level = logging.getLevelName(self.log_level.upper())
+        logging.basicConfig(level=log_level, format='%(levelname)s - %(message)s', force=True)
 
 config = Config()
