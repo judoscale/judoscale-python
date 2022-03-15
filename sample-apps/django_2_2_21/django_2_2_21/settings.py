@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'judoscale.django',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,6 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
+
+JUDOSCALE = {
+    # This sample app is intended to be run locally, so Judoscale API requests are
+    # sent to a mock endpoint.
+    'API_BASE_URL': 'https://judoscale-python.requestcatcher.com',
+    'LOG_LEVEL': 'DEBUG',
+    'REPORT_INTERVAL_SECONDS': 2,
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
