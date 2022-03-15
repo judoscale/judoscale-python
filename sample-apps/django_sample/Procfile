@@ -1,2 +1,5 @@
+# The proxy server adds the X_REQUEST_START header for queue time calculations
 proxy: npx judoscale-adapter-proxy-server
-web: python manage.py runserver $PORT
+
+# Run with --noreload to avoid multiple server processes (and multiple Judoscale reporters)
+web: python manage.py runserver $PORT --noreload
