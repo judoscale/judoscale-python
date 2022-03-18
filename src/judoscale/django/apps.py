@@ -2,7 +2,7 @@ import logging
 
 from django.apps import AppConfig
 from django.conf import settings
-from judoscale.core.reporter import Reporter
+from judoscale.core.reporter import reporter
 from judoscale.core.config import config
 
 logger = logging.getLogger(__name__)
@@ -15,18 +15,18 @@ class JudoscaleDjangoConfig(AppConfig):
         config.merge(getattr(settings, 'JUDOSCALE', {}))
 
         if config.api_base_url is None:
-            logger.warn("[Judoscale] Not activated - No API URL provided")
+            logger.warn("Not activated - No API URL provided")
             return
 
         self.install_middleware()
-        Reporter.start()
+        reporter.start()
 
     def install_middleware(self):
         if getattr(settings, "MIDDLEWARE", None) is None:
-            logger.info("[Judoscale] Unable to install middleware")
+            logger.info("Unable to install middleware")
             return False
 
-        logger.info("[Judoscale] Installing middleware")
+        logger.info("Installing middleware")
 
         judoscale_middleware = "judoscale.django.middleware.RequestQueueTimeMiddleware"
 

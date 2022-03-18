@@ -1,30 +1,45 @@
 import threading
 import time
 import logging
+import os
 from judoscale.core.config import config
 from judoscale.core.metrics_store import metrics_store
 from judoscale.core.adapter_api_client import api_client
-from judoscale.core.report import Report
 
 logger = logging.getLogger(__name__)
 
 class Reporter:
-    _thread = None
+    def __init__(self):
+        self._thread = None
 
-    @classmethod
-    def start(cls):
-        logger.info("[Judoscale] Starting reporter")
-        cls._thread = threading.Thread(target=cls._run_loop, daemon=True)
-        cls._thread.start()
+    def start(self):
+        logger.info("Starting reporter")
+        self._thread = threading.Thread(target=self._run_loop, daemon=True)
+        self._thread.start()
 
-    @classmethod
-    def _run_loop(cls):
+    def _run_loop(self):
         while True:
-            cls._report_metrics()
+            self._report_metrics()
             time.sleep(config.report_interval_seconds)
 
-    @classmethod
-    def _report_metrics(cls):
+    def _report_metrics(self):
         metrics = metrics_store.flush()
-        report = Report(metrics, config)
-        api_client.post_report(report)
+        api_client.post_report(self._build_report(metrics))
+
+    def _build_report(self, metrics):
+        metric_to_list = lambda m: [
+            m.datetime.isoformat(),
+            round(m.value, 2),
+            m.measurement,
+            m.queue_name,
+        ]
+
+        return {
+            'dyno': config.dyno,
+            # TODO: Does each thread get its own PID?
+            'pid': os.getpid(),
+            'config': config.for_report(),
+            'metrics': list(map(metric_to_list, metrics)),
+        }
+
+reporter = Reporter()

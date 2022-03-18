@@ -8,7 +8,7 @@ class Config:
         self.log_level = os.environ.get('LOG_LEVEL', 'INFO')
         self.dyno = os.environ.get('DYNO', None)
         self.report_interval_seconds = 10
-        self.api_base_url = None
+        self.api_base_url = os.environ.get('JUDOSCALE_URL', None)
         self._prepare_logging()
 
     def merge(self, settings):
@@ -16,7 +16,8 @@ class Config:
             setattr(self, key.lower(), settings[key])
         self._prepare_logging()
 
-    def as_dict(self):
+    def for_report(self):
+        # Only include the config options we want to include in the report
         return {
             'log_level': self.log_level,
             'report_interval_seconds': self.report_interval_seconds,
@@ -24,6 +25,6 @@ class Config:
 
     def _prepare_logging(self):
         log_level = logging.getLevelName(self.log_level.upper())
-        logging.basicConfig(level=log_level, format='%(levelname)s - %(message)s', force=True)
+        logging.basicConfig(level=log_level, format='%(levelname)s - [Judoscale] %(message)s', force=True)
 
 config = Config()
