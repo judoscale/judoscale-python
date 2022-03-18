@@ -22,10 +22,11 @@ class JudoscaleDjangoConfig(AppConfig):
         Reporter.start()
 
     def install_middleware(self):
-        logger.info("[Judoscale] Installing middleware")
-
         if getattr(settings, "MIDDLEWARE", None) is None:
+            logger.info("[Judoscale] Unable to install middleware")
             return False
+
+        logger.info("[Judoscale] Installing middleware")
 
         judoscale_middleware = "judoscale.django.middleware.RequestQueueTimeMiddleware"
 
