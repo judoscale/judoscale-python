@@ -5,6 +5,6 @@ class TestMetricsStore:
         store = MetricsStore()
         store.add(11)
         store.add(22)
-        metrics = store.flush()
 
-        assert metrics == [22, 11]
+        assert store.flush() == [22, 11]
+        assert store.flush() == []
