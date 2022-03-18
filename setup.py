@@ -1,5 +1,14 @@
 import setuptools
 
+# To publish:
+#
+#   - Update VERSION constant below
+#   - python3 -m pip install --upgrade build twine
+#   - python3 -m build
+#   - python3 -m twine upload dist/*
+#       - Username is __token__, password is token value
+
+VERSION="0.0.1"
 INSTALL_REQUIRES = ["requests<3.0.0"]
 
 with open("README.md", "r", encoding="utf-8") as fh:
@@ -7,15 +16,15 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="judoscale-python",
-    version="0.0.1",
-    author="Example Author",
-    author_email="author@example.com",
-    description="A small example package",
+    version=VERSION,
+    author="Adam McCrea",
+    author_email="adam@adamlogic.com",
+    description="Official Python adapter for Judoscale—the advanced autoscaler for Heroku",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pypa/sampleproject",
+    url="https://github.com/judoscale/judoscale-python",
     project_urls={
-        "Bug Tracker": "https://github.com/pypa/sampleproject/issues",
+        "Issue Tracker": "https://github.com/judoscale/judoscale-python/issues",
     },
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -25,5 +34,4 @@ setuptools.setup(
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
     install_requires=INSTALL_REQUIRES,
-    python_requires=">=3.6",
 )

@@ -14,7 +14,12 @@ pip install judoscale-python
 - [ ] Flask
 - [ ] FastAPI
 
-### Using Judoscale with Django
+## Supported job processors
+
+- [ ] Celery
+- [ ] RQ
+
+## Using Judoscale with Django
 
 Add Judoscale app to `settings.py`:
 
@@ -29,18 +34,16 @@ Customize Judoscale options in `settings.py` (optional):
 
 ```python
 JUDOSCALE = {
-    # LOG_LEVEL defaults to ENV["LOG_LEVEL"] or "INFO"
+    # LOG_LEVEL defaults to ENV["LOG_LEVEL"] or "INFO".
     'LOG_LEVEL': 'DEBUG',
 
-    # API_BASE_URL defaults to ENV["JUDOSCALE_URL"], set during add-on installation
+    # API_BASE_URL defaults to ENV["JUDOSCALE_URL"], which is set for you when you install Judoscale.
+    # This is only exposed for testing purposes.
     'API_BASE_URL': 'https://example.com',
 
-    # REPORT_INTERVAL_SECONDS defaults to 10 seconds
+    # REPORT_INTERVAL_SECONDS defaults to 10 seconds.
     'REPORT_INTERVAL_SECONDS': 5,
 }
 ```
 
-## Supported job processors
-
-- [ ] Celery
-- [ ] RQ
+Once deployed, you will see your "request queue time" metrics available in the Judoscale UI.
