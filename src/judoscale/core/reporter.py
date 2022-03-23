@@ -28,7 +28,7 @@ class Reporter:
 
     def _build_report(self, metrics):
         metric_to_list = lambda m: [
-            m.datetime.isoformat(),
+            m.datetime.timestamp(),
             round(m.value, 2),
             m.measurement,
             m.queue_name,
