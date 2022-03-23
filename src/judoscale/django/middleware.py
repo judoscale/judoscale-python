@@ -6,6 +6,7 @@ from judoscale.core.metric import Metric
 
 logger = logging.getLogger(__name__)
 
+
 class RequestQueueTimeMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -16,7 +17,7 @@ class RequestQueueTimeMiddleware:
         # Remove non-digits. This removes the "t=" prefix added by some web servers (NGINX).
         # NGINX also reports this time as fractional seconds with millisecond resolution,
         # so removing the decimal gives us integer milliseconds (same as Heroku).
-        request_start_header = re.sub(r"\D", '', request_start_header)
+        request_start_header = re.sub(r"\D", "", request_start_header)
 
         now = datetime.now()
         request_start_timestamp_ms = int(request_start_header)

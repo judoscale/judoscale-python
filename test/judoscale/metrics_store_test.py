@@ -1,6 +1,7 @@
 from judoscale.core.metrics_store import MetricsStore
 import time
 
+
 class TestMetricsStore:
     def test_add_and_flush(self):
         store = MetricsStore()

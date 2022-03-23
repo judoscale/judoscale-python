@@ -7,12 +7,13 @@ from judoscale.core.config import config
 
 logger = logging.getLogger(__name__)
 
+
 class JudoscaleDjangoConfig(AppConfig):
     name = "judoscale"
     verbose_name = "Judoscale (Django)"
 
     def ready(self):
-        config.merge(getattr(settings, 'JUDOSCALE', {}))
+        config.merge(getattr(settings, "JUDOSCALE", {}))
 
         if config.api_base_url is None:
             logger.warn("Not activated - No API URL provided")

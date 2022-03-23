@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
+
 class MetricsStore:
     # max_flush_interval exists to prevent collecting metrics in memory if they
     # are never being flushed (if the reporter has failed for some reason).
@@ -12,7 +13,9 @@ class MetricsStore:
         self.last_flush_time = datetime.now()
 
     def add(self, metric):
-        if self.last_flush_time > datetime.now() - timedelta(seconds=self.max_flush_interval):
+        if self.last_flush_time > datetime.now() - timedelta(
+            seconds=self.max_flush_interval
+        ):
             self.store.append(metric)
         else:
             logger.debug("Max flush interval exceeded - Not adding metric to store.")

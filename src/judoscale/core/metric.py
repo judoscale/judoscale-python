@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import datetime
 
+
 @dataclass
 class Metric:
     datetime: datetime

@@ -8,6 +8,7 @@ from judoscale.core.adapter_api_client import api_client
 
 logger = logging.getLogger(__name__)
 
+
 class Reporter:
     def __init__(self):
         self._thread = None
@@ -35,11 +36,12 @@ class Reporter:
         ]
 
         return {
-            'dyno': config.dyno,
+            "dyno": config.dyno,
             # TODO: Does each thread get its own PID?
-            'pid': os.getpid(),
-            'config': config.for_report(),
-            'metrics': list(map(metric_to_list, metrics)),
+            "pid": os.getpid(),
+            "config": config.for_report(),
+            "metrics": list(map(metric_to_list, metrics)),
         }
+
 
 reporter = Reporter()
