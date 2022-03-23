@@ -1,6 +1,6 @@
 # judoscale-python
 
-Official Python adapter for Judoscale—the advanced autoscaler for Heroku
+This is the official Python adapter for Judoscale. You can use Judoscale without it, but this gives you request queue time metrics and job queue time (for supported job processors).
 
 ## Installation
 
