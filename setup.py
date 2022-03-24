@@ -8,7 +8,7 @@ import setuptools
 #   - python3 -m twine upload dist/*
 #       - Username is __token__, password is token value
 
-VERSION = "0.0.4"
+VERSION = "0.0.5"
 INSTALL_REQUIRES = ["requests<3.0.0"]
 
 with open("README.md", "r", encoding="utf-8") as fh:
