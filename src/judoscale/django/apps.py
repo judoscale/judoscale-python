@@ -16,7 +16,7 @@ class JudoscaleDjangoConfig(AppConfig):
         config.merge(getattr(settings, "JUDOSCALE", {}))
 
         if config.api_base_url is None:
-            logger.warn("Not activated - No API URL provided")
+            logger.info("Not activated - No API URL provided")
             return
 
         self.install_middleware()
