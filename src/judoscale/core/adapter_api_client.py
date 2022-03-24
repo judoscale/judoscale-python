@@ -11,9 +11,7 @@ class AdapterApiClient:
         try:
             logger.debug("Posting metrics to Judoscale adapter API")
             payload = json.dumps(report)
-            requests.post(
-                config.api_base_url + "/adapter/v1/reports", timeout=5, json=payload
-            )
+            requests.post(config.api_base_url + "/v1/metrics", timeout=5, json=payload)
         except requests.RequestException as e:
             logger.warn("Adapter API request failed - {}".format(e))
 
