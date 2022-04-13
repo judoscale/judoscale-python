@@ -4,8 +4,16 @@ This is the official Python adapter for [Judoscale](https://elements.heroku.com/
 
 ## Installation
 
+Add judoscale-python to your <code>requirements.txt</code> file:
+
 ```
-pip install judoscale-python
+judoscale-python >= 1.0.0rc1
+```
+
+Then run this from a terminal to install the package:
+
+```sh
+pip install -r requirements.txt
 ```
 
 ## Supported web frameworks
