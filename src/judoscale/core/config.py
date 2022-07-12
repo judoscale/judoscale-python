@@ -25,12 +25,13 @@ class Config:
         }
 
     def _prepare_logging(self):
-        log_level = logging.getLevelName(self.log_level.upper())
-        logging.basicConfig(
-            level=log_level,
-            format="%(levelname)s - [Judoscale] %(message)s",
-            force=True,
-        )
+        pass
+#        log_level = logging.getLevelName(self.log_level.upper())
+#        logging.basicConfig(
+#            level=log_level,
+#            format="%(levelname)s - [%(name)s] %(message)s",
+#            force=True,
+#        )
 
 
 config = Config()
