@@ -135,11 +135,7 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} [Judoscale] {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'simple': {
+        'compact': {
             'format': '{levelname} {message}',
             'style': '{',
         },
@@ -154,23 +150,13 @@ LOGGING = {
             'level': 'DEBUG',
             'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
-            'formatter': 'simple'
+            'formatter': 'compact'
         },
-        'judo': {
-            'level': 'DEBUG',
-            'filters': ['require_debug_true'],
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
-        }
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
             'propagate': True,
         },
-        'judoscale': {
-            'handlers': ['judo'],
-            'level': 'DEBUG',
-        }
     }
 }

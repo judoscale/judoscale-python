@@ -26,6 +26,7 @@ class Config:
 
     def _prepare_logging(self):
         pass
+
 #        log_level = logging.getLevelName(self.log_level.upper())
 #        logging.basicConfig(
 #            level=log_level,

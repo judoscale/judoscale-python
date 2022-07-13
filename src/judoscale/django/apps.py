@@ -4,8 +4,7 @@ from django.apps import AppConfig
 from django.conf import settings
 from judoscale.core.reporter import reporter
 from judoscale.core.config import config
-
-logger = logging.getLogger(__name__)
+from judoscale.logs import logger
 
 
 class JudoscaleDjangoConfig(AppConfig):
