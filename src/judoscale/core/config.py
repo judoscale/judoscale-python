@@ -8,7 +8,6 @@ class Config:
         self.dyno = os.environ.get("DYNO", None)
         self.report_interval_seconds = 10
         self.api_base_url = os.environ.get("JUDOSCALE_URL", None)
-        self._prepare_logging()
 
     def merge(self, settings):
         for key in settings:
@@ -32,6 +31,7 @@ class Config:
         stdout_handler.setFormatter(logging.Formatter(fmt))
 
         logger.addHandler(stdout_handler)
+        logger.propagate = False
 
 
 config = Config()

@@ -27,14 +27,12 @@ class JudoscaleDjangoConfig(AppConfig):
             logger.info("Unable to install middleware")
             return False
 
-        logger.info("Installing middleware")
-
         judoscale_middleware = "judoscale.django.middleware.RequestQueueTimeMiddleware"
 
         # Prepend to MIDDLEWARE, handling both tuple and list form
-        if isinstance(settings.MIDDLEWARE, tuple):
-            if judoscale_middleware not in settings.MIDDLEWARE:
+        if judoscale_middleware not in settings.MIDDLEWARE:
+            logger.info("Installing middleware")
+            if isinstance(settings.MIDDLEWARE, tuple):
                 settings.MIDDLEWARE = (judoscale_middleware,) + settings.MIDDLEWARE
-        else:
-            if judoscale_middleware not in settings.MIDDLEWARE:
+            else:  # it is a list
                 settings.MIDDLEWARE.insert(0, judoscale_middleware)
