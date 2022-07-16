@@ -15,7 +15,5 @@ class TestLogging(TestCase):
         # assert the content log message
         msg_log = captured.records[0].getMessage()
         self.assertEqual(msg_log, "Hello, world")
-        # assert the log message doesn't contain the prefix judoscale
-        self.assertNotIn("judoscale", msg_log)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(b"Judoscale Sample App", response.content)
