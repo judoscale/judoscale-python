@@ -24,12 +24,10 @@ class Config:
 
     def _prepare_logging(self):
         logger = logging.getLogger('judoscale')
-        print(self.log_level)
         log_level = logging.getLevelName(self.log_level.upper())
         logger.setLevel(log_level)
 
         stdout_handler = logging.StreamHandler()
-        stdout_handler.setLevel(logging.DEBUG)
         fmt = "%(levelname)s - [Judoscale] %(message)s"
         stdout_handler.setFormatter(logging.Formatter(fmt))
 
