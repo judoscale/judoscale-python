@@ -1,5 +1,6 @@
 import logging
 import os
+from inspect import stack
 
 
 class Config:
@@ -8,6 +9,8 @@ class Config:
         self.dyno = os.environ.get("DYNO", None)
         self.report_interval_seconds = 10
         self.api_base_url = os.environ.get("JUDOSCALE_URL", None)
+#        print('CONSTRUCTOR')
+        self._prepare_logging()
 
     def merge(self, settings):
         for key in settings:
@@ -22,6 +25,7 @@ class Config:
         }
 
     def _prepare_logging(self):
+        print("CALLER FUNCTION: {}".format(stack()[1].function))
         logger = logging.getLogger('judoscale')
         log_level = logging.getLevelName(self.log_level.upper())
         logger.setLevel(log_level)
