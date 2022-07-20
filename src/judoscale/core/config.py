@@ -31,8 +31,8 @@ class Config:
             stdout_handler = logging.StreamHandler()
             fmt = "%(levelname)s - [Judoscale] %(message)s"
             stdout_handler.setFormatter(logging.Formatter(fmt))
-
             logger.addHandler(stdout_handler)
+
         logger.propagate = False
 
 
