@@ -1,6 +1,5 @@
 import logging
 import os
-from inspect import stack
 
 
 class Config:
@@ -9,7 +8,6 @@ class Config:
         self.dyno = os.environ.get("DYNO", None)
         self.report_interval_seconds = 10
         self.api_base_url = os.environ.get("JUDOSCALE_URL", None)
-#        print('CONSTRUCTOR')
         self._prepare_logging()
 
     def merge(self, settings):
@@ -25,16 +23,16 @@ class Config:
         }
 
     def _prepare_logging(self):
-        print("CALLER FUNCTION: {}".format(stack()[1].function))
         logger = logging.getLogger('judoscale')
         log_level = logging.getLevelName(self.log_level.upper())
         logger.setLevel(log_level)
 
-        stdout_handler = logging.StreamHandler()
-        fmt = "%(levelname)s - [Judoscale] %(message)s"
-        stdout_handler.setFormatter(logging.Formatter(fmt))
+        if not logger.handlers:
+            stdout_handler = logging.StreamHandler()
+            fmt = "%(levelname)s - [Judoscale] %(message)s"
+            stdout_handler.setFormatter(logging.Formatter(fmt))
 
-        logger.addHandler(stdout_handler)
+            logger.addHandler(stdout_handler)
         logger.propagate = False
 
 
