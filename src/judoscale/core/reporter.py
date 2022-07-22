@@ -12,14 +12,27 @@ logger = logging.getLogger(__name__)
 class Reporter:
     def __init__(self):
         self._thread = None
+        self._running = False
+        self._stopevent = threading.Event()
 
     def start(self):
-        logger.info("Starting reporter")
+        pid = os.getpid()
+        logger.info(f"Starting reporter for process {pid}")
+        self._running = True
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()
 
+    def stop(self, timeout=None):
+        self._stopevent.set()
+        self._thread.join(timeout)
+        self._running = False
+
+    @property
+    def is_running(self):
+        return self._running
+
     def _run_loop(self):
-        while True:
+        while self._running:
             self._report_metrics()
             time.sleep(config.report_interval_seconds)
 

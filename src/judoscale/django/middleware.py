@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from judoscale.core.metrics_store import metrics_store
 from judoscale.core.metric import Metric
+from judoscale.core.reporter import reporter
 
 logger = logging.getLogger(__name__)
 
@@ -28,5 +29,16 @@ class RequestQueueTimeMiddleware:
 
             metrics_store.add(metric)
             logger.debug("queue_time={}ms".format(round(queue_time_ms, 2)))
+            self._get_reporter(reporter)
 
         return self.get_response(request)
+
+    def _get_reporter(self, reporter):
+        try:
+            if not reporter._thread.is_alive():
+                import os
+                pid = os.getpid()
+                return reporter.start()
+        except Exception as e:
+            logger.warning(f"{e.args} - No reporter has initiated")
+            pass
