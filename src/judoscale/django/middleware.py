@@ -37,7 +37,6 @@ class RequestQueueTimeMiddleware:
         try:
             if not reporter._thread.is_alive():
                 return reporter.start()
-            else: logger.info("Reporter exists")
         except Exception as e:
             logger.warning(f"{e.args} - No reporter has initiated")
             pass
