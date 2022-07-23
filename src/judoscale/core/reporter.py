@@ -16,25 +16,36 @@ class Reporter:
         self._stopevent = threading.Event()
 
     def start(self):
-        pid = os.getpid()
+        pid = self.get_pid
         logger.info(f"Starting reporter for process {pid}")
         self._running = True
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()
 
-    def stop(self, timeout=None):
+    def signal_handler(self, signum, frame):
         self._stopevent.set()
-        self._thread.join(timeout)
         self._running = False
 
     @property
     def is_running(self):
         return self._running
 
+    @property
+    def get_pid(self):
+        return os.getpid()
+
     def _run_loop(self):
-        while self._running:
+        while self.is_running:
             self._report_metrics()
             time.sleep(config.report_interval_seconds)
+
+            if self._stopevent.is_set():
+                break
+
+        print(f"{self.get_pid} reports completed before exiting.")
+
+    def get_metrics(self):
+        return metrics_store.store
 
     def _report_metrics(self):
         metrics = metrics_store.flush()
@@ -51,10 +62,12 @@ class Reporter:
         return {
             "dyno": config.dyno,
             # TODO: Does each thread get its own PID?
-            "pid": os.getpid(),
+            "pid": self.get_pid,
             "config": config.for_report(),
             "metrics": list(map(metric_to_list, metrics)),
         }
 
 
+import signal
 reporter = Reporter()
+signal.signal(signal.SIGILL, reporter.signal_handler)

@@ -29,16 +29,15 @@ class RequestQueueTimeMiddleware:
 
             metrics_store.add(metric)
             logger.debug("queue_time={}ms".format(round(queue_time_ms, 2)))
-            self._get_reporter(reporter)
+            self._get_reporter()
 
         return self.get_response(request)
 
-    def _get_reporter(self, reporter):
+    def _get_reporter(self):
         try:
             if not reporter._thread.is_alive():
-                import os
-                pid = os.getpid()
                 return reporter.start()
+            else: logger.info("Reporter exists")
         except Exception as e:
             logger.warning(f"{e.args} - No reporter has initiated")
             pass

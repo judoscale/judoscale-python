@@ -1,6 +1,8 @@
 from unittest import TestCase
 from django.test import Client
 
+from judoscale.core.reporter import reporter
+
 
 class TestLogging(TestCase):
     def setUp(self):
@@ -17,3 +19,12 @@ class TestLogging(TestCase):
         self.assertEqual(msg_log, "Hello, world")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(b"Judoscale Sample App", response.content)
+
+    def test_reporter_starts_for_each_process(self):
+        with self.assertLogs() as captured:
+            response = self.client.get('/')
+
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(reporter.is_running, True)
+            print("METRICS", reporter.get_metrics())
+            self.assertEqual(len(reporter.get_metrics()), 1)
