@@ -70,4 +70,4 @@ class Reporter:
 
 import signal
 reporter = Reporter()
-signal.signal(signal.SIGILL, reporter.signal_handler)
+signal.signal(signal.SIGTERM, reporter.signal_handler)
