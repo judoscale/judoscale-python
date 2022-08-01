@@ -18,9 +18,17 @@ class Reporter:
     def start(self):
         pid = self.get_pid
         logger.info(f"Starting reporter for process {pid}")
-        self._running = True
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()
+        self._running = True
+
+    def ensure_running(self):
+        try:
+            if not self.is_running:
+                return self.start()
+        except Exception as e:
+            logger.warning(f"{e.args} - No reporter has initiated")
+            pass
 
     def signal_handler(self, signum, frame):
         self._stopevent.set()
@@ -28,6 +36,10 @@ class Reporter:
 
     @property
     def is_running(self):
+        if self._thread and self._thread.is_alive():
+            self._running = True
+        else:
+            self._running = False
         return self._running
 
     @property
@@ -49,7 +61,8 @@ class Reporter:
 
     def _report_metrics(self):
         metrics = metrics_store.flush()
-        api_client.post_report(self._build_report(metrics))
+        if metrics:
+            api_client.post_report(self._build_report(metrics))
 
     def _build_report(self, metrics):
         metric_to_list = lambda m: [
@@ -61,7 +74,8 @@ class Reporter:
 
         return {
             "dyno": config.dyno,
-            # TODO: Does each thread get its own PID?
+            # TODO: Does each thread get its own PID? Yes, except if a thread
+            # is stopped, its PID is recycled.
             "pid": self.get_pid,
             "config": config.for_report(),
             "metrics": list(map(metric_to_list, metrics)),
