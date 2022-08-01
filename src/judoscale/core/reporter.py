@@ -24,8 +24,6 @@ class Reporter:
 
     def ensure_running(self):
         try:
-            if self._thread:
-                    self._thread, self._thread.is_alive()))
             if not self.is_running:
                 return self.start()
         except Exception as e:
@@ -50,8 +48,6 @@ class Reporter:
 
     def _run_loop(self):
         while self.is_running:
-            logger.info(f"Thread is {self._thread}")
-            logger.info("Thread is {}".format(self._thread.is_alive()))
             self._report_metrics()
             time.sleep(config.report_interval_seconds)
 
