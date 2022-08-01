@@ -54,7 +54,7 @@ class Reporter:
             if self._stopevent.is_set():
                 break
 
-        print(f"{self.get_pid} reports completed before exiting.")
+        logger.info(f"{self.get_pid} reports completed before exiting.")
 
     def get_metrics(self):
         return metrics_store.store
