@@ -1,1 +1,10 @@
-django
+asgiref
+certifi
+charset-normalizer
+Django
+gunicorn
+idna
+judoscale-python
+requests
+sqlparse
+urllib3

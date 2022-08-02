@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from judoscale.core.metrics_store import metrics_store
 from judoscale.core.metric import Metric
+from judoscale.core.reporter import reporter
 
 logger = logging.getLogger(__name__)
 
@@ -28,5 +29,6 @@ class RequestQueueTimeMiddleware:
 
             metrics_store.add(metric)
             logger.debug("queue_time={}ms".format(round(queue_time_ms, 2)))
+            reporter.ensure_running()
 
         return self.get_response(request)

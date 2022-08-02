@@ -20,7 +20,7 @@ class JudoscaleDjangoConfig(AppConfig):
             return
 
         self.install_middleware()
-        reporter.start()
+        reporter.ensure_running()
 
     def install_middleware(self):
         if getattr(settings, "MIDDLEWARE", None) is None:

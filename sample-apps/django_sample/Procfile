@@ -2,4 +2,4 @@
 proxy: npx judoscale-adapter-proxy-server
 
 # Run with --noreload to avoid multiple server processes (and multiple Judoscale reporters)
-web: python manage.py runserver $PORT --noreload
+web: gunicorn django_sample.wsgi:application --preload

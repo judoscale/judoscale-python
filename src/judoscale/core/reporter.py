@@ -12,16 +12,52 @@ logger = logging.getLogger(__name__)
 class Reporter:
     def __init__(self):
         self._thread = None
+        self._running = False
+        self._stopevent = threading.Event()
 
     def start(self):
-        logger.info("Starting reporter")
+        pid = self.get_pid
+        logger.info(f"Starting reporter for process {pid}")
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()
+        self._running = True
+
+    def ensure_running(self):
+        try:
+            if not self.is_running:
+                return self.start()
+        except Exception as e:
+            logger.warning(f"{e.args} - No reporter has initiated")
+            pass
+
+    def signal_handler(self, signum, frame):
+        self._stopevent.set()
+        self._running = False
+
+    @property
+    def is_running(self):
+        if self._thread and self._thread.is_alive():
+            self._running = True
+        else:
+            self._running = False
+        return self._running
+
+    @property
+    def get_pid(self):
+        return os.getpid()
 
     def _run_loop(self):
-        while True:
+        while self.is_running:
             self._report_metrics()
             time.sleep(config.report_interval_seconds)
+
+            if self._stopevent.is_set():
+                break
+
+        logger.info(f"{self.get_pid} reports completed before exiting.")
+
+    def get_metrics(self):
+        return metrics_store.store
 
     def _report_metrics(self):
         metrics = metrics_store.flush()
@@ -37,11 +73,12 @@ class Reporter:
 
         return {
             "dyno": config.dyno,
-            # TODO: Does each thread get its own PID?
-            "pid": os.getpid(),
+            "pid": self.get_pid,
             "config": config.for_report(),
             "metrics": list(map(metric_to_list, metrics)),
         }
 
 
+import signal
 reporter = Reporter()
+signal.signal(signal.SIGTERM, reporter.signal_handler)
