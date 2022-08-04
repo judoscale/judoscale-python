@@ -4,11 +4,11 @@ import setuptools
 #
 #   - Update VERSION constant below
 #   - python3 -m pip install --upgrade build twine
-#   - python3 -m build
+#   - rm -rf dist && python3 -m build
 #   - python3 -m twine upload dist/*
 #       - Username is __token__, password is token value
 
-VERSION="0.0.1"
+VERSION = "1.0.0rc1"
 INSTALL_REQUIRES = ["requests<3.0.0"]
 
 with open("README.md", "r", encoding="utf-8") as fh:
