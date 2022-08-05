@@ -31,7 +31,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    package_dir={"": "src"},
-    packages=setuptools.find_packages(where="src"),
+    package_dir={"": "judoscale"},
+    packages=setuptools.find_packages(where="judoscale"),
     install_requires=INSTALL_REQUIRES,
 )
