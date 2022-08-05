@@ -7,7 +7,7 @@
       "label": "run all tests",
       "type": "shell",
       "command": "python",
-      "args": ["-m", "unittest", "tests/judoscale/*_test.py"],
+      "args": ["-m", "unittest", "discover", "-s", "tests"],
       "problemMatcher": [],
       "group": {
         "kind": "test",
