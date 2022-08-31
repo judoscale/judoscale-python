@@ -32,23 +32,20 @@ class RequestQueueTimeMiddleware:
         request = Request(environ)
         logger.debug(request)
 
-        if hasattr(request, "META"):
-            request_start_header = request.META.get("HTTP_X_REQUEST_START", "")
-            request_start_header = re.sub(r"\D", "", request_start_header)
+        request_start_header = request.get("HTTP_X_REQUEST_START", "")
+        request_start_header = re.sub(r"\D", "", request_start_header)
 
-            if len(request_start_header) > 0:
-                now = datetime.now()
-                request_start_timestamp_ms = int(request_start_header)
-                current_timestamp_ms = now.timestamp() * 1000
-                queue_time_ms = current_timestamp_ms - request_start_timestamp_ms
-                metric = Metric(measurement="queue_time",
-                                datetime=now,
-                                value=queue_time_ms)
+        if len(request_start_header) > 0:
+            now = datetime.now()
+            request_start_timestamp_ms = int(request_start_header)
+            current_timestamp_ms = now.timestamp() * 1000
+            queue_time_ms = current_timestamp_ms - request_start_timestamp_ms
+            metric = Metric(measurement="queue_time",
+                            datetime=now,
+                            value=queue_time_ms)
 
-                metrics_store.add(metric)
-                logger.debug("queue_time={}ms".format(round(queue_time_ms, 2)))
-                reporter.ensure_running()
-            else:
-                logger.debug("Request has not META attr")
+            metrics_store.add(metric)
+            logger.debug("queue_time={}ms".format(round(queue_time_ms, 2)))
+            reporter.ensure_running()
 
         return self.app(environ, start_response)
