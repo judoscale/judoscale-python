@@ -1,0 +1,6 @@
+# The proxy server adds the X_REQUEST_START header for queue time calculations
+proxy: npx judoscale-adapter-proxy-server
+
+# Run with --noreload to avoid multiple server processes (and multiple Judoscale reporters)
+#web: gunicorn app:app --preload
+web: flask run -p 5100

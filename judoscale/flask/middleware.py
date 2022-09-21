@@ -32,10 +32,11 @@ class RequestQueueTimeMiddleware:
         request = Request(environ)
         logger.debug(request)
 
-        request_start_header = request.get("HTTP_X_REQUEST_START", "")
+        request_start_header = request.environ.get("HTTP_X_REQUEST_START", "")
         request_start_header = re.sub(r"\D", "", request_start_header)
 
         if len(request_start_header) > 0:
+            logger.debug(f"START X {request_start_header}")
             now = datetime.now()
             request_start_timestamp_ms = int(request_start_header)
             current_timestamp_ms = now.timestamp() * 1000
