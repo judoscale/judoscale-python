@@ -31,7 +31,9 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    packages=["judoscale", "judoscale.core", "judoscale.django"],
+    packages=[
+        "judoscale", "judoscale.core", "judoscale.django", "judoscale.flask"
+    ],
     package_data={"": ["LICENSE"]},
     install_requires=INSTALL_REQUIRES,
 )
