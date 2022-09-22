@@ -2,7 +2,7 @@ import re
 import logging
 from datetime import datetime
 
-from werkzeug.wrappers import Request  # , Response, ResponseStream
+from werkzeug.wrappers import Request
 
 from judoscale.core.metrics_store import metrics_store
 from judoscale.core.metric import Metric
@@ -18,7 +18,7 @@ class RequestQueueTimeMiddleware:
         self.app = app
 
     def __call__(self, environ, start_response):
-        """ Request META is fist cleared with regular expression substitutions.
+        """
         Remove non-digits:
             This removes the "t=" prefix added by some web servers (NGINX).
         Remove decimal:
