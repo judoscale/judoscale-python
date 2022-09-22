@@ -1,8 +1,8 @@
 import unittest
 from unittest import TestCase
 
-from src.judoscale.core.reporter import Reporter
-from src.judoscale.core.metric import Metric
+from judoscale.core.reporter import Reporter
+from judoscale.core.metric import Metric
 from datetime import datetime
 
 
