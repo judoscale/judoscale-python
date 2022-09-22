@@ -11,7 +11,6 @@ class BaseConfig(object):
     DEBUG = True
 
     SECRET_KEY = os.getenv("SECRET_KEY", "")
-#    API_BASE_URL = "https://judoscale-python.requestcatcher.com",
 
     JUDOSCALE = {
         "API_BASE_URL": "https://judoscale-python.requestcatcher.com",
