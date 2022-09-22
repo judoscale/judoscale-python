@@ -20,9 +20,8 @@ app.wsgi_app = RequestQueueTimeMiddleware(app.wsgi_app)
 
 @app.route("/", methods=["GET"])
 def index():
-    logger.debug("Hello World")
-    print("Hello World")
-    return f"Welcome to Judoscale {request.environ}"
+    logger.warning("Hello, world")
+    return "Judoscale Flask Sample App"
 
 
 if __name__ == "__main__":
