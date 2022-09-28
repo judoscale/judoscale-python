@@ -1,12 +1,17 @@
+import datetime
 from unittest import TestCase
+
+from judoscale.django.middleware import RequestQueueTimeMiddleware
 from django.test import Client
 
+from judoscale.core.metrics_store import metrics_store
 from judoscale.core.reporter import reporter
 
 
-class TestLogging(TestCase):
+class TestApp(TestCase):
     def setUp(self):
         self.client = Client()
+        metrics_store.flush()
 
     def test_app_logging(self):
         with self.assertLogs() as captured:
@@ -20,29 +25,29 @@ class TestLogging(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(b"Judoscale Sample App", response.content)
 
-    def test_reporter_starts_for_each_process(self):
-        with self.assertLogs() as captured:
-            import datetime
-            response = self.client.get('/', headers={
-                "X-Request-Start": datetime.datetime.now().timestamp()
-            })
-
-            self.assertEqual(response.status_code, 200)
-            # TODO patch the request header to return HTTP_X_REQUEST_START for test client
-            request = response.wsgi_request
-            print(response.request)
-            self.assertEqual(reporter.is_running, True)
-            self.assertEqual(len(reporter.get_metrics()), 0)
-
-    def test_reporter_captures_metrics(self):
-        import datetime
-        # TODO patch the request header to return HTTP_X_REQUEST_START for test client
-        response = self.client.get('/', headers={
-            "X-Request-Start": datetime.datetime.now().timestamp()
-        })
+    def test_reporter_starts_even_without_the_extra_request_start_header(self):
+        response = self.client.get('/')
 
         self.assertEqual(response.status_code, 200)
-        request = response.wsgi_request
-        print(response.request)
+        print(response.wsgi_request.META)
         self.assertEqual(reporter.is_running, True)
-        self.assertEqual(len(reporter.get_metrics()), 1)
+
+        # no metrics gathered
+        self.assertEqual(len(reporter.get_metrics()), 0)
+
+    def test_reporter_captures_metrics(self):
+        now = datetime.datetime.now().timestamp()
+
+        response = self.client.get('/',
+            HTTP_X_REQUEST_START=f"{now}",
+            HTTP_X_REQUEST_ID="00000000-0000-0000-0000-000000000000"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(reporter.is_running, True)
+
+        # metrics gathered and they contain a datetime and a value
+        metrics = reporter.get_metrics()
+        self.assertEqual(len(metrics), 1)
+        self.assertNotEqual(metrics[0].value, None)
+        self.assertNotEqual(metrics[0].datetime, None)
