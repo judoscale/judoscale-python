@@ -75,6 +75,7 @@ For example if the flask app's settings are in a form of an object then do the f
 ```python
 judoconfig.merge(getattr(config_obj, "JUDOSCALE", {}))
 ```
+The official recomendations for configuring Flask is here https://flask.palletsprojects.com/en/2.2.x/config/#configuration-best-practices
 
 ## Development
 
