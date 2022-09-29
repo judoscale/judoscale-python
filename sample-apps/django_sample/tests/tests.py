@@ -13,6 +13,10 @@ class TestApp(TestCase):
         self.client = Client()
         metrics_store.flush()
 
+    def test_index_view(self):
+        response = self.client.get('/', follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+
     def test_app_logging(self):
         with self.assertLogs() as captured:
             response = self.client.get('/')
@@ -29,7 +33,6 @@ class TestApp(TestCase):
         response = self.client.get('/')
 
         self.assertEqual(response.status_code, 200)
-        print(response.wsgi_request.META)
         self.assertEqual(reporter.is_running, True)
 
         # no metrics gathered
@@ -46,8 +49,8 @@ class TestApp(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(reporter.is_running, True)
 
-        # metrics gathered and they contain a datetime and a value
         metrics = reporter.get_metrics()
+        print("METRIC", metrics)
         self.assertEqual(len(metrics), 1)
         self.assertNotEqual(metrics[0].value, None)
         self.assertNotEqual(metrics[0].datetime, None)
