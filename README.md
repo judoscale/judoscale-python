@@ -56,6 +56,26 @@ JUDOSCALE = {
 
 Once deployed, you will see your request queue time metrics available in the Judoscale UI.
 
+# Using Judoscale with Flask
+
+Add Judoscale options in the app's `settings.py` or `config.py` (optional):
+
+```python
+JUDOSCALE = {                                                               
+    # API_BASE_URL defaults to ENV["JUDOSCALE_URL"], which is set for you when you install Judoscale.
+    "API_BASE_URL": "https://judoscale-python.requestcatcher.com",          
+    "LOG_LEVEL": "DEBUG",                                                   
+    # REPORT_INTERVAL_SECONDS defaults to 10 seconds.
+    "REPORT_INTERVAL_SECONDS": 2,                                           
+}
+```
+
+Retrieve the above dictionary from the flask app's configuration, e.x from `settings.py` or `config.py`, and merge it with Judoscale's configuration:
+For example if the flask app's settings are in a form of an object then do the following:
+```python
+judoconfig.merge(getattr(config_obj, "JUDOSCALE", {}))
+```
+
 ## Development
 
 This repo inclues a `sample-apps` directory containing apps you can run locally. These apps use the judoscale-python adapter, but they override `API_BASE_URL` so they're not connected to the real Judoscale API. Instead, they post API requests to https://requestcatcher.com so you can observe the API behavior.
