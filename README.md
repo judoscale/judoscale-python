@@ -19,7 +19,7 @@ pip install -r requirements.txt
 ## Supported web frameworks
 
 - [x] Django
-- [ ] Flask
+- [x] Flask
 - [ ] FastAPI
 
 ## Supported job processors
@@ -38,7 +38,9 @@ INSTALLED_APPS = [
 ]
 ```
 
-Customize Judoscale options in `settings.py` (optional):
+This sets up the Judoscale middleware to capture request queue times.
+
+Optionally, you can customize Judoscale in `settings.py`:
 
 ```python
 JUDOSCALE = {
@@ -55,6 +57,46 @@ JUDOSCALE = {
 ```
 
 Once deployed, you will see your request queue time metrics available in the Judoscale UI.
+
+# Using Judoscale with Flask
+
+Import `RequestQueueTimeMiddleware` and wrap `wsgi_app`:
+
+```python
+# app.py
+from judoscale.flask.middleware import RequestQueueTimeMiddleware
+
+app = Flask("MyFlaskApp")
+app.wsgi_app = RequestQueueTimeMiddleware(app.wsgi_app)
+```
+
+This sets up the Judoscale middleware to capture request queue times.
+
+Optionally, you can customize Judoscale options in the app's `settings.py` or `config.py`:
+
+```python
+JUDOSCALE = {
+    # LOG_LEVEL defaults to ENV["LOG_LEVEL"] or "INFO".
+    "LOG_LEVEL": "DEBUG",
+
+    # API_BASE_URL defaults to ENV["JUDOSCALE_URL"], which is set for you when you install Judoscale.
+    # This is only exposed for testing purposes.
+    "API_BASE_URL": "https://example.com",
+
+    # REPORT_INTERVAL_SECONDS defaults to 10 seconds.
+    "REPORT_INTERVAL_SECONDS": 5,
+}
+```
+
+If you do this, you'll need to retrieve the above dictionary from the flask app's configuration and merge it with Judoscale's configuration. For example, if the flask app's settings are in a form of an object, you can do the following:
+
+```python
+from judoscale.core.config import config as judoconfig
+
+judoconfig.merge(getattr(config_obj, "JUDOSCALE", {}))
+```
+
+Note the [official recomendations for configuring Flask](https://flask.palletsprojects.com/en/2.2.x/config/#configuration-best-practices).
 
 ## Development
 

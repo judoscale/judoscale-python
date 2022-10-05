@@ -1,16 +1,19 @@
+from werkzeug.wrappers import Request
+
 from judoscale.core.metrics_store import metrics_store
 from judoscale.core.metric import RequestMetrics
 from judoscale.core.reporter import reporter
 
 
 class RequestQueueTimeMiddleware:
-    """ Django middleware for query metrics report"""
+    """ WSGI middleware for query metrics report"""
 
-    def __init__(self, get_response):
-        self.get_response = get_response
+    def __init__(self, app):
+        self.app = app
 
-    def __call__(self, request):
-        request_start_header = request.META.get("HTTP_X_REQUEST_START", "")
+    def __call__(self, environ, start_response):
+        request = Request(environ)
+        request_start_header = request.environ.get("HTTP_X_REQUEST_START", "")
 
         request_metric = RequestMetrics(request_start_header)
         metric = request_metric.get_queue_time_metric_from_header()
@@ -18,4 +21,4 @@ class RequestQueueTimeMiddleware:
             metrics_store.add(metric)
         reporter.ensure_running()
 
-        return self.get_response(request)
+        return self.app(environ, start_response)

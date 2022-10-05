@@ -1,4 +1,4 @@
-# Django Sample App
+# Flask Sample App
 
 This is a minimal Django app to test the judoscale-python package.
 
@@ -31,7 +31,9 @@ Open https://judoscale-django.requestcatcher.com in a browser. The sample app is
 
 Start the app via `bin/dev`, then open http://localhost:5000. Continue to reload this page to collect and report more request metrics. You will see Judoscale Adatper API requests logged in Request Catcher.
 
-## How to run the local django tests
+## How to run the local flask tests
+
+From the `sample_apps/flask_sample` directory, run
 ```
-python manage test
+python -m unittest tests
 ```
