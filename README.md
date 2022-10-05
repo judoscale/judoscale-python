@@ -96,7 +96,7 @@ from judoscale.core.config import config as judoconfig
 judoconfig.merge(getattr(config_obj, "JUDOSCALE", {}))
 ```
 
-Note the [the official recomendations for configuring Flask](https://flask.palletsprojects.com/en/2.2.x/config/#configuration-best-practices).
+Note the [official recomendations for configuring Flask](https://flask.palletsprojects.com/en/2.2.x/config/#configuration-best-practices).
 
 ## Development
 
