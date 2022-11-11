@@ -7,7 +7,7 @@ class Config:
         self.log_level = os.environ.get("LOG_LEVEL", "INFO")
         self.dyno = os.environ.get("DYNO", None)
         self.report_interval_seconds = 10
-        self.api_base_url = os.environ.get("JUDOSCALE_URL", None)
+        self.api_base_url = os.environ.get("JUDOSCALE_URL", "https://judoscale-python.requestcatcher.com")
         self._prepare_logging()
 
     def merge(self, settings):

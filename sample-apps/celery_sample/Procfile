@@ -3,3 +3,4 @@ proxy: npx judoscale-adapter-proxy-server
 
 # Run with --noreload to avoid multiple server processes (and multiple Judoscale reporters)
 web: gunicorn celery_sample.wsgi:application --preload
+worker: celery -A celery_sample worker --loglevel=INFO -Q celery -E

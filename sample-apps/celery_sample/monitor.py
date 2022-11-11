@@ -1,5 +1,13 @@
-from celery import Celery
+import logging
 from datetime import datetime as dt
+#from celery import Celery
+from celery import current_app
+
+from judoscale.core.metric import Metric
+from judoscale.core.reporter import reporter
+from judoscale.core.metrics_store import metrics_store
+
+logger = logging.getLogger(__name__)
 
 
 class EventLogger:
@@ -16,12 +24,11 @@ class EventLogger:
 
 
 class CeleryEventsHandler:
-#    def __init__(self, celery_app, verbose_logging=False):
-    def __init__(self, celery_app):
+    def __init__(self, celery_app, verbose_logging=False):
         self._app = celery_app
         self._state = celery_app.events.State()
         self._logger = EventLogger()
-#        self._verbose_logging = verbose_logging
+        self._verbose_logging = verbose_logging
         self.task_started = {}
         self.task_created = {}
 
@@ -29,22 +36,25 @@ class CeleryEventsHandler:
         self._state.event(event)
         task = self._state.tasks.get(event["uuid"])
         self.task_created[task.uuid] = task.timestamp
-        print("TASK ADDED IN QUEUE", task.timestamp)
-        print("TASK TIMESTAMPS DICT ", self.task_created)
         self._logger.log_task_status_change(task, event)
+        now = dt.now()
+        current_timestamp_ms = now.timestamp()
+        queue_time_ms = (
+            self.task_created[task.uuid] - current_timestamp_ms) * 1000
+        metric = Metric(
+            measurement="queue_time",
+            datetime=dt.fromtimestamp(self.task_created[task.uuid]),
+            value=queue_time_ms
+        )
+        logger.debug("queue_time={}ms".format(round(queue_time_ms, 2)))
+        if metric:
+            metrics_store.add_queue(metric)
+        reporter.ensure_running()
 
     def announce_task_started(self, event):
         self._state.event(event)
         task = self._state.tasks.get(event["uuid"])
         self.task_started[task.uuid] = task.timestamp
-        print("TASK STARTED TO BE PROCESSED", task.timestamp)
-        self._logger.log_task_status_change(task, event)
-
-    def announce_task_succeeded(self, event):
-        self._state.event(event)
-        task = self._state.tasks.get(event["uuid"])
-        print("WAIT TIME IN QUEUE",
-              self.task_started[task.uuid] - self.task_created[task.uuid])
         self._logger.log_task_status_change(task, event)
 
     def announce_failed_tasks(self, event):
@@ -55,6 +65,11 @@ class CeleryEventsHandler:
 
         print("TASK FAILED: %s[%s] %s" % (
             task.name, task.uuid, task.info(),))
+
+    def announce_task_succeeded(self, event):
+        self._state.event(event)
+        task = self._state.tasks.get(event["uuid"])
+        self._logger.log_task_status_change(task, event)
 
     def start_listening(self):
         with self._app.connection() as connection:
@@ -68,9 +83,5 @@ class CeleryEventsHandler:
 
 
 if __name__ == '__main__':
-    app = Celery(broker='pyamqp://guest@localhost')
-
-    events_handler = CeleryEventsHandler(app)
+    events_handler = CeleryEventsHandler(current_app)
     events_handler.start_listening()
-
-

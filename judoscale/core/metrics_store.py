@@ -12,6 +12,9 @@ class MetricsStore:
         self.max_flush_interval = max_flush_interval
         self.last_flush_time = datetime.now()
 
+    def add_queue(self, metric):
+        self.store.append(metric)
+
     def add(self, metric):
         if self.last_flush_time > datetime.now() - timedelta(
             seconds=self.max_flush_interval
