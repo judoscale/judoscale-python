@@ -32,7 +32,8 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     packages=[
-        "judoscale", "judoscale.core", "judoscale.django", "judoscale.flask"
+        "judoscale", "judoscale.core", "judoscale.django",
+        "judoscale.flask", "judoscale.celery"
     ],
     package_data={"": ["LICENSE"]},
     install_requires=INSTALL_REQUIRES,
