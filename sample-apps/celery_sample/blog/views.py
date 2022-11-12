@@ -1,6 +1,7 @@
 import logging
 
 from django.http import HttpResponse
+from blog.tasks import add
 
 logger = logging.getLogger(__name__)
 
@@ -11,4 +12,6 @@ def index(request):
     """
 
     logger.warning("Hello, world")
+    add.delay(1, 3)
+
     return HttpResponse("Judoscale Sample App")

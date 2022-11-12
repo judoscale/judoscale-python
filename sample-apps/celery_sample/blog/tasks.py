@@ -1,14 +1,15 @@
+import logging
 import time
-
-# from celery_sample.celery import app as celery_app
-# from celery_sample.celery import CeleryEventsHandler
 from celery import shared_task
+
+logger = logging.getLogger(__name__)
+
 
 
 @shared_task(bind=True)
 def add(self, x, y):
-    print("SLEEPING for 5''")
+    logger.info("Sleeping for 5 secs")
     time.sleep(5)
     amount = x + y
-    print("Done")
+    logger.info("Done")
     return amount

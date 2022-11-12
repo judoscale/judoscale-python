@@ -24,12 +24,13 @@ Run `bin/dev` to run the app in development mode. This will...
 - Use `heroku local` and a `Procfile` to start the following processes:
   - A [tiny proxy server](https://github.com/judoscale/judoscale-adapter-proxy-server) that adds the `X-Request-Start` request header so we can test request queue time reporting.
   - The Django sample app.
+  - The Celery workers
 
 ## How to use this sample app
 
 Open https://judoscale-django.requestcatcher.com in a browser. The sample app is configured to use this Request Catcher endpoint as a mock for the Judoscale Adapter API. This page will monitor all API requests sent from the adapter.
 
-Start the app via `bin/dev`, then open http://localhost:5000. Continue to reload this page to collect and report more request metrics. You will see Judoscale Adatper API requests logged in Request Catcher.
+Start the app via `bin/dev`, then open http://localhost:5000. Continue to reload this page to trigger the task, and collect and report more request metrics. You will see Judoscale Adatper API requests logged in Request Catcher.
 
 ## How to run the local django tests
 ```

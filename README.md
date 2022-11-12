@@ -127,11 +127,11 @@ For an extensive how-to:
 
 [Celery official docs about working with Django]( https://docs.celeryq.dev/en/stable/django/first-steps-with-django.html)
 	
-Run Celery with:
+Test Celery is running, and tasks registered with:
 ```
 $ celery -A celery_sample worker --loglevel=INFO -Q celery -E
 ```
-For more details about Celery, visit the `README` inside the `sample_apps/celery_sample` directory.
+For more details about Celery and judoscale/heroku, please visit the `README` inside the `sample_apps/celery_sample` directory.
 
 ## Development
 
