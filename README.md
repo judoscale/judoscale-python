@@ -98,6 +98,41 @@ judoconfig.merge(getattr(config_obj, "JUDOSCALE", {}))
 
 Note the [official recomendations for configuring Flask](https://flask.palletsprojects.com/en/2.2.x/config/#configuration-best-practices).
 
+## Using Judoscale with Celery and Django
+This brief how-to, uses Redis as a result backend, and RabbitMQ as transport broker.
+Install celery and redis with pip
+```
+$ pip install "celery[redis]
+```
+Next you need to install RabbitMQ and redis for your system. 
+```
+$ sudo apt-get install rabbitmq-server
+$ sudo apt-get install redis-server
+```
+and make sure those are running with
+
+```
+$ systemctl status rabbitmq-server.service
+$ sudo systemctl status redis-server.service
+```
+For extra information, see [RabbitMQ Get Started](https://www.rabbitmq.com/download.html)
+And for how to use it, check [Celery's rabbitmq section](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/rabbitmq.html)
+ref [Celery Get Started](https://docs.celeryq.dev/en/stable/getting-started/introduction.html#installation)
+
+Configure your django application with Celery.
+Check the `celery_sample/celery_sample/celery.py` for how to import and configure Celery.
+Also a sample task can be found under `celery_sample/blog`.
+
+For an extensive how-to:
+
+[Celery official docs about working with Django]( https://docs.celeryq.dev/en/stable/django/first-steps-with-django.html)
+	
+Run Celery with:
+```
+$ celery -A celery_sample worker --loglevel=INFO -Q celery -E
+```
+For more details about Celery, visit the `README` inside the `sample_apps/celery_sample` directory.
+
 ## Development
 
 This repo inclues a `sample-apps` directory containing apps you can run locally. These apps use the judoscale-python adapter, but they override `API_BASE_URL` so they're not connected to the real Judoscale API. Instead, they post API requests to https://requestcatcher.com so you can observe the API behavior.

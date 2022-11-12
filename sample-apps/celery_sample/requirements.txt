@@ -1,10 +1,12 @@
 asgiref
+celery
 certifi
 charset-normalizer
 Django
 gunicorn
 idna
 judoscale-python
+redis
 requests
 sqlparse
 urllib3
