@@ -69,6 +69,8 @@ class CeleryEventsHandler:
     def announce_task_succeeded(self, event):
         self._state.event(event)
         task = self._state.tasks.get(event["uuid"])
+        print("WAIT TIME IN QUEUE",
+              self.task_started[task.uuid] - self.task_created[task.uuid])
         self._logger.log_task_status_change(task, event)
 
     def start_listening(self):
