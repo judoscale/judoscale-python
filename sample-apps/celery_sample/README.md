@@ -7,6 +7,7 @@ This is a minimal Django app to test the judoscale-python package.
 - Python 3
 - Node
 - [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
+- Celery (and a broker and result's backend, this app uses RabbitMQ and Redis respectively, see main judoscale README for installation guide)
 
 ## Set up the app
 
