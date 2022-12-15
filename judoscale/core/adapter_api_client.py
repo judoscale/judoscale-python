@@ -1,7 +1,8 @@
-from judoscale.core.config import config
 import logging
+
 import requests
-import json
+
+from judoscale.core.config import config
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +14,9 @@ class AdapterApiClient:
             metrics_length = len(report["metrics"])
             pid = report["pid"]
             logger.debug(
-                f"Posting {metrics_length} metrics from {pid} to Judoscale adapter API {url_metrics}")
+                f"Posting {metrics_length} metrics from {pid} "
+                f"to Judoscale adapter API {url_metrics}"
+            )
             requests.post(url_metrics, timeout=5, json=report)
         except requests.RequestException as e:
             logger.warning("Adapter API request failed - {}".format(e))

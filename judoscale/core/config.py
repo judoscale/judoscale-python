@@ -23,7 +23,7 @@ class Config:
         }
 
     def _prepare_logging(self):
-        logger = logging.getLogger('judoscale')
+        logger = logging.getLogger("judoscale")
         log_level = logging.getLevelName(self.log_level.upper())
         logger.setLevel(log_level)
 

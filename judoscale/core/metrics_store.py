@@ -23,7 +23,8 @@ class MetricsStore:
     def flush(self):
         self.last_flush_time = datetime.now()
         result = []
-        # This operation needs to be atomic since the main thread is appending to the store
+        # This operation needs to be atomic since the main thread is appending
+        # to the store
         while metric := self._pop():
             result.append(metric)
 

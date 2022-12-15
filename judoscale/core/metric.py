@@ -37,9 +37,7 @@ class RequestMetrics:
             request_start_timestamp_ms = int(request_header)
             current_timestamp_ms = now.timestamp() * 1000
             queue_time_ms = current_timestamp_ms - request_start_timestamp_ms
-            metric = Metric(measurement="queue_time",
-                            datetime=now,
-                            value=queue_time_ms)
+            metric = Metric(measurement="queue_time", datetime=now, value=queue_time_ms)
             logger.debug("queue_time={}ms".format(round(queue_time_ms, 2)))
             return metric
 
