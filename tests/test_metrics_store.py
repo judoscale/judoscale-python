@@ -16,7 +16,7 @@ class TestMetricsStore(TestCase):
         assert self.store.flush() == []
 
     def test_max_flush_interval(self):
-        self.store.max_flush_interval=0.0001
+        self.store.max_flush_interval = 0.0001
         self.store.add(11)
         time.sleep(0.01)
 
@@ -30,5 +30,5 @@ class TestMetricsStore(TestCase):
         assert self.store.flush() == [22]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

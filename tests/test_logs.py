@@ -18,7 +18,11 @@ class TestReporter(TestCase):
         logging.shutdown()
 
     def test_judo_logging(self):
-        msg = 'foo'
+        msg = "foo"
         self.logger.warning(msg)
         msg_log = self.stream.getvalue()
         self.assertIn("[Judoscale]", msg_log)
+
+
+if __name__ == "__main__":
+    unittest.main()
