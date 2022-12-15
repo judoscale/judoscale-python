@@ -1,3 +1,10 @@
 {
-  "python.formatting.provider": "black"
+    "python.formatting.provider": "black",
+    "python.linting.flake8Enabled": true,
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        },
+    },
 }
