@@ -1,0 +1,71 @@
+name: Release and publish
+
+on:
+  workflow_run:
+    workflows: [Run tests]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  release-please:
+    name: Create a release
+    runs-on: ubuntu-22.04
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+    steps:
+      - name: Release
+        id: release
+        uses: google-github-actions/release-please-action@v3
+        with:
+          release-type: python
+          package-name: judoscale-python
+          bump-minor-pre-major: true
+
+  publish:
+    name: Publish to PyPI
+    needs: release-please
+    runs-on: ubuntu-22.04
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        id: setup-python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      - name: Cache Poetry install
+        uses: actions/cache@v3
+        with:
+          path: ~/.local
+          # NB! Update key when Poetry version is updated
+          key: python-${{ steps.setup-python.outputs.python-version }}-poetry-1.2.2
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1.3.3
+        with:
+          # NB! Update Poetry cache key when updating Poetry version
+          version: 1.2.2
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-root
+        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
+
+      - name: Install library
+        run: poetry install --no-interaction
+
+      - name: Publish to PyPI
+        run: |
+          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+          poetry publish --build --dry-run
