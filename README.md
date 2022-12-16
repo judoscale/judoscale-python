@@ -106,8 +106,7 @@ See the `README` in a sample app for details on how to set it up and run locally
 
 ### Contributing
 
-`judoscale-python` uses [Poetry](https://python-poetry.org/) for managing dependencies
-and packaging the project. Head over to the [installations instructions](https://python-poetry.org/docs/#installing-with-the-official-installer) and install Poetry, if needed.
+`judoscale-python` uses [Poetry](https://python-poetry.org/) for managing dependencies and packaging the project. Head over to the [installations instructions](https://python-poetry.org/docs/#installing-with-the-official-installer) and install Poetry, if needed.
 
 Clone the repo with
 
