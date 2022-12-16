@@ -1,10 +1,12 @@
-import threading
-import time
 import logging
 import os
+import signal
+import threading
+import time
+
+from judoscale.core.adapter_api_client import api_client
 from judoscale.core.config import config
 from judoscale.core.metrics_store import metrics_store
-from judoscale.core.adapter_api_client import api_client
 
 logger = logging.getLogger(__name__)
 
@@ -63,22 +65,22 @@ class Reporter:
         metrics = metrics_store.flush()
         api_client.post_report(self._build_report(metrics))
 
-    def _build_report(self, metrics):
-        metric_to_list = lambda m: [
-            round(m.datetime.timestamp()),
-            round(m.value, 2),
-            m.measurement,
-            m.queue_name,
+    def _metric_to_list(self, metric):
+        return [
+            round(metric.datetime.timestamp()),
+            round(metric.value, 2),
+            metric.measurement,
+            metric.queue_name,
         ]
 
+    def _build_report(self, metrics):
         return {
             "dyno": config.dyno,
             "pid": self.get_pid,
             "config": config.for_report(),
-            "metrics": list(map(metric_to_list, metrics)),
+            "metrics": list(map(self._metric_to_list, metrics)),
         }
 
 
-import signal
 reporter = Reporter()
 signal.signal(signal.SIGTERM, reporter.signal_handler)
