@@ -4,7 +4,7 @@ This is the official Python adapter for [Judoscale](https://elements.heroku.com/
 
 ## Installation
 
-Add judoscale-python to your <code>requirements.txt</code> file:
+Add judoscale-python to your <code>requirements.txt</code> file or the equivalent:
 
 ```
 judoscale-python >= 1.0.0rc1
@@ -96,10 +96,42 @@ from judoscale.core.config import config as judoconfig
 judoconfig.merge(getattr(config_obj, "JUDOSCALE", {}))
 ```
 
-Note the [official recomendations for configuring Flask](https://flask.palletsprojects.com/en/2.2.x/config/#configuration-best-practices).
+Note the [official recommendations for configuring Flask](https://flask.palletsprojects.com/en/2.2.x/config/#configuration-best-practices).
 
 ## Development
 
-This repo inclues a `sample-apps` directory containing apps you can run locally. These apps use the judoscale-python adapter, but they override `API_BASE_URL` so they're not connected to the real Judoscale API. Instead, they post API requests to https://requestcatcher.com so you can observe the API behavior.
+This repo includes a `sample-apps` directory containing apps you can run locally. These apps use the judoscale-python adapter, but they override `API_BASE_URL` so they're not connected to the real Judoscale API. Instead, they post API requests to https://requestcatcher.com so you can observe the API behavior.
 
 See the `README` in a sample app for details on how to set it up and run locally.
+
+### Contributing
+
+`judoscale-python` uses [Poetry](https://python-poetry.org/) for managing dependencies
+and packaging the project. Head over to the [installations instructions](https://python-poetry.org/docs/#installation) and install Poetry, if needed.
+
+Clone the repo with
+
+```sh
+$ git clone git@github.com:judoscale/judoscale-python.git
+$ cd judoscale-python
+```
+
+Verify that you are on a recent version of Poetry:
+
+```sh
+$ poetry --version
+Poetry (version 1.3.1)
+```
+
+Install dependencies with Poetry and activate the virtualenv
+
+```sh
+$ poetry install
+$ poetry shell
+```
+
+Run tests with
+
+```sh
+$ python -m unittest
+```
