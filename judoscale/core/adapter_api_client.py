@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class AdapterApiClient:
     def post_report(self, report):
         try:
-            url_metrics = config.api_base_url + "/v1/metrics"
+            url_metrics = f"{config.api_base_url}/v3/reports"
             metrics_length = len(report["metrics"])
             pid = report["pid"]
             logger.debug(
