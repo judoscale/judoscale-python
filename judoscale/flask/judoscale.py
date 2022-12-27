@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import request
 
 from judoscale.core.config import config as judoconfig
 from judoscale.core.metric import RequestMetrics
