@@ -2,8 +2,9 @@ import logging
 
 from django.apps import AppConfig
 from django.conf import settings
-from judoscale.core.reporter import reporter
+
 from judoscale.core.config import config
+from judoscale.core.reporter import reporter
 
 logger = logging.getLogger(__name__)
 
