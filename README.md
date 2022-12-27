@@ -60,19 +60,35 @@ Once deployed, you will see your request queue time metrics available in the Jud
 
 # Using Judoscale with Flask
 
-Import `RequestQueueTimeMiddleware` and wrap `wsgi_app`:
+The Flask support for Judoscale is packaged into a Flask extension. Import the extension class and use like you normally would in a Flask application:
 
-```python
+
+```py
 # app.py
-from judoscale.flask.middleware import RequestQueueTimeMiddleware
+
+from judoscale.flask import Judoscale
+
+# If your app is a top-level global
 
 app = Flask("MyFlaskApp")
-app.wsgi_app = RequestQueueTimeMiddleware(app.wsgi_app)
+app.config.from_object('...')  # or however you configure your app
+judoscale = Judoscale(app)
+
+
+# If your app uses the application factory pattern
+
+judoscale = Judoscale()
+
+def create_app():
+    app = Flask("MyFlaskApp")
+    app.config.from_object('...')  # or however you configure your app
+    judoscale.init_app(app)
+    return app
 ```
 
-This sets up the Judoscale middleware to capture request queue times.
+This sets up the Judoscale extension to capture request queue times.
 
-Optionally, you can customize Judoscale options in the app's `settings.py` or `config.py`:
+Optionally, you can override Judoscale's own configuration via your application's [configuration dictionary](https://flask.palletsprojects.com/en/2.2.x/api/#flask.Flask.config). The Judoscale Flask extension looks for a top-level `"JUDOSCALE"` key in `app.config`, which should be a dictionary, and which the extension uses to configure itself as soon as `judoscale.init_app()` is called.
 
 ```python
 JUDOSCALE = {
@@ -86,14 +102,6 @@ JUDOSCALE = {
     # REPORT_INTERVAL_SECONDS defaults to 10 seconds.
     "REPORT_INTERVAL_SECONDS": 5,
 }
-```
-
-If you do this, you'll need to retrieve the above dictionary from the flask app's configuration and merge it with Judoscale's configuration. For example, if the flask app's settings are in a form of an object, you can do the following:
-
-```python
-from judoscale.core.config import config as judoconfig
-
-judoconfig.merge(getattr(config_obj, "JUDOSCALE", {}))
 ```
 
 Note the [official recommendations for configuring Flask](https://flask.palletsprojects.com/en/2.2.x/config/#configuration-best-practices).
