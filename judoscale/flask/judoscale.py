@@ -23,4 +23,5 @@ class Judoscale:
 
     def init_app(self, app):
         judoconfig.merge(app.config.get("JUDOSCALE", {}))
+        reporter.ensure_running()
         app.before_request(report_metrics)
