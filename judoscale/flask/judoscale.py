@@ -17,7 +17,7 @@ def report_metrics():
 
 
 class Judoscale:
-    def __init__(self, app):
+    def __init__(self, app=None):
         if app is not None:
             self.init_app(app)
 
