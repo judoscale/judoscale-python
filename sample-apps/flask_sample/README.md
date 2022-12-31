@@ -1,39 +1,39 @@
 # Flask Sample App
 
-This is a minimal Django app to test the judoscale-python package.
+This is a minimal Flask app to test the judoscale-python package.
 
 ## Prerequisites
 
-- Python 3
+- Python 3.8+
+- [Poetry 1.3+](https://python-poetry.org/)
 - Node
 - [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
 
 ## Set up the app
 
 ```
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+$ poetry install
 ```
+
+This will install the dependencies, including `judoscale-python` as a [path dependency](https://python-poetry.org/docs/dependency-specification/#path-dependencies).
 
 ## Run the app
 
-Run `bin/dev` to run the app in development mode. This will...
+Run `bin/dev` to run the app in development mode. This will run `heroku local`, which starts:
 
-- Install the local judoscale-python package so unpublished changes can be tested.
-- Use `heroku local` and a `Procfile` to start the following processes:
-  - A [tiny proxy server](https://github.com/judoscale/judoscale-adapter-proxy-server) that adds the `X-Request-Start` request header so we can test request queue time reporting.
-  - The Django sample app.
+- a [tiny proxy server](https://github.com/judoscale/judoscale-adapter-proxy-server) that adds the `X-Request-Start` request header so we can test request queue time reporting; and
+- the Flask sample app.
 
 ## How to use this sample app
 
-Open https://judoscale-django.requestcatcher.com in a browser. The sample app is configured to use this Request Catcher endpoint as a mock for the Judoscale Adapter API. This page will monitor all API requests sent from the adapter.
+Open https://judoscale-flask.requestcatcher.com in a browser. The sample app is configured to use this Request Catcher endpoint as a mock for the Judoscale Adapter API. This page will monitor all API requests sent from the adapter.
 
-Start the app via `bin/dev`, then open http://localhost:5000. Continue to reload this page to collect and report more request metrics. You will see Judoscale Adatper API requests logged in Request Catcher.
+Start the app via `./bin/dev`, then open http://localhost:5000. Continue to reload this page to collect and report more request metrics. You will see Judoscale Adatper API requests logged in Request Catcher.
 
 ## How to run the local flask tests
 
-From the `sample_apps/flask_sample` directory, run
+From the `sample-apps/flask_sample` directory, run
+
 ```
-python -m unittest tests
+$ ./bin/test
 ```
