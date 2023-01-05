@@ -1,10 +1,10 @@
-from judoscale.core.metrics_store import metrics_store
 from judoscale.core.metric import RequestMetrics
+from judoscale.core.metrics_store import metrics_store
 from judoscale.core.reporter import reporter
 
 
 class RequestQueueTimeMiddleware:
-    """ Django middleware for query metrics report"""
+    """Django middleware for query metrics report"""
 
     def __init__(self, get_response):
         self.get_response = get_response
