@@ -140,5 +140,5 @@ $ poetry shell
 Run tests with
 
 ```sh
-$ python -m unittest
+$ python -m unittest discover -s tests
 ```
