@@ -6,7 +6,7 @@ from judoscale.core.metrics_store import metrics_store
 from judoscale.core.reporter import reporter
 
 
-def report_metrics():
+def store_request_metrics():
     request_start_header = request.headers.get("x-request-start", "")
     request_metric = RequestMetrics(request_start_header)
     metric = request_metric.get_queue_time_metric_from_header()
@@ -24,4 +24,4 @@ class Judoscale:
     def init_app(self, app):
         judoconfig.merge(app.config.get("JUDOSCALE", {}))
         reporter.ensure_running()
-        app.before_request(report_metrics)
+        app.before_request(store_request_metrics)
