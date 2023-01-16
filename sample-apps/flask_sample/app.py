@@ -15,7 +15,11 @@ def create_app():
     @app.route("/", methods=["GET"])
     def index():
         current_app.logger.warning("Hello, world")
-        return "Judoscale Flask Sample App"
+        catcher_url = current_app.config["JUDOSCALE"]["API_BASE_URL"]
+        return (
+            "Judoscale Flask Sample App. "
+            f"<a target='_blank' href={catcher_url}>Metrics</a>"
+        )
 
     return app
 
