@@ -1,7 +1,7 @@
 import logging
 import re
-import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Metric:
-    timestamp: int
-    value: float
+    timestamp: int  # Unix timestamp in seconds
+    value: float  # Metric value in milliseconds
     queue_name: str = None
     measurement: str = "queue_time"
 
@@ -47,7 +47,7 @@ class Metric:
             return None
 
         logger.debug(f"START X {request_start}")
-        now = time.time()
+        now = datetime.now(timezone.utc).timestamp()
         latency = max(0, now * 1000 - int(request_start))
         logger.debug(f"queue_time={latency:.2f}ms")
-        return Metric(timestamp=now, value=latency, measurement="queue_time")
+        return Metric(timestamp=now, value=latency)
