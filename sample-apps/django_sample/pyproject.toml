@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "judoscale-django-sample"
+version = "0.1.0"
+description = "A Django app for testing judoscale-python functionality"
+authors = [
+    "Adam McCrea <adam@adamlogic.com>",
+    "Mara <mara@multiplace.org>",
+    "Karl Sutt <karl@sutt.ee>"
+]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "judoscale_django_sample"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+Django = "^4.1.5"
+gunicorn = "^20.1.0"
+judoscale-python = { path = "../../", develop = true }
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -6,4 +6,4 @@
 # We're doing the same thing here so we can verify the judoscale-python
 # package is using it as expected.
 
-pip install ../../../judoscale-python && DYNO=web.1 heroku local
+DYNO=web.1 heroku local
