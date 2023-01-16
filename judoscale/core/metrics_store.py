@@ -35,6 +35,3 @@ class MetricsStore:
             return self.store.pop() if self.store else None
         except IndexError:
             return None
-
-
-metrics_store = MetricsStore()
