@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     # sample app
     "blog",
 ]
@@ -46,7 +45,7 @@ INSTALLED_APPS = [
 JUDOSCALE = {
     # This sample app is intended to be run locally, so Judoscale API requests are
     # sent to a mock endpoint.
-    "API_BASE_URL": "https://judoscale-python.requestcatcher.com",
+    "API_BASE_URL": "https://judoscale-django.requestcatcher.com",
     "LOG_LEVEL": "DEBUG",
     "REPORT_INTERVAL_SECONDS": 2,
 }
@@ -98,7 +97,7 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",  # noqa: E501
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
