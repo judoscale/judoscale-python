@@ -1,27 +1,42 @@
 import logging
-from datetime import datetime, timedelta
+import time
+from typing import List, Optional
+
+from judoscale.core.metric import Metric
 
 logger = logging.getLogger(__name__)
 
 
 class MetricsStore:
-    # max_flush_interval exists to prevent collecting metrics in memory if they
-    # are never being flushed (if the reporter has failed for some reason).
-    def __init__(self, max_flush_interval=60):
-        self.store = []
-        self.max_flush_interval = max_flush_interval
-        self.last_flush_time = datetime.now()
+    """
+    A thread-safe store for metrics.
+    """
 
-    def add(self, metric):
-        if self.last_flush_time > datetime.now() - timedelta(
-            seconds=self.max_flush_interval
-        ):
+    def __init__(self, max_flush_interval: int = 60):
+        self.store: List[Metric] = []
+        # The max_flush_interval exists to prevent collecting metrics in memory
+        # if they are never being flushed (if the reporter has failed for some
+        # reason).
+        self.max_flush_interval: int = max_flush_interval
+        self.last_flush_time: float = time.time()
+
+    def add(self, metric: Metric) -> None:
+        """
+        Add a metric to the store.
+
+        If the max flush interval has been exceeded, the metric will not be
+        added to the store.
+        """
+        if self.last_flush_time > time.time() - self.max_flush_interval:
             self.store.append(metric)
         else:
             logger.debug("Max flush interval exceeded - Not adding metric to store.")
 
-    def flush(self):
-        self.last_flush_time = datetime.now()
+    def flush(self) -> List[Metric]:
+        """
+        Return all metrics in the store and clear the store.
+        """
+        self.last_flush_time = time.time()
         result = []
         # This operation needs to be atomic since the main thread is appending
         # to the store
@@ -30,7 +45,7 @@ class MetricsStore:
 
         return result
 
-    def _pop(self):
+    def _pop(self) -> Optional[Metric]:
         try:
             return self.store.pop() if self.store else None
         except IndexError:
