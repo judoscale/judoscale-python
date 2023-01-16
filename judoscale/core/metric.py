@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Metric:
-    timestamp: int  # Unix timestamp in seconds
+    timestamp: float  # Unix timestamp in fractional seconds
     value: float  # Metric value in milliseconds
     queue_name: str = None
     measurement: str = "queue_time"
