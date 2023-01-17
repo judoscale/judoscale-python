@@ -4,7 +4,6 @@ from django.apps import AppConfig
 from django.conf import settings
 
 from judoscale.core.config import config
-from judoscale.core.metrics_collectors import WebMetricsCollector
 from judoscale.core.reporter import reporter
 
 logger = logging.getLogger(__name__)
@@ -21,7 +20,6 @@ class JudoscaleDjangoConfig(AppConfig):
             logger.info("Not activated - No API URL provided")
             return
 
-        reporter.add_collector(WebMetricsCollector())
         self.install_middleware()
         reporter.ensure_running()
 
