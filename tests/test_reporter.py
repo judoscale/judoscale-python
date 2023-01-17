@@ -13,13 +13,13 @@ class TestReporter(TestCase):
 
     def test_build_report(self):
         dt = datetime.fromisoformat("2012-12-12T12:12:00+00:00")
-        metric = Metric(measurement="test", timestamp=dt.timestamp(), value=123.456789)
+        metric = Metric(measurement="test", timestamp=dt.timestamp(), value=123)
 
         report = self.reporter._build_report([metric])
 
         assert list(report.keys()).sort() == ["config", "dyno", "pid", "metrics"].sort()
         assert len(report["metrics"]) == 1
-        assert report["metrics"][0] == (1355314320, 123.46, "test", None)
+        assert report["metrics"][0] == (1355314320, 123, "test", None)
 
     def test_add_collector(self):
         collector_instance = WebMetricsCollector()

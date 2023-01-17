@@ -10,18 +10,18 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Metric:
     timestamp: float  # Unix timestamp in fractional seconds
-    value: float  # Metric value in milliseconds
+    value: int
     queue_name: str = None
     measurement: str = "queue_time"
 
     @property
-    def as_tuple(self) -> Tuple[int, float, str, str]:
+    def as_tuple(self) -> Tuple[int, int, str, str]:
         """
         Return a tuple of the metric's timestamp, value, measurement and queue.
         """
         return (
             round(self.timestamp),
-            round(self.value, 2),
+            self.value,
             self.measurement,
             self.queue_name,
         )
@@ -48,6 +48,6 @@ class Metric:
 
         logger.debug(f"START X {request_start}")
         now = datetime.now(timezone.utc).timestamp()
-        latency = max(0, now * 1000 - int(request_start))
-        logger.debug(f"queue_time={latency:.2f}ms")
+        latency = int(max(0, now * 1000 - int(request_start)))
+        logger.debug(f"queue_time={latency}ms")
         return Metric(timestamp=now, value=latency)
