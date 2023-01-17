@@ -26,14 +26,6 @@ class TestReporter(TestCase):
         self.reporter.add_collector(collector_instance)
         assert self.reporter.collectors == [collector_instance]
 
-    def test_find_collector(self):
-        collector_instance = WebMetricsCollector()
-        self.reporter.add_collector(collector_instance)
-        assert self.reporter.find_collector(WebMetricsCollector) == collector_instance
-
-    def test_cannot_find_collector(self):
-        assert self.reporter.find_collector(WebMetricsCollector) is None
-
     def test_all_metrics_empty(self):
         assert self.reporter.all_metrics == []
 

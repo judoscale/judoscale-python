@@ -11,7 +11,6 @@ class TestApp(TestCase):
     def setUp(self):
         self.client = Client()
         reporter.add_collector(WebMetricsCollector())
-        reporter.find_collector(WebMetricsCollector).store.flush()
 
     def test_index_view(self):
         response = self.client.get("/", follow_redirects=True)

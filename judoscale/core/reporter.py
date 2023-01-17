@@ -31,15 +31,6 @@ class Reporter:
         """
         self.collectors.append(collector)
 
-    def find_collector(self, klass: MetricsCollector) -> Optional[MetricsCollector]:
-        """
-        Find a collector by class.
-        """
-        for collector in self.collectors:
-            if isinstance(collector, klass):
-                return collector
-        return None
-
     def start(self):
         logger.info(f"Starting reporter for process {self.pid}")
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
