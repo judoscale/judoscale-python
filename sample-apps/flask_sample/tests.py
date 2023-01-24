@@ -4,6 +4,7 @@ from typing import List
 
 from app import create_app
 
+from judoscale.core.config import config
 from judoscale.core.metric import Metric
 from judoscale.core.reporter import reporter
 
@@ -11,6 +12,7 @@ from judoscale.core.reporter import reporter
 class BasicTests(unittest.TestCase):
     def setUp(self):
         """Setup executed prior to each test"""
+        config.dyno, config.dyno_name, config.dyno_num = "web.1", "web", 1
         app = create_app()
         app.config["TESTING"] = True
         app.config["DEBUG"] = False

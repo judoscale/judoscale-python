@@ -3,14 +3,14 @@ from unittest import TestCase
 
 from django.test import Client
 
-from judoscale.core.metrics_collectors import WebMetricsCollector
+from judoscale.core.config import config
 from judoscale.core.reporter import reporter
 
 
 class TestApp(TestCase):
     def setUp(self):
+        config.dyno, config.dyno_name, config.dyno_num = "web.1", "web", 1
         self.client = Client()
-        reporter.add_collector(WebMetricsCollector())
 
     def test_index_view(self):
         response = self.client.get("/", follow_redirects=True)
