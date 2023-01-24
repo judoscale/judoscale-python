@@ -27,6 +27,7 @@ black = "^22.12.0"
 flake8 = { version = "^6.0.0", python = ">=3.8.1,<4.0.0" }
 isort = "^5.11.2"
 django = "^4.1.4"
+celery = {extras = ["redis"], version = "^5.2.7"}
 
 [tool.isort]
 profile = "black"
