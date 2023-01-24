@@ -27,6 +27,18 @@ class Metric:
         )
 
     @classmethod
+    def new(cls, start_ms: int, **kwargs) -> "Metric":
+        """
+        Create a new Metric instance.
+
+        start_ms:
+            The start time the request or background job in milliseconds.
+        """
+        now = datetime.now(timezone.utc).timestamp()
+        latency_ms = max(0, int(now * 1000) - start_ms)
+        return cls(timestamp=now, value=latency_ms, **kwargs)
+
+    @classmethod
     def for_web(cls, header_value: str) -> Optional["Metric"]:
         """
         Parse the X-Request-Start header value and return a Metric instance.
@@ -47,7 +59,22 @@ class Metric:
             return None
 
         logger.debug(f"START X {request_start}")
-        now = datetime.now(timezone.utc).timestamp()
-        latency = int(max(0, now * 1000 - int(request_start)))
-        logger.debug(f"queue_time={latency}ms")
-        return Metric(timestamp=now, value=latency)
+        metric = Metric.new(start_ms=int(request_start))
+        logger.debug(f"queue_time={metric.value}ms")
+        return metric
+
+    @classmethod
+    def for_queue(cls, queue_name: str, oldest_job_ts: float) -> "Metric":
+        """
+        Calculate how long the oldest job in a queue has been waiting to be
+        handled, log and return a Metric instance.
+
+        queue_name:
+            The name of the queue.
+
+        oldest_job_ts:
+            The Unix timestamp of the oldest job in the queue.
+        """
+        metric = Metric.new(start_ms=int(oldest_job_ts * 1000), queue_name=queue_name)
+        logger.debug(f"queue_name={queue_name}, queue_time={metric.value}ms")
+        return metric
