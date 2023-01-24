@@ -11,11 +11,11 @@ logger = logging.getLogger(__name__)
 class Metric:
     timestamp: float  # Unix timestamp in fractional seconds
     value: int
-    queue_name: str = None
+    queue_name: Optional[str] = None
     measurement: str = "queue_time"
 
     @property
-    def as_tuple(self) -> Tuple[int, int, str, str]:
+    def as_tuple(self) -> Tuple[int, int, str, Optional[str]]:
         """
         Return a tuple of the metric's timestamp, value, measurement and queue.
         """
