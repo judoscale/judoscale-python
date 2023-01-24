@@ -3,23 +3,36 @@ import os
 import signal
 import threading
 import time
+from typing import List, Optional
 
 from judoscale.core.adapter_api_client import api_client
 from judoscale.core.config import config
-from judoscale.core.metrics_store import metrics_store
+from judoscale.core.metric import Metric
+from judoscale.core.metrics_collectors import MetricsCollector
 
 logger = logging.getLogger(__name__)
 
 
 class Reporter:
+    """
+    A reporter that collects metrics from all registered collectors and reports
+    them to the Judoscale API.
+    """
+
     def __init__(self):
         self._thread = None
         self._running = False
         self._stopevent = threading.Event()
+        self.collectors: List[MetricsCollector] = []
+
+    def add_collector(self, collector: MetricsCollector):
+        """
+        Add a collector to the reporter.
+        """
+        self.collectors.append(collector)
 
     def start(self):
-        pid = self.get_pid
-        logger.info(f"Starting reporter for process {pid}")
+        logger.info(f"Starting reporter for process {self.pid}")
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()
         self._running = True
@@ -45,7 +58,7 @@ class Reporter:
         return self._running
 
     @property
-    def get_pid(self):
+    def pid(self):
         return os.getpid()
 
     def _run_loop(self):
@@ -56,29 +69,27 @@ class Reporter:
             if self._stopevent.is_set():
                 break
 
-        logger.info(f"{self.get_pid} reports completed before exiting.")
+        logger.info(f"{self.pid} reports completed before exiting.")
 
-    def get_metrics(self):
-        return metrics_store.store
+    @property
+    def all_metrics(self):
+        """
+        Return all metrics from all collectors.
+        """
+        metrics = []
+        for collector in self.collectors:
+            metrics.extend(collector.collect())
+        return metrics
 
     def _report_metrics(self):
-        metrics = metrics_store.flush()
-        api_client.post_report(self._build_report(metrics))
+        api_client.post_report(self._build_report(self.all_metrics))
 
-    def _metric_to_list(self, metric):
-        return [
-            round(metric.datetime.timestamp()),
-            round(metric.value, 2),
-            metric.measurement,
-            metric.queue_name,
-        ]
-
-    def _build_report(self, metrics):
+    def _build_report(self, metrics: List[Metric]):
         return {
             "dyno": config.dyno,
-            "pid": self.get_pid,
+            "pid": self.pid,
             "config": config.for_report(),
-            "metrics": list(map(self._metric_to_list, metrics)),
+            "metrics": [metric.as_tuple for metric in metrics],
         }
 
 

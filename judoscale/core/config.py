@@ -5,9 +5,9 @@ import os
 class Config:
     def __init__(self):
         self.log_level = os.environ.get("LOG_LEVEL", "INFO")
-        self.dyno = os.environ.get("DYNO", None)
+        self.dyno = os.environ.get("DYNO")
         self.report_interval_seconds = 10
-        self.api_base_url = os.environ.get("JUDOSCALE_URL", None)
+        self.api_base_url = os.environ.get("JUDOSCALE_URL")
         self._prepare_logging()
 
     def merge(self, settings):

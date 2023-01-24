@@ -1,45 +1,53 @@
-import datetime
 import logging
 import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class Metric:
-    datetime: datetime
-    value: float
-    queue_name: str = None
+    timestamp: float  # Unix timestamp in fractional seconds
+    value: int
+    queue_name: Optional[str] = None
     measurement: str = "queue_time"
 
-
-class RequestMetrics:
-    def __init__(self, request_header):
-        self.request_header = request_header
-
-    def get_queue_time_metric_from_header(self):
+    @property
+    def as_tuple(self) -> Tuple[int, int, str, Optional[str]]:
         """
-        Remove non-digits:
+        Return a tuple of the metric's timestamp, value, measurement and queue.
+        """
+        return (
+            round(self.timestamp),
+            self.value,
+            self.measurement,
+            self.queue_name,
+        )
+
+    @classmethod
+    def for_web(cls, header_value: str) -> Optional["Metric"]:
+        """
+        Parse the X-Request-Start header value and return a Metric instance.
+
+        Removes non-digits:
             This removes the "t=" prefix added by some web servers (NGINX).
-        Remove decimal:
+        Removes decimal:
             NGINX also reports this time as fractional seconds with millisecond
             resolution, so removing the decimal gives us integer milliseconds
             (same as Heroku).
-        Then, we calculate the timelapse between request start and finish,
-            log and send it to judoscale reporter.
+
+        Calculate how long a request has been waiting to be handled, log and
+        return a Metric instance.
         """
-        request_header = re.sub(r"\D", "", self.request_header)
+        request_start = re.sub(r"\D", "", header_value)
 
-        if len(request_header) > 0:
-            logger.debug(f"START X {request_header}")
-            now = datetime.datetime.now()
-            request_start_timestamp_ms = int(request_header)
-            current_timestamp_ms = now.timestamp() * 1000
-            queue_time_ms = current_timestamp_ms - request_start_timestamp_ms
-            metric = Metric(measurement="queue_time", datetime=now, value=queue_time_ms)
-            logger.debug("queue_time={}ms".format(round(queue_time_ms, 2)))
-            return metric
-
-        else:
+        if len(request_start) == 0:
             return None
+
+        logger.debug(f"START X {request_start}")
+        now = datetime.now(timezone.utc).timestamp()
+        latency = int(max(0, now * 1000 - int(request_start)))
+        logger.debug(f"queue_time={latency}ms")
+        return Metric(timestamp=now, value=latency)

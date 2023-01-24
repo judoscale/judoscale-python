@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "judoscale-flask-sample"
+name = "judoscale-django-sample"
 version = "0.1.0"
-description = "A Flask app for testing judoscale-python functionality"
+description = "A Django app for testing judoscale-python functionality"
 authors = [
     "Adam McCrea <adam@adamlogic.com>",
     "Mara <mara@multiplace.org>",
@@ -9,13 +9,14 @@ authors = [
 ]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "flask_sample"}]
+packages = [{include = "judoscale_django_sample"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-Flask = "^2.2.2"
+Django = "^4.1.5"
 gunicorn = "^20.1.0"
 judoscale-python = { path = "../../", develop = true }
+
 
 [build-system]
 requires = ["poetry-core"]
