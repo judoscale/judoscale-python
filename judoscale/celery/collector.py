@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import List, Set
+from typing import List, Optional, Set
 
 from celery import Celery
 from redis import Redis
@@ -37,7 +37,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
         queues = [key for key, type_ in key_types if type_ in {b"list", "list"}]
         return {queue.decode() if type(queue) is bytes else queue for queue in queues}
 
-    def oldest_task(self, queue: str) -> dict | None:
+    def oldest_task(self, queue: str) -> Optional[dict]:
         """
         Get the oldest task from the queue.
         """
