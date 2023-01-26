@@ -29,13 +29,10 @@ class CeleryMetricsCollector(JobMetricsCollector):
         """
         Get all queues from Redis.
         """
-        keys = set(self.redis.keys("[^_]*")) - {b"unacked", b"unacked_index"}
-        pipe = self.redis.pipeline()
-        for key in keys:
-            pipe.type(key)
-        key_types = zip(keys, pipe.execute())
-        queues = [key for key, type_ in key_types if type_ in {b"list", "list"}]
-        return {queue.decode() if type(queue) is bytes else queue for queue in queues}
+        system_queues = {"unacked", "unacked_index"}
+        queues = set(self.redis.scan_iter(match="[^_]*", _type="list"))
+        queues = {queue.decode() if type(queue) is bytes else queue for queue in queues}
+        return queues - system_queues
 
     def oldest_task(self, queue: str) -> Optional[dict]:
         """
