@@ -57,7 +57,9 @@ class TestJobMetricsCollector(TestCase):
 
 class TestCeleryMetricsCollector(TestCase):
     def setUp(self):
+        self.pipeline = Mock()
         self.redis = Mock()
+        self.redis.configure_mock(**{"pipeline.return_value": self.pipeline})
         self.connection = Mock(transport=Mock(driver_name="redis"))
         self.connection.configure_mock(
             **{"channel.return_value": Mock(client=self.redis)}
@@ -78,22 +80,26 @@ class TestCeleryMetricsCollector(TestCase):
 
     def test_queues_empty(self):
         collector = CeleryMetricsCollector(config, self.celery)
+        self.pipeline.execute.return_value = []
         self.redis.keys.return_value = []
         assert collector.queues == set()
 
     def test_queues_only_system_queues(self):
         collector = CeleryMetricsCollector(config, self.celery)
+        self.pipeline.execute.return_value = []
         self.redis.keys.return_value = [b"unacked", b"unacked_index"]
         assert collector.queues == set()
 
     def test_queues_user_queues(self):
         collector = CeleryMetricsCollector(config, self.celery)
-        self.redis.keys.return_value = ["foo", b"bar"]
+        self.pipeline.execute.return_value = [b"list", b"list"]
+        self.redis.keys.return_value = [b"foo", b"bar"]
         assert collector.queues == {"foo", "bar"}
 
     def test_collect_empty_queue(self):
         config.dyno, config.dyno_name, config.dyno_num = "worker.1", "worker", 1
         collector = CeleryMetricsCollector(config, self.celery)
+        self.pipeline.execute.return_value = [b"list"]
         self.redis.keys.return_value = [b"foo"]
         self.redis.lindex.return_value = None
         assert len(collector.collect()) == 0
@@ -101,6 +107,7 @@ class TestCeleryMetricsCollector(TestCase):
     def test_collect_missing_published_at(self):
         config.dyno, config.dyno_name, config.dyno_num = "worker.1", "worker", 1
         collector = CeleryMetricsCollector(config, self.celery)
+        self.pipeline.execute.return_value = [b"list"]
         self.redis.keys.return_value = [b"foo"]
         self.redis.lindex.return_value = bytes(json.dumps({"properties": {}}), "utf-8")
         assert len(collector.collect()) == 0
@@ -108,6 +115,7 @@ class TestCeleryMetricsCollector(TestCase):
     def test_collect_response_error(self):
         config.dyno, config.dyno_name, config.dyno_num = "worker.1", "worker", 1
         collector = CeleryMetricsCollector(config, self.celery)
+        self.pipeline.execute.return_value = [b"list"]
         self.redis.keys.return_value = [b"foo"]
         self.redis.lindex.side_effect = redis.exceptions.ResponseError
         assert len(collector.collect()) == 0
@@ -116,7 +124,8 @@ class TestCeleryMetricsCollector(TestCase):
         now = time.time()
         config.dyno, config.dyno_name, config.dyno_num = "worker.1", "worker", 1
         collector = CeleryMetricsCollector(config, self.celery)
-        self.redis.keys.return_value = ["foo", b"bar"]
+        self.pipeline.execute.return_value = [b"list", b"list"]
+        self.redis.keys.return_value = [b"foo", b"bar"]
         self.redis.lindex.return_value = bytes(
             json.dumps({"properties": {"published_at": now}}), "utf-8"
         )
