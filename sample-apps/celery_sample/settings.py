@@ -13,7 +13,7 @@ class BaseConfig(object):
     SECRET_KEY = os.getenv("SECRET_KEY", "")
 
     JUDOSCALE = {
-        "API_BASE_URL": "https://webhook.site/af84edc4-18c1-413a-bd17-254f957ef4ec",
+        "API_BASE_URL": "https://judoscale-celery.requestcatcher.com",
         "LOG_LEVEL": "DEBUG",
         "REPORT_INTERVAL_SECONDS": 2,
     }
