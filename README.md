@@ -130,8 +130,6 @@ judoscale_celery(broker)
 
 This sets up Judoscale to periodically calculate and report queue latency for each Celery queue.
 
-Note that the queue names are captured via the [`before_task_publish` signal](https://docs.celeryq.dev/en/latest/userguide/signals.html#before-task-publish) and stored in the metrics collector.
-
 If you need to change any config options, you can pass a dictionary of Judoscale configuration options to override the default Judoscale config variables:
 
 ```py
