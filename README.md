@@ -106,6 +106,36 @@ JUDOSCALE = {
 
 Note the [official recommendations for configuring Flask](https://flask.palletsprojects.com/en/2.2.x/config/#configuration-best-practices).
 
+# Using Judoscale with Celery and Redis
+
+> **NOTE:** The Judoscale Celery integration currently only works with the [Redis broker](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis).
+
+Judoscale can automatically scaling the number of Celery workers based on the queue latency (the age of the oldest pending task in the queue).
+
+To use the Celery integration, import `judoscale_celery` and pass it the Celery "app" instance as the last step, after setup and configuration.
+
+```py
+from celery import Celery
+from judoscale.celery import judoscale_celery
+
+broker = Celery("Broker", broker="redis://localhost:6379/0")
+# Further setup
+# broker.conf.update(...)
+# ...
+
+judoscale_celery(broker)
+```
+
+This sets up Judoscale to periodically calculate and report queue latency for each Celery queue.
+
+Note that the queue names are captured via the [`before_task_publish` signal](https://docs.celeryq.dev/en/latest/userguide/signals.html#before-task-publish) and stored in the metrics collector.
+
+If you need to change any config options, you can pass a dictionary of Judoscale configuration options to override the default Judoscale config variables:
+
+```py
+judoscale_celery(broker, extra_config={"LOG_LEVEL": "DEBUG"})
+```
+
 ## Development
 
 This repo includes a `sample-apps` directory containing apps you can run locally. These apps use the judoscale-python adapter, but they override `API_BASE_URL` so they're not connected to the real Judoscale API. Instead, they post API requests to https://requestcatcher.com so you can observe the API behavior.
