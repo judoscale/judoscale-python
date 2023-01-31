@@ -112,7 +112,7 @@ Note the [official recommendations for configuring Flask](https://flask.palletsp
 
 > **NOTE 2:** Using [task priorities](https://docs.celeryq.dev/en/latest/userguide/calling.html#advanced-options) is currently not supported.
 
-Judoscale can automatically scaling the number of Celery workers based on the queue latency (the age of the oldest pending task in the queue).
+Judoscale can automatically scale the number of Celery workers based on the queue latency (the age of the oldest pending task in the queue).
 
 To use the Celery integration, import `judoscale_celery` and pass it the Celery "app" instance as the last step, after setup and configuration.
 
