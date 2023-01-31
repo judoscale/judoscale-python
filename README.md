@@ -24,7 +24,7 @@ pip install -r requirements.txt
 
 ## Supported job processors
 
-- [ ] Celery
+- [x] Celery
 - [ ] RQ
 
 ## Using Judoscale with Django
