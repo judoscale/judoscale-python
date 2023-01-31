@@ -12,7 +12,7 @@ class Config:
         self.api_base_url = os.environ.get("JUDOSCALE_URL")
         self._prepare_logging()
 
-    def merge(self, settings):
+    def merge(self, settings: dict):
         for key in settings:
             setattr(self, key.lower(), settings[key])
         self._prepare_logging()

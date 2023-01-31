@@ -18,7 +18,7 @@ def before_publish(collector: CeleryMetricsCollector):
     return _before_publish
 
 
-def judoscale_celery(celery: Celery, extra_config: dict) -> None:
+def judoscale_celery(celery: Celery, extra_config: dict = {}) -> None:
     global before_publish_handler
 
     judoconfig.merge(extra_config)
