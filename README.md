@@ -108,7 +108,9 @@ Note the [official recommendations for configuring Flask](https://flask.palletsp
 
 # Using Judoscale with Celery and Redis
 
-> **NOTE:** The Judoscale Celery integration currently only works with the [Redis broker](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis).
+> **NOTE 1:** The Judoscale Celery integration currently only works with the [Redis broker](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis).
+
+> **NOTE 2:** Using [task priorities](https://docs.celeryq.dev/en/latest/userguide/calling.html#advanced-options) is currently not supported.
 
 Judoscale can automatically scaling the number of Celery workers based on the queue latency (the age of the oldest pending task in the queue).
 
