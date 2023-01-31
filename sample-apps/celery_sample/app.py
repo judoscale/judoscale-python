@@ -18,6 +18,12 @@ def add(x, y):
     return x + y
 
 
+def publish_task(i=1):
+    queue = "high" if random.random() > 0.5 else "low"
+    current_app.logger.debug(f"Enqueuing a task on {queue=}")
+    add.s(i, i).apply_async(queue=queue)
+
+
 def create_app():
     app = Flask("DemoFlaskApp")
     app.config.from_object(settings.BaseConfig)
@@ -28,18 +34,29 @@ def create_app():
     @app.get("/")
     def index():
         current_app.logger.warning("Hello, world")
-        catcher_url = current_app.config["JUDOSCALE"]["API_BASE_URL"]
+        catcher_url = current_app.config["JUDOSCALE"]["API_BASE_URL"].replace(
+            "/inspect/", "/p/"
+        )
         return (
             "Judoscale Flask Sample App. "
             f"<a target='_blank' href={catcher_url}>Metrics</a>"
             "<form action='/task' method='POST'>"
             "<input type='submit' value='Add task'>"
             "</form>"
+            "<form action='/batch_task' method='POST'>"
+            "<input type='submit' value='Add 10 tasks'>"
+            "</form>"
         )
 
     @app.post("/task")
     def task():
-        add.s(1, 2).apply_async(queue="celery" if random.random() > 0.5 else "foobar")
+        publish_task()
+        return redirect(url_for("index"))
+
+    @app.post("/batch_task")
+    def batch_task():
+        for i in range(10):
+            publish_task(i)
         return redirect(url_for("index"))
 
     return app
