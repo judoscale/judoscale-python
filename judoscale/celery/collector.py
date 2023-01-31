@@ -42,7 +42,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
             if payload := self.redis.lindex(queue, -1):
                 return json.loads(payload)
         except Exception as e:
-            logging.warning(f"Unable to get a task from queue: {queue}", exc_info=e)
+            logger.warning(f"Unable to get a task from queue: {queue}", exc_info=e)
         return None
 
     def collect(self) -> List[Metric]:
