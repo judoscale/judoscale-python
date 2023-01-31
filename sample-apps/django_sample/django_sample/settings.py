@@ -45,9 +45,9 @@ INSTALLED_APPS = [
 JUDOSCALE = {
     # This sample app is intended to be run locally, so Judoscale API requests are
     # sent to a mock endpoint.
-    "API_BASE_URL": "https://judoscale-django.requestcatcher.com",
+    "API_BASE_URL": "https://requestinspector.com/inspect/judoscale-django",
     "LOG_LEVEL": "DEBUG",
-    "REPORT_INTERVAL_SECONDS": 2,
+    "REPORT_INTERVAL_SECONDS": 15,
 }
 
 MIDDLEWARE = [
