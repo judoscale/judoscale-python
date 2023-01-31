@@ -21,18 +21,9 @@ class CeleryMetricsCollector(JobMetricsCollector):
             )
 
         self.redis: Redis = connection.channel().client
-        logger.debug(f"Redis is at {self.redis.connection_pool.connection_kwargs}")
+        self.queues: Set[str] = set()
+        logger.debug(f"Redis is at {self.redis.connection_pool}")
         super().__init__(config=config)
-
-    @property
-    def queues(self) -> Set[str]:
-        """
-        Get all queues from Redis.
-        """
-        system_queues = {"unacked", "unacked_index"}
-        queues = set(self.redis.scan_iter(match="[^_]*", _type="list"))
-        queues = {queue.decode() if type(queue) is bytes else queue for queue in queues}
-        return queues - system_queues
 
     def oldest_task(self, queue: str) -> Optional[dict]:
         """
@@ -50,6 +41,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
         if not self.should_collect:
             return metrics
 
+        logger.debug(f"Collecting metrics for queues {list(self.queues)}")
         for queue in self.queues:
             if task := self.oldest_task(queue):
                 if published_at := task["properties"].get("published_at"):
