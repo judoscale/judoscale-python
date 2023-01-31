@@ -13,7 +13,7 @@ class BaseConfig(object):
     SECRET_KEY = os.getenv("SECRET_KEY", "")
 
     JUDOSCALE = {
-        "API_BASE_URL": "https://judoscale-celery.requestcatcher.com",
+        "API_BASE_URL": "https://requestinspector.com/inspect/judoscale-celery",
         "LOG_LEVEL": "DEBUG",
         "REPORT_INTERVAL_SECONDS": 15,
     }
