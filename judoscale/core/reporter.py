@@ -1,4 +1,3 @@
-import logging
 import os
 import signal
 import threading
@@ -7,10 +6,9 @@ from typing import List
 
 from judoscale.core.adapter_api_client import api_client
 from judoscale.core.config import config
+from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_collectors import Collector
-
-logger = logging.getLogger(__name__)
 
 
 class Reporter:

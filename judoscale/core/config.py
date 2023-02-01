@@ -1,6 +1,8 @@
 import logging
 import os
 
+from judoscale.core.logger import logger
+
 
 class Config:
     def __init__(self):
@@ -25,13 +27,12 @@ class Config:
         }
 
     def _prepare_logging(self):
-        logger = logging.getLogger("judoscale")
         log_level = logging.getLevelName(self.log_level.upper())
         logger.setLevel(log_level)
 
         if not logger.handlers:
             stdout_handler = logging.StreamHandler()
-            fmt = "%(levelname)s - [Judoscale] %(message)s"
+            fmt = "%(levelname)s - [%(name)s] %(message)s"
             stdout_handler.setFormatter(logging.Formatter(fmt))
             logger.addHandler(stdout_handler)
 

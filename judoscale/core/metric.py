@@ -1,10 +1,9 @@
-import logging
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional, Tuple
 
-logger = logging.getLogger(__name__)
+from judoscale.core.logger import logger
 
 
 @dataclass
