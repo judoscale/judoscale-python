@@ -1,21 +1,12 @@
 import random
-import time
 
-import settings
-from celery import Celery
+import app.settings as settings
+from app.tasks import add
 from flask import Flask, current_app, redirect, url_for
 
-from judoscale.celery import judoscale_celery
 from judoscale.flask import Judoscale
 
 judoscale = Judoscale()
-celery = Celery("DemoCeleryApp", broker="redis://localhost:6379/0")
-
-
-@celery.task
-def add(x, y):
-    time.sleep(random.randint(3, 5))
-    return x + y
 
 
 def publish_task(i=1):
@@ -28,8 +19,6 @@ def create_app():
     app = Flask("DemoFlaskApp")
     app.config.from_object(settings.BaseConfig)
     judoscale.init_app(app)
-
-    judoscale_celery(celery, extra_config=app.config.get("JUDOSCALE", {}))
 
     @app.get("/")
     def index():

@@ -5,7 +5,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-class BaseConfig(object):
+class BaseConfig:
     BASE_DIR = Path(__file__).parent.resolve()
     # SECURITY WARNING: don't run with debug turned on in production!
     DEBUG = True
