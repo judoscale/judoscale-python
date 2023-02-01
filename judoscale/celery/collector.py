@@ -1,20 +1,39 @@
 import json
 import logging
+from threading import Thread
 from typing import List, Optional, Set
 
 from celery import Celery
 from redis import Redis
 
 from judoscale.core.config import Config
+from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_collectors import JobMetricsCollector
 
-logger = logging.getLogger(__name__)
+
+class TaskSentHandler(Thread):
+    def __init__(self, collector: "CeleryMetricsCollector", *args, **kwargs):
+        self.collector = collector
+        super().__init__(*args, daemon=True, **kwargs)
+
+    def task_sent(self, event):
+        self.collector.queues.add(event["queue"])
+
+    def run(self):
+        logger.debug("Starting TaskSentHandler")
+        with self.collector.broker.connection_for_read() as connection:
+            recv = self.collector.broker.events.Receiver(
+                connection,
+                handlers={"task-sent": self.task_sent},
+            )
+            recv.capture(limit=None, timeout=None, wakeup=True)
 
 
 class CeleryMetricsCollector(JobMetricsCollector):
     def __init__(self, config: Config, broker: Celery):
-        connection = broker.connection_for_read()
+        self.broker = broker
+        connection = self.broker.connection_for_read()
         if connection.transport.driver_name != "redis":
             raise NotImplementedError(
                 f"Unsupported broker: {connection.transport.driver_name}"
@@ -22,8 +41,10 @@ class CeleryMetricsCollector(JobMetricsCollector):
 
         self.redis: Redis = connection.channel().client
         self.queues: Set[str] = set()
+        self.task_sent_handler = TaskSentHandler(self)
         logger.debug(f"Redis is at {self.redis.connection_pool}")
         super().__init__(config=config)
+        self.task_sent_handler.start()
 
     def oldest_task(self, queue: str) -> Optional[dict]:
         """

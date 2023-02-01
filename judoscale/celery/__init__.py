@@ -21,6 +21,8 @@ def before_publish(collector: CeleryMetricsCollector):
 def judoscale_celery(celery: Celery, extra_config: dict = {}) -> None:
     global before_publish_handler
 
+    celery.conf.task_send_sent_event = True
+
     judoconfig.merge(extra_config)
     collector = CeleryMetricsCollector(config=judoconfig, broker=celery)
 
