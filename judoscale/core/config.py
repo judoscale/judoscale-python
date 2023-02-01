@@ -15,8 +15,8 @@ class Config:
         self._prepare_logging()
 
     def merge(self, settings: dict):
-        for key in settings:
-            setattr(self, key.lower(), settings[key])
+        for key, value in settings.items():
+            setattr(self, key.lower(), value)
         self._prepare_logging()
 
     def for_report(self):
