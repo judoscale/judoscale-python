@@ -74,7 +74,7 @@ class TestCeleryMetricsCollector(TestCase):
             CeleryMetricsCollector(config, self.celery)
 
     def test_correct_driver(self):
-        CeleryMetricsCollector(config, self.celery) is not None
+        assert CeleryMetricsCollector(config, self.celery) is not None
 
     def test_queues_empty(self):
         collector = CeleryMetricsCollector(config, self.celery)
@@ -99,7 +99,10 @@ class TestCeleryMetricsCollector(TestCase):
         collector = CeleryMetricsCollector(config, self.celery)
         collector.queues = {"foo"}
         self.redis.lindex.side_effect = redis.exceptions.ResponseError
-        assert len(collector.collect()) == 0
+        with self.assertLogs("judoscale") as captured:
+            assert len(collector.collect()) == 0
+            message = captured.records[0].getMessage()
+            assert message == "Unable to get a task from queue: foo"
 
     def test_collect(self):
         now = time.time()
