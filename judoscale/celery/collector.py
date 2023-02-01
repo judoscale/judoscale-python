@@ -1,9 +1,9 @@
 import json
-import logging
 from threading import Thread
 from typing import List, Optional, Set
 
 from celery import Celery
+from kombu import Connection
 from redis import Redis
 
 from judoscale.core.config import Config
@@ -13,8 +13,15 @@ from judoscale.core.metrics_collectors import JobMetricsCollector
 
 
 class TaskSentHandler(Thread):
-    def __init__(self, collector: "CeleryMetricsCollector", *args, **kwargs):
+    def __init__(
+        self,
+        collector: "CeleryMetricsCollector",
+        connection: Connection,
+        *args,
+        **kwargs,
+    ):
         self.collector = collector
+        self.connection = connection
         super().__init__(*args, daemon=True, **kwargs)
 
     def task_sent(self, event):
@@ -22,12 +29,11 @@ class TaskSentHandler(Thread):
 
     def run(self):
         logger.debug("Starting TaskSentHandler")
-        with self.collector.broker.connection_for_read() as connection:
-            recv = self.collector.broker.events.Receiver(
-                connection,
-                handlers={"task-sent": self.task_sent},
-            )
-            recv.capture(limit=None, timeout=None, wakeup=True)
+        recv = self.collector.broker.events.Receiver(
+            self.connection,
+            handlers={"task-sent": self.task_sent},
+        )
+        recv.capture(wakeup=False)
 
 
 class CeleryMetricsCollector(JobMetricsCollector):
@@ -41,7 +47,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
 
         self.redis: Redis = connection.channel().client
         self.queues: Set[str] = set()
-        self.task_sent_handler = TaskSentHandler(self)
+        self.task_sent_handler = TaskSentHandler(self, connection)
         logger.debug(f"Redis is at {self.redis.connection_pool}")
         super().__init__(config=config)
         self.task_sent_handler.start()
