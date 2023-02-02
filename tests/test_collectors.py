@@ -74,31 +74,38 @@ class TestCeleryMetricsCollector(TestCase):
             CeleryMetricsCollector(config, self.celery)
 
     def test_correct_driver(self):
+        self.redis.scan_iter.return_value = []
+
         assert CeleryMetricsCollector(config, self.celery) is not None
 
     def test_queues_empty(self):
+        self.redis.scan_iter.return_value = [b"unacked", b"unacked_index"]
+
         collector = CeleryMetricsCollector(config, self.celery)
         assert collector.queues == set()
 
     def test_collect_empty_queue(self):
         config.dyno, config.dyno_name, config.dyno_num = "worker.1", "worker", 1
-        collector = CeleryMetricsCollector(config, self.celery)
-        collector.queues = {"foo"}
+        self.redis.scan_iter.return_value = [b"foo"]
         self.redis.lindex.return_value = None
+
+        collector = CeleryMetricsCollector(config, self.celery)
         assert len(collector.collect()) == 0
 
     def test_collect_missing_published_at(self):
         config.dyno, config.dyno_name, config.dyno_num = "worker.1", "worker", 1
-        collector = CeleryMetricsCollector(config, self.celery)
-        collector.queues = {"foo"}
+        self.redis.scan_iter.return_value = [b"foo"]
         self.redis.lindex.return_value = bytes(json.dumps({"properties": {}}), "utf-8")
+
+        collector = CeleryMetricsCollector(config, self.celery)
         assert len(collector.collect()) == 0
 
     def test_collect_response_error(self):
         config.dyno, config.dyno_name, config.dyno_num = "worker.1", "worker", 1
-        collector = CeleryMetricsCollector(config, self.celery)
-        collector.queues = {"foo"}
+        self.redis.scan_iter.return_value = [b"foo"]
         self.redis.lindex.side_effect = redis.exceptions.ResponseError
+
+        collector = CeleryMetricsCollector(config, self.celery)
         with self.assertLogs("judoscale") as captured:
             assert len(collector.collect()) == 0
             message = captured.records[0].getMessage()
@@ -107,11 +114,12 @@ class TestCeleryMetricsCollector(TestCase):
     def test_collect(self):
         now = time.time()
         config.dyno, config.dyno_name, config.dyno_num = "worker.1", "worker", 1
-        collector = CeleryMetricsCollector(config, self.celery)
-        collector.queues = {"foo", "bar"}
+        self.redis.scan_iter.return_value = [b"foo", b"bar"]
         self.redis.lindex.return_value = bytes(
             json.dumps({"properties": {"published_at": now}}), "utf-8"
         )
+
+        collector = CeleryMetricsCollector(config, self.celery)
         assert len(collector.collect()) == 2
 
 
