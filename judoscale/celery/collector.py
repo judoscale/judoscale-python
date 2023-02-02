@@ -38,6 +38,8 @@ class TaskSentHandler(Thread):
 
 class CeleryMetricsCollector(JobMetricsCollector):
     def __init__(self, config: Config, broker: Celery):
+        super().__init__(config=config)
+
         self.broker = broker
         connection = self.broker.connection_for_read()
         if connection.transport.driver_name != "redis":
@@ -49,7 +51,14 @@ class CeleryMetricsCollector(JobMetricsCollector):
         self.queues: Set[str] = set()
         self.task_sent_handler = TaskSentHandler(self, connection)
         logger.debug(f"Redis is at {self.redis.connection_pool}")
-        super().__init__(config=config)
+
+        system_queues = {"unacked", "unacked_index"}
+        user_queues = {
+            q.decode("utf-8") if type(q) is bytes else q
+            for q in self.redis.scan_iter(match="[^_]*", _type="list")
+        }
+        logger.debug(f"Found initial queues: {list(user_queues)}")
+        self.queues = user_queues - system_queues
         self.task_sent_handler.start()
 
     def oldest_task(self, queue: str) -> Optional[dict]:
