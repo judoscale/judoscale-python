@@ -110,11 +110,11 @@ Note the [official recommendations for configuring Flask](https://flask.palletsp
 
 > **NOTE 1:** The Judoscale Celery integration currently only works with the [Redis broker](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis).
 
-> **NOTE 2:** Using [task priorities](https://docs.celeryq.dev/en/latest/userguide/calling.html#advanced-options) is currently not supported.
+> **NOTE 2:** Using [task priorities](https://docs.celeryq.dev/en/latest/userguide/calling.html#advanced-options) is currently not supported by `judoscale-python`. You can still use task priorities, but `judoscale-python` won't see and report metrics on any queues other then the default, unprioritised queue.
 
 Judoscale can automatically scale the number of Celery workers based on the queue latency (the age of the oldest pending task in the queue).
 
-To use the Celery integration, import `judoscale_celery` and pass it the Celery "app" instance as the last step, after setup and configuration.
+To use the Celery integration, import `judoscale_celery` and call it with the Celery app instance. `judoscale_celery` should be called after you have set up and configured the Celery instance.
 
 ```py
 from celery import Celery
@@ -130,7 +130,7 @@ judoscale_celery(broker)
 
 This sets up Judoscale to periodically calculate and report queue latency for each Celery queue.
 
-If you need to change any config options, you can pass a dictionary of Judoscale configuration options to override the default Judoscale config variables:
+If you need to change the Judoscale integration configuration, you can pass a dictionary of Judoscale configuration options to `judoscale_celery` to override the default Judoscale config variables:
 
 ```py
 judoscale_celery(broker, extra_config={"LOG_LEVEL": "DEBUG"})
