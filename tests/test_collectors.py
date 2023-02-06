@@ -1,6 +1,7 @@
 import json
 import time
 import unittest
+from typing import List
 from unittest import TestCase
 from unittest.mock import Mock
 
@@ -90,7 +91,10 @@ class TestCeleryMetricsCollector(TestCase):
         self.redis.lindex.return_value = None
 
         collector = CeleryMetricsCollector(config, self.celery)
-        assert len(collector.collect()) == 0
+        metrics: List[Metric] = collector.collect()
+        assert len(metrics) == 1
+        assert metrics[0].value == 0
+        assert metrics[0].queue_name == "foo"
 
     def test_collect_missing_published_at(self):
         config.dyno, config.dyno_name, config.dyno_num = "worker.1", "worker", 1
@@ -107,7 +111,10 @@ class TestCeleryMetricsCollector(TestCase):
 
         collector = CeleryMetricsCollector(config, self.celery)
         with self.assertLogs("judoscale") as captured:
-            assert len(collector.collect()) == 0
+            metrics = collector.collect()
+            assert len(metrics) == 1
+            assert metrics[0].value == 0
+            assert metrics[0].queue_name == "foo"
             message = captured.records[0].getMessage()
             assert message == "Unable to get a task from queue: foo"
 

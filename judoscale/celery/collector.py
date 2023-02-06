@@ -1,4 +1,5 @@
 import json
+import time
 from threading import Thread
 from typing import List, Optional, Set
 
@@ -84,5 +85,9 @@ class CeleryMetricsCollector(JobMetricsCollector):
                     metrics.append(
                         Metric.for_queue(queue_name=queue, oldest_job_ts=published_at)
                     )
+            else:
+                metrics.append(
+                    Metric.for_queue(queue_name=queue, oldest_job_ts=time.time())
+                )
 
         return metrics
