@@ -1,3 +1,4 @@
+from judoscale.core.config import config
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_collectors import WebMetricsCollector
 from judoscale.core.reporter import reporter
@@ -8,14 +9,14 @@ class RequestQueueTimeMiddleware:
 
     def __init__(self, get_response):
         self.get_response = get_response
-        self.collector = WebMetricsCollector()
+        self.collector = WebMetricsCollector(config)
         reporter.add_collector(self.collector)
 
     def __call__(self, request):
         request_start_header = request.META.get("HTTP_X_REQUEST_START", "")
 
         if metric := Metric.for_web(request_start_header):
-            self.collector.store.add(metric)
+            self.collector.add(metric)
         reporter.ensure_running()
 
         return self.get_response(request)

@@ -1,10 +1,8 @@
-import logging
 import time
 from typing import List, Optional
 
+from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
-
-logger = logging.getLogger(__name__)
 
 
 class MetricsStore:

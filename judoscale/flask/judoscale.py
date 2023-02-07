@@ -10,7 +10,7 @@ def store_request_metrics(collector: WebMetricsCollector):
     def inner():
         request_start_header = request.headers.get("x-request-start", "")
         if metric := Metric.for_web(request_start_header):
-            collector.store.add(metric)
+            collector.add(metric)
         reporter.ensure_running()
         return None
 
@@ -24,7 +24,7 @@ class Judoscale:
 
     def init_app(self, app):
         judoconfig.merge(app.config.get("JUDOSCALE", {}))
-        collector = WebMetricsCollector()
+        collector = WebMetricsCollector(judoconfig)
         reporter.add_collector(collector)
         reporter.ensure_running()
         app.before_request(store_request_metrics(collector))

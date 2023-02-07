@@ -19,7 +19,7 @@ class TestMetricsForWeb(unittest.TestCase):
         #
         # NOTE: We manually format to 3dp here because time.time() returns the
         # time in seconds with microsecond resolution (6dp).
-        nginx_timestamp = str(f"t={time.time():.3f}")
+        nginx_timestamp = f"t={time.time():.3f}"
         time.sleep(0.02)
         metric = Metric.for_web(nginx_timestamp)
         # Allow metric value to be within 10ms of 20ms to account for

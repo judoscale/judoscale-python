@@ -1,18 +1,22 @@
 import logging
 import os
 
+from judoscale.core.logger import logger
+
 
 class Config:
     def __init__(self):
         self.log_level = os.environ.get("LOG_LEVEL", "INFO")
-        self.dyno = os.environ.get("DYNO")
+        self.dyno = os.environ.get("DYNO", "none.0")
+        self.dyno_name, self.dyno_num = self.dyno.split(".")
+        self.dyno_num = int(self.dyno_num)
         self.report_interval_seconds = 10
         self.api_base_url = os.environ.get("JUDOSCALE_URL")
         self._prepare_logging()
 
-    def merge(self, settings):
-        for key in settings:
-            setattr(self, key.lower(), settings[key])
+    def merge(self, settings: dict):
+        for key, value in settings.items():
+            setattr(self, key.lower(), value)
         self._prepare_logging()
 
     def for_report(self):
@@ -23,13 +27,12 @@ class Config:
         }
 
     def _prepare_logging(self):
-        logger = logging.getLogger("judoscale")
         log_level = logging.getLevelName(self.log_level.upper())
         logger.setLevel(log_level)
 
         if not logger.handlers:
             stdout_handler = logging.StreamHandler()
-            fmt = "%(levelname)s - [Judoscale] %(message)s"
+            fmt = "%(levelname)s - [%(name)s] %(message)s"
             stdout_handler.setFormatter(logging.Formatter(fmt))
             logger.addHandler(stdout_handler)
 

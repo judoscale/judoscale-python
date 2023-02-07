@@ -1,10 +1,7 @@
-import logging
-
 import requests
 
 from judoscale.core.config import config
-
-logger = logging.getLogger(__name__)
+from judoscale.core.logger import logger
 
 
 class AdapterApiClient:

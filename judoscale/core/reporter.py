@@ -1,16 +1,14 @@
-import logging
 import os
 import signal
 import threading
 import time
-from typing import List, Optional
+from typing import List
 
 from judoscale.core.adapter_api_client import api_client
 from judoscale.core.config import config
+from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
-from judoscale.core.metrics_collectors import MetricsCollector
-
-logger = logging.getLogger(__name__)
+from judoscale.core.metrics_collectors import Collector
 
 
 class Reporter:
@@ -23,9 +21,9 @@ class Reporter:
         self._thread = None
         self._running = False
         self._stopevent = threading.Event()
-        self.collectors: List[MetricsCollector] = []
+        self.collectors: List[Collector] = []
 
-    def add_collector(self, collector: MetricsCollector):
+    def add_collector(self, collector: Collector):
         """
         Add a collector to the reporter.
         """
@@ -58,7 +56,7 @@ class Reporter:
         return self._running
 
     @property
-    def pid(self):
+    def pid(self) -> int:
         return os.getpid()
 
     def _run_loop(self):
@@ -72,16 +70,16 @@ class Reporter:
         logger.info(f"{self.pid} reports completed before exiting.")
 
     @property
-    def all_metrics(self):
+    def all_metrics(self) -> List[Metric]:
         """
-        Return all metrics from all collectors.
+        Return a list of all metrics collected by all collectors.
         """
         metrics = []
         for collector in self.collectors:
             metrics.extend(collector.collect())
         return metrics
 
-    def _report_metrics(self):
+    def _report_metrics(self) -> None:
         api_client.post_report(self._build_report(self.all_metrics))
 
     def _build_report(self, metrics: List[Metric]):
