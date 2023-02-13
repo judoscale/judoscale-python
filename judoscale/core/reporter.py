@@ -2,8 +2,10 @@ import os
 import signal
 import threading
 import time
+from platform import python_version
 from typing import List
 
+from judoscale.core.adapter import Adapter, AdapterInfo
 from judoscale.core.adapter_api_client import api_client
 from judoscale.core.config import config
 from judoscale.core.logger import logger
@@ -22,12 +24,26 @@ class Reporter:
         self._running = False
         self._stopevent = threading.Event()
         self.collectors: List[Collector] = []
+        self.adapters: List[Adapter] = []
 
-    def add_collector(self, collector: Collector):
+        self.adapters.append(
+            Adapter(
+                identifier="judoscale-python",
+                adapter_info=AdapterInfo(platform_version=python_version()),
+            )
+        )
+
+    def add_adapter(self, adapter: Adapter):
         """
-        Add a collector to the reporter.
+        Add an adapter to the reporter.
+
+        If the adapter has a metrics collector, it will be added to the list of
+        collectors.
         """
-        self.collectors.append(collector)
+        self.adapters.append(adapter)
+
+        if adapter.metrics_collector:
+            self.collectors.append(adapter.metrics_collector)
 
     def start(self):
         logger.info(f"Starting reporter for process {self.pid}")
@@ -87,6 +103,7 @@ class Reporter:
             "dyno": config.dyno,
             "pid": self.pid,
             "config": config.for_report(),
+            "adapters": dict(adapter.as_tuple for adapter in self.adapters),
             "metrics": [metric.as_tuple for metric in metrics],
         }
 
