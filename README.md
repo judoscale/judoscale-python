@@ -2,20 +2,6 @@
 
 This is the official Python adapter for [Judoscale](https://elements.heroku.com/addons/judoscale). You can use Judoscale without it, but this gives you request queue time metrics and job queue time (for supported job processors).
 
-## Installation
-
-Add judoscale-python to your <code>requirements.txt</code> file or the equivalent:
-
-```
-judoscale-python >= 1.0.0rc1
-```
-
-Then run this from a terminal to install the package:
-
-```sh
-pip install -r requirements.txt
-```
-
 ## Supported web frameworks
 
 - [x] Django
@@ -27,7 +13,13 @@ pip install -r requirements.txt
 - [x] Celery
 - [ ] RQ
 
-## Using Judoscale with Django
+# Using Judoscale with Django
+
+Install Judoscale for Django with:
+
+```sh
+$ pip install 'judoscale-python[django]'
+```
 
 Add Judoscale app to `settings.py`:
 
@@ -60,8 +52,13 @@ Once deployed, you will see your request queue time metrics available in the Jud
 
 # Using Judoscale with Flask
 
-The Flask support for Judoscale is packaged into a Flask extension. Import the extension class and use like you normally would in a Flask application:
+Install Judoscale for Flask with:
 
+```sh
+$ pip install 'judoscale-python[flask]'
+```
+
+The Flask support for Judoscale is packaged into a Flask extension. Import the extension class and use like you normally would in a Flask application:
 
 ```py
 # app.py
@@ -107,6 +104,12 @@ JUDOSCALE = {
 Note the [official recommendations for configuring Flask](https://flask.palletsprojects.com/en/2.2.x/config/#configuration-best-practices).
 
 # Using Judoscale with Celery and Redis
+
+Install Judoscale for Celery with:
+
+```sh
+$ pip install 'judoscale-python[celery-redis]'
+```
 
 > **NOTE 1:** The Judoscale Celery integration currently only works with the [Redis broker](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis).
 
@@ -163,7 +166,7 @@ Poetry (version 1.3.1)
 Install dependencies with Poetry and activate the virtualenv
 
 ```sh
-$ poetry install
+$ poetry install --all-extras
 $ poetry shell
 ```
 
