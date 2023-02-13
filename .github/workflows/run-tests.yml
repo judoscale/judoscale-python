@@ -44,7 +44,7 @@ jobs:
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
 
       - name: Install library
-        run: poetry install --no-interaction
+        run: poetry install --all-extras --no-interaction
 
       - name: Test with unittest
         run: poetry run python -m unittest discover --buffer --start-directory tests
