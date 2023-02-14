@@ -5,7 +5,7 @@ from pkg_resources import get_distribution
 
 from judoscale.core.metrics_collectors import Collector
 
-JUDOSCALE_VERSION = get_distribution("judoscale-python").version
+JUDOSCALE_VERSION = get_distribution("judoscale").version
 
 
 @dataclass
