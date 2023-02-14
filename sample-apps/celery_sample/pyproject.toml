@@ -9,9 +9,9 @@ packages = [{include = "celery_sample"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-Flask = "^2.2.2"
+Flask = "^2.0"
 celery = {extras = ["redis"], version = "^5.2.7"}
-judoscale-python = { path = "../../", develop = true }
+judoscale = { path = "../../", extras=["celery-redis", "flask"], develop = true }
 gunicorn = "^20.1.0"
 
 
