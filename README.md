@@ -143,7 +143,7 @@ judoscale_celery(broker, extra_config={"LOG_LEVEL": "DEBUG"})
 
 ## Development
 
-This repo includes a `sample-apps` directory containing apps you can run locally. These apps use the `judoscale` adapter, but they override `API_BASE_URL` so they're not connected to the real Judoscale API. Instead, they post API requests to https://requestcatcher.com so you can observe the API behavior.
+This repo includes a `sample-apps` directory containing apps you can run locally. These apps use the `judoscale` adapter, but they override `API_BASE_URL` so they're not connected to the real Judoscale API. Instead, they post API requests to https://requestinspector.com so you can observe the API behavior.
 
 See the `README` in a sample app for details on how to set it up and run locally.
 
