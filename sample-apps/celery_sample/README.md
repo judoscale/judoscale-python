@@ -1,6 +1,6 @@
 # Celery Sample App
 
-This is a minimal Flask app for testing Celery with the judoscale-python package.
+This is a minimal Flask app for testing Celery with the judoscale package.
 
 ## Prerequisites
 
@@ -16,7 +16,7 @@ This is a minimal Flask app for testing Celery with the judoscale-python package
 $ poetry install
 ```
 
-This will install the dependencies, including `judoscale-python` as a [path dependency](https://python-poetry.org/docs/dependency-specification/#path-dependencies).
+This will install the dependencies, including `judoscale` as a [path dependency](https://python-poetry.org/docs/dependency-specification/#path-dependencies).
 
 ## Run the app
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Heroku sets the DYNO environment variable on every dyno.
-# We're doing the same thing here so we can verify the judoscale-python
+# We're doing the same thing here so we can verify the judoscale
 # package is using it as expected.
 
 DYNO=web.1 heroku local
