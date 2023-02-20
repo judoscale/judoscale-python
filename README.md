@@ -1,33 +1,27 @@
-# judoscale-python
+# Judoscale
 
 This is the official Python adapter for [Judoscale](https://elements.heroku.com/addons/judoscale). You can use Judoscale without it, but this gives you request queue time metrics and job queue time (for supported job processors).
 
-## Installation
-
-Add judoscale-python to your <code>requirements.txt</code> file or the equivalent:
-
-```
-judoscale-python >= 1.0.0rc1
-```
-
-Then run this from a terminal to install the package:
-
-```sh
-pip install -r requirements.txt
-```
+It is recommended to install the specific web framework and/or background job library support as "extras" to the `judoscale` PyPI package. This ensures that checking if the installed web framework and/or background task processing library is supported happens at dependency resolution time.
 
 ## Supported web frameworks
 
-- [x] Django
-- [x] Flask
+- [x] [Django](#using-judoscale-with-django)
+- [x] [Flask](#using-judoscale-with-flask)
 - [ ] FastAPI
 
 ## Supported job processors
 
-- [x] Celery
+- [x] [Celery](#using-judoscale-with-celery-and-redis) (with Redis as the broker)
 - [ ] RQ
 
-## Using Judoscale with Django
+# Using Judoscale with Django
+
+Install Judoscale for Django with:
+
+```sh
+$ pip install 'judoscale[django]'
+```
 
 Add Judoscale app to `settings.py`:
 
@@ -60,8 +54,13 @@ Once deployed, you will see your request queue time metrics available in the Jud
 
 # Using Judoscale with Flask
 
-The Flask support for Judoscale is packaged into a Flask extension. Import the extension class and use like you normally would in a Flask application:
+Install Judoscale for Flask with:
 
+```sh
+$ pip install 'judoscale[flask]'
+```
+
+The Flask support for Judoscale is packaged into a Flask extension. Import the extension class and use like you normally would in a Flask application:
 
 ```py
 # app.py
@@ -108,9 +107,15 @@ Note the [official recommendations for configuring Flask](https://flask.palletsp
 
 # Using Judoscale with Celery and Redis
 
+Install Judoscale for Celery with:
+
+```sh
+$ pip install 'judoscale[celery-redis]'
+```
+
 > **NOTE 1:** The Judoscale Celery integration currently only works with the [Redis broker](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis).
 
-> **NOTE 2:** Using [task priorities](https://docs.celeryq.dev/en/latest/userguide/calling.html#advanced-options) is currently not supported by `judoscale-python`. You can still use task priorities, but `judoscale-python` won't see and report metrics on any queues other than the default, unprioritised queue.
+> **NOTE 2:** Using [task priorities](https://docs.celeryq.dev/en/latest/userguide/calling.html#advanced-options) is currently not supported by `judoscale`. You can still use task priorities, but `judoscale` won't see and report metrics on any queues other than the default, unprioritised queue.
 
 Judoscale can automatically scale the number of Celery workers based on the queue latency (the age of the oldest pending task in the queue).
 
@@ -138,13 +143,13 @@ judoscale_celery(broker, extra_config={"LOG_LEVEL": "DEBUG"})
 
 ## Development
 
-This repo includes a `sample-apps` directory containing apps you can run locally. These apps use the judoscale-python adapter, but they override `API_BASE_URL` so they're not connected to the real Judoscale API. Instead, they post API requests to https://requestcatcher.com so you can observe the API behavior.
+This repo includes a `sample-apps` directory containing apps you can run locally. These apps use the `judoscale` adapter, but they override `API_BASE_URL` so they're not connected to the real Judoscale API. Instead, they post API requests to https://requestinspector.com so you can observe the API behavior.
 
 See the `README` in a sample app for details on how to set it up and run locally.
 
 ### Contributing
 
-`judoscale-python` uses [Poetry](https://python-poetry.org/) for managing dependencies and packaging the project. Head over to the [installations instructions](https://python-poetry.org/docs/#installing-with-the-official-installer) and install Poetry, if needed.
+`judoscale` uses [Poetry](https://python-poetry.org/) for managing dependencies and packaging the project. Head over to the [installations instructions](https://python-poetry.org/docs/#installing-with-the-official-installer) and install Poetry, if needed.
 
 Clone the repo with
 
@@ -163,7 +168,7 @@ Poetry (version 1.3.1)
 Install dependencies with Poetry and activate the virtualenv
 
 ```sh
-$ poetry install
+$ poetry install --all-extras
 $ poetry shell
 ```
 
