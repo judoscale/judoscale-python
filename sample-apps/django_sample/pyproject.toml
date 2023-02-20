@@ -13,9 +13,9 @@ packages = [{include = "judoscale_django_sample"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-Django = "^4.1.5"
+Django = "^4.0"
 gunicorn = "^20.1.0"
-judoscale-python = { path = "../../", develop = true }
+judoscale = { path = "../../", extras=["django"], develop = true }
 
 
 [build-system]

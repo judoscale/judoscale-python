@@ -1,6 +1,6 @@
 # Flask Sample App
 
-This is a minimal Flask app to test the judoscale-python package.
+This is a minimal Flask app to test the judoscale package.
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ This is a minimal Flask app to test the judoscale-python package.
 $ poetry install
 ```
 
-This will install the dependencies, including `judoscale-python` as a [path dependency](https://python-poetry.org/docs/dependency-specification/#path-dependencies).
+This will install the dependencies, including `judoscale` as a [path dependency](https://python-poetry.org/docs/dependency-specification/#path-dependencies).
 
 ## Run the app
 
@@ -26,7 +26,7 @@ Run `bin/dev` to run the app in development mode. This will run `heroku local`, 
 
 ## How to use this sample app
 
-Open https://judoscale-flask.requestcatcher.com in a browser. The sample app is configured to use this Request Catcher endpoint as a mock for the Judoscale Adapter API. This page will monitor all API requests sent from the adapter.
+Open https://requestinspector.com/p/judoscale-flask in a browser. The sample app is configured to use this Request Catcher endpoint as a mock for the Judoscale Adapter API. This page will monitor all API requests sent from the adapter.
 
 Start the app via `./bin/dev`, then open http://localhost:5000. Continue to reload this page to collect and report more request metrics. You will see Judoscale Adatper API requests logged in Request Catcher.
 

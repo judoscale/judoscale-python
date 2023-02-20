@@ -13,9 +13,9 @@ packages = [{include = "flask_sample"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-Flask = "^2.2.2"
+Flask = "^2.0"
 gunicorn = "^20.1.0"
-judoscale-python = { path = "../../", develop = true }
+judoscale = { path = "../../", extras=["flask"], develop = true }
 
 [build-system]
 requires = ["poetry-core"]
