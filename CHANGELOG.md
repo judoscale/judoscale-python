@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.0](https://github.com/judoscale/judoscale-python/compare/v0.1.1...v1.0.0) (2023-02-20)
+
+
+### Features
+
+* Add Celery support ([09502ab](https://github.com/judoscale/judoscale-python/commit/09502abdfd27b20ee289e52947a2478e10d2fd8d))
+* Include adapter metadata in report payload ([2e8cf9a](https://github.com/judoscale/judoscale-python/commit/2e8cf9a50638d4115c1038e9db0688b3a8332034))
+* Installable as extras ([6078e79](https://github.com/judoscale/judoscale-python/commit/6078e799a4e4dccfea487ba4055fecef2cebadef))
+* Introduce collector abstraction ([eb88b9f](https://github.com/judoscale/judoscale-python/commit/eb88b9f95a25993a44c784f93da2200c30f4d5c1))
+
 ## [0.1.1](https://github.com/judoscale/judoscale-python/compare/v0.1.0...v0.1.1) (2023-01-09)
 
 
