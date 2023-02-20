@@ -27,7 +27,7 @@ def create_app():
             "/inspect/", "/p/"
         )
         return (
-            "Judoscale Flask Sample App. "
+            "Judoscale Celery Sample App. "
             f"<a target='_blank' href={catcher_url}>Metrics</a>"
             "<form action='/task' method='POST'>"
             "<input type='submit' value='Add task'>"
