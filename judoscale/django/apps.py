@@ -3,7 +3,7 @@ import logging
 from django.apps import AppConfig
 from django.conf import settings
 
-from judoscale.core.config import config
+from judoscale.core.config import config as judoconfig
 from judoscale.core.reporter import reporter
 
 logger = logging.getLogger(__name__)
@@ -14,9 +14,9 @@ class JudoscaleDjangoConfig(AppConfig):
     verbose_name = "Judoscale (Django)"
 
     def ready(self):
-        config.merge(getattr(settings, "JUDOSCALE", {}))
+        judoconfig.merge(getattr(settings, "JUDOSCALE", {}))
 
-        if config.api_base_url is None:
+        if judoconfig.api_base_url is None:
             logger.info("Not activated - No API URL provided")
             return
 
