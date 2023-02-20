@@ -24,6 +24,7 @@ requests = "<3.0.0"
 django = { version = ">=2.1.0,<5.0.0", optional = true }
 flask = { version = ">=1.1.0,<3.0.0", optional = true }
 celery = { version = ">=4.4.0,<6.0.0", extras = ["redis"], optional = true }
+rq = { version = ">=1.0.0,<2.0.0", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.12.0"
@@ -34,6 +35,7 @@ flake8 = { version = "^6.0.0", python = ">=3.8.1,<4.0.0" }
 django = ["django"]
 flask = ["flask"]
 celery-redis = ["celery"]
+rq = ["rq"]
 
 [tool.isort]
 profile = "black"

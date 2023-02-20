@@ -658,6 +658,22 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
+name = "rq"
+version = "1.13.0"
+description = "RQ is a simple, lightweight, library for creating background jobs, and processing them."
+category = "main"
+optional = true
+python-versions = ">=3.6"
+files = [
+    {file = "rq-1.13.0-py2.py3-none-any.whl", hash = "sha256:621966d7cbf96d5609557a4bd3fd77f749d6d10997d2e353a3e89a14e08eea16"},
+    {file = "rq-1.13.0.tar.gz", hash = "sha256:5bb0380a17597200520731686766bb72faf16ebffb602663560d91ea2c9e7103"},
+]
+
+[package.dependencies]
+click = ">=5.0.0"
+redis = ">=3.5.0"
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -796,8 +812,9 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 celery-redis = ["celery"]
 django = ["django"]
 flask = ["flask"]
+rq = ["rq"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "860c49e8d968c11a3241f938a2a0a23db64f92b60b72233fb883d87cb3d12c3c"
+content-hash = "01ac5186acf9d42408d5d7e495604ad7c5923fbc2804efe70e2f39989d2286a7"
