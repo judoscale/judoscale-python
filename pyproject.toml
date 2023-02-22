@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "judoscale-python"
-version = "0.1.1"
+version = "0.1.2"
 description = "Official Python adapter for Judoscale — the advanced autoscaler for Heroku"
 authors = [
     "Adam McCrea <adam@adamlogic.com>",
