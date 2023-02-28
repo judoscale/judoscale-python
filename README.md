@@ -151,6 +151,8 @@ $ pip install 'judoscale[rq]'
 
 Judoscale can automatically scale the number of RQ workers based on the queue latency (the age of the oldest pending task in the queue).
 
+## Configuring the application
+
 To use the RQ integration, import `judoscale_rq` and call it with an instance of `Redis` pointing to the same Redis database that RQ uses.
 
 ```py
@@ -168,6 +170,27 @@ If you need to change the Judoscale integration configuration, you can pass a di
 ```py
 judoscale_rq(redis, extra_config={"LOG_LEVEL": "DEBUG"})
 ```
+
+## Configuring workers
+
+If you have followed the [RQ on Heroku pattern](https://python-rq.org/patterns/) for setting up your RQ workers on Heroku, you'll have to edit the import statement for `HerokuWorker`:
+
+```py
+# Replace
+from rq.worker import HerokuWorker as Worker
+# with
+from judoscale.rq.worker import HerokuWorker as Worker
+
+# And make sure the Judoscale reporter is started before the worker starts processing tasks
+worker.start_reporter(extra_config=...)
+worker.work()
+```
+
+See the [run-worker.py script](./sample-apps/rq_sample/run-worker.py) for reference.
+
+### Other worker types
+
+If you use a different worker class from `rq.worker` you can similarly update the import statement for the specific worker by importing from [`judoscale.rq.worker`](./judoscale/rq/worker.py), which subclasses identically named worker classes from `rq.worker` but augmented with the `.start_reporter()` method.
 
 ## Development
 
