@@ -13,7 +13,7 @@ It is recommended to install the specific web framework and/or background job li
 ## Supported job processors
 
 - [x] [Celery](#using-judoscale-with-celery-and-redis) (with Redis as the broker)
-- [ ] RQ
+- [x] [RQ](#using-judoscale-with-rq)
 
 # Using Judoscale with Django
 
@@ -139,6 +139,34 @@ If you need to change the Judoscale integration configuration, you can pass a di
 
 ```py
 judoscale_celery(broker, extra_config={"LOG_LEVEL": "DEBUG"})
+```
+
+# Using Judoscale with RQ
+
+Install Judoscale for Celery with:
+
+```sh
+$ pip install 'judoscale[rq]'
+```
+
+Judoscale can automatically scale the number of RQ workers based on the queue latency (the age of the oldest pending task in the queue).
+
+To use the RQ integration, import `judoscale_rq` and call it with an instance of `Redis` pointing to the same Redis database that RQ uses.
+
+```py
+from redis import Redis
+from judoscale.rq import judoscale_rq
+
+redis = Redis(...)
+judoscale_rq(redis)
+```
+
+This sets up Judoscale to periodically calculate and report queue latency for each RQ queue.
+
+If you need to change the Judoscale integration configuration, you can pass a dictionary of Judoscale configuration options to `judoscale_rq` to override the default Judoscale config variables:
+
+```py
+judoscale_rq(redis, extra_config={"LOG_LEVEL": "DEBUG"})
 ```
 
 ## Development
