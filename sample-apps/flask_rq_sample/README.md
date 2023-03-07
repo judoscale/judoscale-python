@@ -1,4 +1,4 @@
-# RQ Sample App
+# Flask RQ Sample App
 
 This is a minimal Flask app for testing RQ with the judoscale package.
 
@@ -27,6 +27,6 @@ Run `bin/dev` to run the app in development mode. This will run `heroku local`, 
 
 ## How to use this sample app
 
-Open https://requestinspector.com/p/judoscale-rq in a browser. The sample app is configured to use this Request Catcher endpoint as a mock for the Judoscale Adapter API. This page will monitor all API requests sent from the adapter.
+Open https://requestinspector.com/p/judoscale-flask-rq in a browser. The sample app is configured to use this Request Catcher endpoint as a mock for the Judoscale Adapter API. This page will monitor all API requests sent from the adapter.
 
 Start the app via `./bin/dev`, then open http://localhost:5000. Clicking on "Add task" will enqueue a task that sleeps between 3 and 5 seconds and then returns the sum of its arguments. The task is enqueued randomly to either the `high` queue or the `low` queue. You will see Judoscale Adapter API requests logged in Request Catcher.
