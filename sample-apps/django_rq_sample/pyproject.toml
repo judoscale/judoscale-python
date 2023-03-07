@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "judoscale-django-rq-sample"
 version = "0.1.0"
-description = "A Django+RQ app for testing judoscale-python functionality"
+description = "A sample app for testing judoscale with Django and RQ."
 authors = [
     "Adam McCrea <adam@adamlogic.com>",
     "Mara <mara@multiplace.org>",

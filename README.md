@@ -143,7 +143,7 @@ judoscale_celery(broker, extra_config={"LOG_LEVEL": "DEBUG"})
 
 # Using Judoscale with RQ
 
-Install Judoscale for Celery with:
+Install Judoscale for RQ with:
 
 ```sh
 $ pip install 'judoscale[rq]'

@@ -1,12 +1,14 @@
-# Django RQ Sample App
+# Django and RQ Sample App
 
-This is a minimal Django RQ app to test the judoscale package.
+This is a minimal Django and RQ app for testing the judoscale package.
 
 ## Prerequisites
 
-- Python 3
+- Python 3.8+
+- [Poetry 1.3+](https://python-poetry.org/)
 - Node
 - [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
+- Redis
 
 ## Set up the app
 
@@ -27,10 +29,4 @@ Run `bin/dev` to run the app in development mode. This will run `heroku local`, 
 
 Open https://requestinspector.com/p/judoscale-django-rq in a browser. The sample app is configured to use this Request Catcher endpoint as a mock for the Judoscale Adapter API. This page will monitor all API requests sent from the adapter.
 
-Start the app via `bin/dev`, then open http://localhost:5000. Continue to reload this page to collect and report more request metrics. You will see Judoscale Adatper API requests logged in Request Catcher.
-
-## How to run the local django tests
-
-```sh
-$ ./bin/test
-```
+Start the app via `./bin/dev`, then open http://localhost:5000. Clicking on "Add task" will enqueue a task that sleeps between 3 and 5 seconds and then returns the sum of its arguments. The task is enqueued randomly to either the `high` queue or the `low` queue. You will see Judoscale Adapter API requests logged in Request Catcher.

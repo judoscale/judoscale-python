@@ -40,7 +40,7 @@ def index(request):
     logger.warning("Hello, world")
     catcher_url = settings.JUDOSCALE["API_BASE_URL"].replace("/inspect/", "/p/")
     return HttpResponse(
-        "Judoscale Django Sample App. "
+        "Judoscale Django RQ Sample App. "
         f"<a target='_blank' href={catcher_url}>Metrics</a>"
         "<form action='/task' method='POST'>"
         "<input type='submit' value='Add task'>"
