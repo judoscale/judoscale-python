@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "judoscale-django-rq-sample"
+version = "0.1.0"
+description = "A Django+RQ app for testing judoscale-python functionality"
+authors = [
+    "Adam McCrea <adam@adamlogic.com>",
+    "Mara <mara@multiplace.org>",
+    "Karl Sutt <karl@sutt.ee>"
+]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+Django = "^4.0"
+gunicorn = "^20.1.0"
+judoscale = { path = "../../", extras=["django", "rq"], develop = true }
+django-rq = "^2.7.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
