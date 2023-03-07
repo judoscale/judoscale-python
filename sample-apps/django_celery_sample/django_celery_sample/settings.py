@@ -31,8 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "judoscale.django.apps.JudoscaleDjangoConfig",
-    "judoscale.celery.apps.JudoscaleCeleryConfig",
+    "judoscale.django",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

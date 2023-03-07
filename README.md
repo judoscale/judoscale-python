@@ -119,18 +119,20 @@ $ pip install 'judoscale[celery-redis]'
 
 Judoscale can automatically scale the number of Celery workers based on the queue latency (the age of the oldest pending task in the queue).
 
+## Setting up the integration
+
 To use the Celery integration, import `judoscale_celery` and call it with the Celery app instance. `judoscale_celery` should be called after you have set up and configured the Celery instance.
 
 ```py
 from celery import Celery
 from judoscale.celery import judoscale_celery
 
-broker = Celery("Broker", broker="redis://localhost:6379/0")
+celery_app = Celery(broker="redis://localhost:6379/0")
 # Further setup
-# broker.conf.update(...)
+# celery_app.conf.update(...)
 # ...
 
-judoscale_celery(broker)
+judoscale_celery(celery_app)
 ```
 
 This sets up Judoscale to periodically calculate and report queue latency for each Celery queue.
@@ -138,7 +140,39 @@ This sets up Judoscale to periodically calculate and report queue latency for ea
 If you need to change the Judoscale integration configuration, you can pass a dictionary of Judoscale configuration options to `judoscale_celery` to override the default Judoscale config variables:
 
 ```py
-judoscale_celery(broker, extra_config={"LOG_LEVEL": "DEBUG"})
+judoscale_celery(celery_app, extra_config={"LOG_LEVEL": "DEBUG"})
+```
+
+> **NOTE:** Calling `judoscale_celery` turns on sending [`task-sent`](https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-send-sent-event) events. This is required for the Celery integration with Judoscale to work.
+
+### Judoscale with Celery and Flask
+
+Depending on how you've structured your Flask app, you should call `judoscale_celery` after your application has finished configuring the Celery app instance. If you have followed the [Flask guide](https://flask.palletsprojects.com/en/2.2.x/patterns/celery/) in the Flask documentation, the easiest place to initialise the Judoscale integration is in the application factory:
+
+```py
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(...) # or however you configure your app
+    celery_app = celery_init_app(app)
+    # Initialise the Judoscale integration
+    judoscale_celery(celery_app, extra_config=app.config["JUDOSCALE"])
+    return app
+```
+
+### Judoscale with Celery and Django
+
+If you have followed the [Django guide](https://docs.celeryq.dev/en/stable/django/first-steps-with-django.html) in the Celery documentation, you should have a module where you initialise the Celery app instance, auto-discover tasks, etc. You should call `judoscale_celery` after you have configured the Celery app instance:
+
+```py
+from celery import Celery
+from django.conf import settings
+from judoscale.celery import judoscale_celery
+
+app = Celery()
+app.config_from_object("django.conf:settings", namespace="CELERY")
+app.autodiscover_tasks()
+# Initialise the Judoscale integration
+judoscale_celery(app, extra_config=settings.JUDOSCALE)
 ```
 
 # Using Judoscale with RQ
