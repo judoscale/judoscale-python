@@ -10,7 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class JudoscaleDjangoConfig(AppConfig):
-    name = "judoscale"
+    name = "judoscale.django"
+    label = "judoscale_django"
     verbose_name = "Judoscale (Django)"
 
     def ready(self):

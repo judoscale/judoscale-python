@@ -19,7 +19,7 @@ def publish_task(i=1):
 
 
 def create_app():
-    app = Flask("DemoFlaskApp")
+    app = Flask("DemoFlaskRQApp")
     app.config.from_object(settings.BaseConfig)
     app.redis = Redis()
 
@@ -33,7 +33,7 @@ def create_app():
             "/inspect/", "/p/"
         )
         return (
-            "Judoscale RQ Sample App. "
+            "Judoscale Flask RQ Sample App. "
             f"<a target='_blank' href={catcher_url}>Metrics</a>"
             "<form action='/task' method='POST'>"
             "<input type='submit' value='Add task'>"

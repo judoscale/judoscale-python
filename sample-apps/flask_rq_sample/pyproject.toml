@@ -1,11 +1,10 @@
 [tool.poetry]
-name = "rq-sample"
+name = "flask-rq-sample"
 version = "0.1.0"
 description = ""
 authors = ["Karl Sutt <karl@sutt.ee>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "rq_sample"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"
