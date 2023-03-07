@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "judoscale-django-celery-sample"
+version = "0.1.0"
+description = "A sample app for testing judoscale with Django and Celery."
+authors = [
+    "Adam McCrea <adam@adamlogic.com>",
+    "Mara <mara@multiplace.org>",
+    "Karl Sutt <karl@sutt.ee>"
+]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+Django = "^4.0"
+gunicorn = "^20.1.0"
+judoscale = { path = "../../", extras=["django", "celery-redis"], develop = true }
+celery = {extras = ["redis"], version = "^5.2.7"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
