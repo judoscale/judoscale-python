@@ -13,7 +13,7 @@ It is recommended to install the specific web framework and/or background job li
 ## Supported job processors
 
 - [x] [Celery](#using-judoscale-with-celery-and-redis) (with Redis as the broker)
-- [ ] RQ
+- [x] [RQ](#using-judoscale-with-rq)
 
 # Using Judoscale with Django
 
@@ -140,6 +140,127 @@ If you need to change the Judoscale integration configuration, you can pass a di
 ```py
 judoscale_celery(broker, extra_config={"LOG_LEVEL": "DEBUG"})
 ```
+
+# Using Judoscale with RQ
+
+Install Judoscale for Celery with:
+
+```sh
+$ pip install 'judoscale[rq]'
+```
+
+Judoscale can automatically scale the number of RQ workers based on the queue latency (the age of the oldest pending task in the queue).
+
+## Setting up the integration
+
+To use the RQ integration, import `judoscale_rq` and call it with an instance of `Redis` pointing to the same Redis database that RQ uses.
+
+```py
+from redis import Redis
+from judoscale.rq import judoscale_rq
+
+redis = Redis(...)
+judoscale_rq(redis)
+```
+
+This sets up Judoscale to periodically calculate and report queue latency for each RQ queue.
+
+If you need to change the Judoscale integration configuration, you can pass a dictionary of Judoscale configuration options to `judoscale_rq` to override the default Judoscale config variables:
+
+```py
+judoscale_rq(redis, extra_config={"LOG_LEVEL": "DEBUG"})
+```
+
+### Judoscale with RQ and Flask
+
+The recommended way to initialise Judoscale for RQ is in the application factory:
+
+```py
+judoscale = Judoscale()
+
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object("...") # or however you configure your application
+    app.redis = Redis()
+
+    # Initialise the Judoscale integration for Flask
+    judoscale.init_app(app)
+
+    # Initialise the Judoscale integration for RQ
+    judoscale_rq(app.redis)
+
+    return app
+```
+
+Then, in your worker script, make sure that you create an app, which will initialise the Judoscale integration with RQ. Although not required, it's useful to run the worker within the Flask app context. If you have followed the [RQ on Heroku pattern](https://python-rq.org/patterns/) for setting up your RQ workers on Heroku, your worker script should look something like this:
+
+```py
+from rq.worker import HerokuWorker as Worker
+
+app = create_app()
+
+worker = Worker(..., connection=app.redis)
+with app.app_context():
+    worker.work()
+```
+
+See the [run-worker.py script](./sample-apps/rq_sample/run-worker.py) for reference.
+
+### Judoscale with RQ and Django
+
+The Judoscale integration for RQ is packaged into a separate Django app.
+
+You should already have `judoscale.django` in your `INSTALLED_APPS`. Next, add the RQ integration app `judoscale.rq`:
+
+```python
+INSTALLED_APPS = [
+    "judoscale.django",
+    "judoscale.rq",
+    # ... other apps
+]
+```
+
+By default, `judoscale.rq` will connect to the Redis instance as specified by the `REDIS_URL` environment variable. If that is not suitable, you can supply Redis connection information in the `JUDOSCALE` configuration dictionary under the `"REDIS"` key.
+
+Accepted formats are:
+
+- a dictionary containing a single key `"URL"` pointing to a Redis server URL, or;
+- a dictionary of configuration options corresponding to the keyword arguments of the [`Redis` constructor](https://github.com/redis/redis-py/blob/6c708c2e0511364c2c3f21fa1259de05e590632d/redis/client.py#L905).
+
+```py
+JUDOSCALE = {
+    # Configuring with a Redis server URL
+    "REDIS": {
+        "URL": os.getenv("REDISTOGO_URL")
+    }
+
+    # Configuring as kwargs to Redis(...)
+    "REDIS": {
+        "HOST": "localhost",
+        "PORT": 6379,
+        "DB": 0
+    }
+}
+```
+
+If you are using [Django-RQ](https://github.com/rq/django-rq/tree/master), you can also pull configuration from `RQ_QUEUES` directly:
+
+```py
+RQ_QUEUES = {
+    "high_priority": {
+        "HOST": "...",
+        "PORT": 6379,
+        "DB": 0
+    },
+}
+
+JUDOSCALE = {
+    # ... other configuration options
+    "REDIS": RQ_QUEUES["high_priority"]
+}
+```
+
+> **NOTE:** Django-RQ enables configuring RQ such that different queues and workers use _different_ Redis instances. Judoscale currently only supports connecting to and monitoring queue latency on a single Redis instance.
 
 ## Development
 

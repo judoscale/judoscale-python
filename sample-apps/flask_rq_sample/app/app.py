@@ -3,8 +3,11 @@ import random
 import app.settings as settings
 from app.tasks import add
 from flask import Flask, current_app, redirect, url_for
+from redis import Redis
+from rq import Queue
 
 from judoscale.flask import Judoscale
+from judoscale.rq import judoscale_rq
 
 judoscale = Judoscale()
 
@@ -12,13 +15,16 @@ judoscale = Judoscale()
 def publish_task(i=1):
     queue = "high" if random.random() > 0.5 else "low"
     current_app.logger.debug(f"Enqueuing a task on {queue=}")
-    add.s(i, i).apply_async(queue=queue)
+    Queue(queue, connection=current_app.redis).enqueue(add, i, i)
 
 
 def create_app():
-    app = Flask("DemoFlaskApp")
+    app = Flask("DemoFlaskRQApp")
     app.config.from_object(settings.BaseConfig)
+    app.redis = Redis()
+
     judoscale.init_app(app)
+    judoscale_rq(app.redis, extra_config=app.config.get("JUDOSCALE", {}))
 
     @app.get("/")
     def index():
@@ -27,7 +33,7 @@ def create_app():
             "/inspect/", "/p/"
         )
         return (
-            "Judoscale Celery Sample App. "
+            "Judoscale Flask RQ Sample App. "
             f"<a target='_blank' href={catcher_url}>Metrics</a>"
             "<form action='/task' method='POST'>"
             "<input type='submit' value='Add task'>"

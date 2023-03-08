@@ -1,6 +1,6 @@
-# Celery Sample App
+# Flask RQ Sample App
 
-This is a minimal Flask app for testing Celery with the judoscale package.
+This is a minimal Flask app for testing RQ with the judoscale package.
 
 ## Prerequisites
 
@@ -23,10 +23,10 @@ This will install the dependencies, including `judoscale` as a [path dependency]
 Run `bin/dev` to run the app in development mode. This will run `heroku local`, which starts:
 
 - a [tiny proxy server](https://github.com/judoscale/judoscale-adapter-proxy-server) that adds the `X-Request-Start` request header so we can test request queue time reporting; and
-- the sample app for testing Celery (with Flask).
+- the sample app for testing RQ (with Flask).
 
 ## How to use this sample app
 
-Open https://requestinspector.com/p/judoscale-celery in a browser. The sample app is configured to use this Request Catcher endpoint as a mock for the Judoscale Adapter API. This page will monitor all API requests sent from the adapter.
+Open https://requestinspector.com/p/judoscale-flask-rq in a browser. The sample app is configured to use this Request Catcher endpoint as a mock for the Judoscale Adapter API. This page will monitor all API requests sent from the adapter.
 
 Start the app via `./bin/dev`, then open http://localhost:5000. Clicking on "Add task" will enqueue a task that sleeps between 3 and 5 seconds and then returns the sum of its arguments. The task is enqueued randomly to either the `high` queue or the `low` queue. You will see Judoscale Adapter API requests logged in Request Catcher.
