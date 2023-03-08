@@ -113,9 +113,9 @@ Install Judoscale for Celery with:
 $ pip install 'judoscale[celery-redis]'
 ```
 
-> **NOTE 1:** The Judoscale Celery integration currently only works with the [Redis broker](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis).
+> :warning: **NOTE 1:** The Judoscale Celery integration currently only works with the [Redis broker](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis).
 
-> **NOTE 2:** Using [task priorities](https://docs.celeryq.dev/en/latest/userguide/calling.html#advanced-options) is currently not supported by `judoscale`. You can still use task priorities, but `judoscale` won't see and report metrics on any queues other than the default, unprioritised queue.
+> :warning: **NOTE 2:** Using [task priorities](https://docs.celeryq.dev/en/latest/userguide/calling.html#advanced-options) is currently not supported by `judoscale`. You can still use task priorities, but `judoscale` won't see and report metrics on any queues other than the default, unprioritised queue.
 
 Judoscale can automatically scale the number of Celery workers based on the queue latency (the age of the oldest pending task in the queue).
 
@@ -143,7 +143,7 @@ If you need to change the Judoscale integration configuration, you can pass a di
 judoscale_celery(celery_app, extra_config={"LOG_LEVEL": "DEBUG"})
 ```
 
-> **NOTE:** Calling `judoscale_celery` turns on sending [`task-sent`](https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-send-sent-event) events. This is required for the Celery integration with Judoscale to work.
+> :warning: **NOTE:** Calling `judoscale_celery` turns on sending [`task-sent`](https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-send-sent-event) events. This is required for the Celery integration with Judoscale to work.
 
 ### Judoscale with Celery and Flask
 
@@ -294,7 +294,7 @@ JUDOSCALE = {
 }
 ```
 
-> **NOTE:** Django-RQ enables configuring RQ such that different queues and workers use _different_ Redis instances. Judoscale currently only supports connecting to and monitoring queue latency on a single Redis instance.
+> :warning: **NOTE:** Django-RQ enables configuring RQ such that different queues and workers use _different_ Redis instances. Judoscale currently only supports connecting to and monitoring queue latency on a single Redis instance.
 
 ## Development
 
