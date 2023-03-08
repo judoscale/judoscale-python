@@ -1,11 +1,10 @@
 [tool.poetry]
-name = "judoscale-celery-sample"
+name = "judoscale-flask-celery-sample"
 version = "0.1.0"
-description = "A sample app for testing judoscale-python with Celery."
+description = "A sample app for testing judoscale with Flask and Celery."
 authors = ["Karl Sutt <karl@sutt.ee>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "celery_sample"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"

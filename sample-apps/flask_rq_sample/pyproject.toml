@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "flask-rq-sample"
+name = "judoscale-flask-rq-sample"
 version = "0.1.0"
-description = ""
+description = "A sample app for testing judoscale with Flask and RQ."
 authors = ["Karl Sutt <karl@sutt.ee>"]
 license = "MIT"
 readme = "README.md"

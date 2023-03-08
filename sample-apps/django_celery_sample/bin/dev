@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Install the local judoscale package so we can test changes before publishing.
+
+# Heroku sets the DYNO environment variable on every dyno.
+# We're doing the same thing here so we can verify the judoscale
+# package is using it as expected.
+
+DJANGO_SETTINGS_MODULE=django_celery_sample.settings heroku local

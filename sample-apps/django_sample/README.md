@@ -1,6 +1,6 @@
 # Django Sample App
 
-This is a minimal Django app to test the judoscale package.
+This is a minimal Django app for testing the judoscale package.
 
 ## Prerequisites
 

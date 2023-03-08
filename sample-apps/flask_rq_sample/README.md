@@ -1,6 +1,6 @@
 # Flask RQ Sample App
 
-This is a minimal Flask app for testing RQ with the judoscale package.
+This is a minimal Flask and RQ app for testing the judoscale package.
 
 ## Prerequisites
 

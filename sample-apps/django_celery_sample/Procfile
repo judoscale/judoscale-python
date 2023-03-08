@@ -1,0 +1,7 @@
+# The proxy server adds the X_REQUEST_START header for queue time calculations
+proxy: npx judoscale-adapter-proxy-server
+
+# Run with --noreload to avoid multiple server processes (and multiple Judoscale reporters)
+web: DYNO=web.1 poetry run gunicorn django_celery_sample.wsgi:application --preload
+worker: DYNO=worker.1 poetry run celery -A django_celery_sample worker -c 1 --loglevel=INFO -Q low
+worker_high: DYNO=worker_high.1 poetry run celery -A django_celery_sample worker -c 1 --loglevel=INFO -Q high

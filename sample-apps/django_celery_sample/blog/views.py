@@ -1,8 +1,7 @@
 import logging
 import random
-import time
 
-import django_rq
+from blog.tasks import add
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -11,15 +10,10 @@ from django.views.decorators.csrf import csrf_exempt
 logger = logging.getLogger(__name__)
 
 
-def add(x, y):
-    time.sleep(random.randint(3, 5))
-    return x + y
-
-
 def publish_task(i=1):
-    queue = django_rq.get_queue("high" if random.random() > 0.5 else "low")
+    queue = "high" if random.random() > 0.5 else "low"
     logger.debug(f"Enqueuing a task on {queue=}")
-    queue.enqueue(add, i, i)
+    add.s(i, i).apply_async(queue=queue)
 
 
 @csrf_exempt
@@ -40,7 +34,7 @@ def index(request):
     logger.warning("Hello, world")
     catcher_url = settings.JUDOSCALE["API_BASE_URL"].replace("/inspect/", "/p/")
     return HttpResponse(
-        "Judoscale Django RQ Sample App. "
+        "Judoscale Django Celery Sample App. "
         f"<a target='_blank' href={catcher_url}>Metrics</a>"
         "<form action='/task' method='POST'>"
         "<input type='submit' value='Add task'>"
