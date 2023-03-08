@@ -238,7 +238,7 @@ with app.app_context():
     worker.work()
 ```
 
-See the [run-worker.py script](./sample-apps/rq_sample/run-worker.py) for reference.
+See the [run-worker.py script](./sample-apps/flask_rq_sample/run-worker.py) for reference.
 
 ### Judoscale with RQ and Django
 
