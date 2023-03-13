@@ -5,6 +5,10 @@ from typing import Optional, Tuple
 
 from judoscale.core.logger import logger
 
+nanoseconds = re.compile(r"^\d{19}$")
+milliseconds = re.compile(r"^\d{13}$")
+fractional_seconds = re.compile(r"^\d{10}.\d{3}$")
+
 
 @dataclass
 class Metric:
@@ -42,23 +46,29 @@ class Metric:
         """
         Parse the X-Request-Start header value and return a Metric instance.
 
-        Removes non-digits:
-            This removes the "t=" prefix added by some web servers (NGINX).
-        Removes decimal:
-            NGINX also reports this time as fractional seconds with millisecond
-            resolution, so removing the decimal gives us integer milliseconds
-            (same as Heroku).
+        There are several variants of this header. We handle these:
+          - whole nanoseconds (Render)
+          - whole milliseconds (Heroku)
+          - fractional seconds (NGINX)
+          - preceeding "t=" (NGINX)
 
         Calculate how long a request has been waiting to be handled, log and
         return a Metric instance.
         """
-        request_start = re.sub(r"\D", "", header_value)
 
-        if len(request_start) == 0:
+        request_start = re.sub(r"[^0-9.]", "", header_value)
+
+        if re.match(nanoseconds, request_start):
+            start_ms = int(float(request_start) / 1_000_000)
+        elif re.match(milliseconds, request_start):
+            start_ms = int(request_start)
+        elif re.match(fractional_seconds, request_start):
+            start_ms = int(float(request_start) * 1000)
+        else:
             return None
 
-        logger.debug(f"START X {request_start}")
-        metric = Metric.new(start_ms=int(request_start))
+        logger.debug(f"START X {start_ms}")
+        metric = Metric.new(start_ms=start_ms)
         logger.debug(f"queue_time={metric.value}ms")
         return metric
 
