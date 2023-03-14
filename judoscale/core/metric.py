@@ -1,14 +1,9 @@
-import re
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional, Tuple
 
 from judoscale.core.logger import logger
-
-nanoseconds = re.compile(r"^\d{19}$")
-milliseconds = re.compile(r"^\d{13}$")
-fractional_seconds = re.compile(r"^\d{10}.\d{3}$")
 
 # Adapted from https://github.com/scoutapp/scout_apm_python/blob/86d14920a59a7a3b5dfffe680586646ee29bdd7a/src/scout_apm/core/web_requests.py#L139-L162 # noqa: E501
 # Cutoff epoch is used for determining ambiguous timestamp boundaries
