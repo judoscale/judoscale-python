@@ -14,6 +14,15 @@ class TestMetricsForWeb(unittest.TestCase):
         # time.sleep() inaccuracy and the time it takes to run the test.
         self.assertAlmostEqual(metric.value, 20, delta=10)
 
+    def test_render_metrics(self):
+        # Render timestamp is in integer nanoseconds
+        render_timestamp = str(time.time_ns())
+        time.sleep(0.02)
+        metric = Metric.for_web(render_timestamp)
+        # Allow metric value to be within 10ms of 20ms to account for
+        # time.sleep() inaccuracy and the time it takes to run the test.
+        self.assertAlmostEqual(metric.value, 20, delta=10)
+
     def test_nginx_metrics(self):
         # Nginx timestamp is in seconds with millisecond resolution (3dp).
         #
@@ -25,3 +34,9 @@ class TestMetricsForWeb(unittest.TestCase):
         # Allow metric value to be within 10ms of 20ms to account for
         # time.sleep() inaccuracy and the time it takes to run the test.
         self.assertAlmostEqual(metric.value, 20, delta=10)
+
+    def test_negative_value(self):
+        self.assertIsNone(Metric.for_web("t=-123456789"))
+
+    def test_garbage_value(self):
+        self.assertIsNone(Metric.for_web("abc."))

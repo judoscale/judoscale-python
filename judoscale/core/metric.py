@@ -1,9 +1,31 @@
-import re
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional, Tuple
 
 from judoscale.core.logger import logger
+
+# Adapted from https://github.com/scoutapp/scout_apm_python/blob/86d14920a59a7a3b5dfffe680586646ee29bdd7a/src/scout_apm/core/web_requests.py#L139-L162 # noqa: E501
+# Cutoff epoch is used for determining ambiguous timestamp boundaries
+CUTOFF_EPOCH_MS = time.mktime((2000, 1, 1, 0, 0, 0, 0, 0, 0)) * 1000
+CUTOFF_EPOCH_US = CUTOFF_EPOCH_MS * 1000
+CUTOFF_EPOCH_NS = CUTOFF_EPOCH_US * 1000
+
+
+def convert_ambiguous_timestamp_to_ms(timestamp: float) -> int:
+    """
+    Convert an ambiguous float timestamp that could be in nanoseconds,
+    microseconds, milliseconds, or seconds to nanoseconds.
+    Return None for values in the more than 10 years ago.
+    """
+    if timestamp > CUTOFF_EPOCH_NS:
+        return int(timestamp / 1_000_000.0)
+    elif timestamp > CUTOFF_EPOCH_US:
+        return int(timestamp / 1_000.0)
+    elif timestamp > CUTOFF_EPOCH_MS:
+        return int(timestamp)
+    else:
+        return int(timestamp * 1_000.0)
 
 
 @dataclass
@@ -42,23 +64,31 @@ class Metric:
         """
         Parse the X-Request-Start header value and return a Metric instance.
 
-        Removes non-digits:
-            This removes the "t=" prefix added by some web servers (NGINX).
-        Removes decimal:
-            NGINX also reports this time as fractional seconds with millisecond
-            resolution, so removing the decimal gives us integer milliseconds
-            (same as Heroku).
+        There are several variants of this header. We handle these:
+          - nanoseconds (Render)
+          - microseconds (???)
+          - milliseconds (Heroku)
+          - fractional seconds (NGINX)
+          - preceeding "t=" (NGINX)
 
         Calculate how long a request has been waiting to be handled, log and
         return a Metric instance.
         """
-        request_start = re.sub(r"\D", "", header_value)
 
-        if len(request_start) == 0:
+        if header_value.startswith("t="):
+            header_value = header_value[2:]
+
+        if not header_value or not header_value[0].isdigit():
             return None
 
-        logger.debug(f"START X {request_start}")
-        metric = Metric.new(start_ms=int(request_start))
+        try:
+            ambiguous_timestamp = float(header_value)
+        except ValueError:
+            return None
+
+        start_ms = convert_ambiguous_timestamp_to_ms(ambiguous_timestamp)
+        logger.debug(f"START X {start_ms}")
+        metric = Metric.new(start_ms=start_ms)
         logger.debug(f"queue_time={metric.value}ms")
         return metric
 
