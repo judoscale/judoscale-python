@@ -1,4 +1,5 @@
 import re
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional, Tuple
@@ -8,6 +9,28 @@ from judoscale.core.logger import logger
 nanoseconds = re.compile(r"^\d{19}$")
 milliseconds = re.compile(r"^\d{13}$")
 fractional_seconds = re.compile(r"^\d{10}.\d{3}$")
+
+# Adapted from https://github.com/scoutapp/scout_apm_python/blob/86d14920a59a7a3b5dfffe680586646ee29bdd7a/src/scout_apm/core/web_requests.py#L139-L162 # noqa: E501
+# Cutoff epoch is used for determining ambiguous timestamp boundaries
+CUTOFF_EPOCH_MS = time.mktime((2000, 1, 1, 0, 0, 0, 0, 0, 0)) * 1000
+CUTOFF_EPOCH_US = CUTOFF_EPOCH_MS * 1000
+CUTOFF_EPOCH_NS = CUTOFF_EPOCH_US * 1000
+
+
+def convert_ambiguous_timestamp_to_ms(timestamp: float) -> int:
+    """
+    Convert an ambiguous float timestamp that could be in nanoseconds,
+    microseconds, milliseconds, or seconds to nanoseconds.
+    Return None for values in the more than 10 years ago.
+    """
+    if timestamp > CUTOFF_EPOCH_NS:
+        return int(timestamp / 1_000_000.0)
+    elif timestamp > CUTOFF_EPOCH_US:
+        return int(timestamp / 1_000.0)
+    elif timestamp > CUTOFF_EPOCH_MS:
+        return int(timestamp)
+    else:
+        return int(timestamp * 1_000.0)
 
 
 @dataclass
@@ -47,8 +70,9 @@ class Metric:
         Parse the X-Request-Start header value and return a Metric instance.
 
         There are several variants of this header. We handle these:
-          - whole nanoseconds (Render)
-          - whole milliseconds (Heroku)
+          - nanoseconds (Render)
+          - microseconds (???)
+          - milliseconds (Heroku)
           - fractional seconds (NGINX)
           - preceeding "t=" (NGINX)
 
@@ -56,17 +80,18 @@ class Metric:
         return a Metric instance.
         """
 
-        request_start = re.sub(r"[^0-9.]", "", header_value)
+        if header_value.startswith("t="):
+            header_value = header_value[2:]
 
-        if re.match(nanoseconds, request_start):
-            start_ms = int(float(request_start) / 1_000_000)
-        elif re.match(milliseconds, request_start):
-            start_ms = int(request_start)
-        elif re.match(fractional_seconds, request_start):
-            start_ms = int(float(request_start) * 1000)
-        else:
+        if not header_value or not header_value[0].isdigit():
             return None
 
+        try:
+            ambiguous_timestamp = float(header_value)
+        except ValueError:
+            return None
+
+        start_ms = convert_ambiguous_timestamp_to_ms(ambiguous_timestamp)
         logger.debug(f"START X {start_ms}")
         metric = Metric.new(start_ms=start_ms)
         logger.debug(f"queue_time={metric.value}ms")
