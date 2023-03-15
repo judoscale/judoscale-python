@@ -16,7 +16,7 @@ class MetricsStore:
         # if they are never being flushed (if the reporter has failed for some
         # reason).
         self.max_flush_interval: int = max_flush_interval
-        self.last_flush_time: float = time.time()
+        self.last_flush_time: float = time.monotonic()
 
     def add(self, metric: Metric) -> None:
         """
@@ -25,7 +25,7 @@ class MetricsStore:
         If the max flush interval has been exceeded, the metric will not be
         added to the store.
         """
-        if self.last_flush_time > time.time() - self.max_flush_interval:
+        if self.last_flush_time > time.monotonic() - self.max_flush_interval:
             self.store.append(metric)
         else:
             logger.debug("Max flush interval exceeded - Not adding metric to store.")
@@ -34,7 +34,7 @@ class MetricsStore:
         """
         Return all metrics in the store and clear the store.
         """
-        self.last_flush_time = time.time()
+        self.last_flush_time = time.monotonic()
         result = []
         # This operation needs to be atomic since the main thread is appending
         # to the store

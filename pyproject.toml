@@ -30,6 +30,7 @@ rq = { version = ">=1.0.0,<2.0.0", optional = true }
 black = "^22.12.0"
 isort = "^5.11.2"
 flake8 = { version = "^6.0.0", python = ">=3.8.1,<4.0.0" }
+pytest = "^7.2.2"
 
 [tool.poetry.extras]
 django = ["django"]
@@ -39,6 +40,11 @@ rq = ["rq"]
 
 [tool.isort]
 profile = "black"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:SelectableGroups dict interface is deprecated:DeprecationWarning"
+]
 
 [build-system]
 requires = ["poetry-core"]

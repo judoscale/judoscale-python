@@ -1,34 +1,33 @@
-import unittest
-from unittest import TestCase
-from judoscale.core.metrics_store import MetricsStore
 import time
 
+from pytest import fixture
 
-class TestMetricsStore(TestCase):
-    def setUp(self):
-        self.store = MetricsStore()
+from judoscale.core.metrics_store import MetricsStore
 
-    def test_add_and_flush(self):
-        self.store.add(11)
-        self.store.add(22)
 
-        assert self.store.flush() == [22, 11]
-        assert self.store.flush() == []
+@fixture
+def store():
+    return MetricsStore()
 
-    def test_max_flush_interval(self):
-        self.store.max_flush_interval = 0.0001
-        self.store.add(11)
+
+class TestMetricsStore:
+    def test_add_and_flush(self, store):
+        store.add(11)
+        store.add(22)
+
+        assert store.flush() == [22, 11]
+        assert store.flush() == []
+
+    def test_max_flush_interval(self, store):
+        store.max_flush_interval = 0.01
+        store.add(11)
         time.sleep(0.01)
 
         # This add should be a no-op since it's been too long since the last flush
-        self.store.add(22)
+        store.add(22)
 
-        assert self.store.flush() == [11]
+        assert store.flush() == [11]
 
-        self.store.add(22)
+        store.add(22)
 
-        assert self.store.flush() == [22]
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert store.flush() == [22]

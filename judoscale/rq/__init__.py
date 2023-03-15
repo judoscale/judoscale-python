@@ -1,3 +1,5 @@
+from typing import Mapping
+
 import rq
 from redis import Redis
 
@@ -7,7 +9,7 @@ from judoscale.core.reporter import reporter
 from judoscale.rq.collector import RQMetricsCollector
 
 
-def judoscale_rq(redis: Redis, extra_config: dict = {}) -> None:
+def judoscale_rq(redis: Redis, extra_config: Mapping = {}) -> None:
     judoconfig.merge(extra_config)
     collector = RQMetricsCollector(config=judoconfig, redis=redis)
     adapter = Adapter(

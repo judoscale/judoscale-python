@@ -1,4 +1,5 @@
 import time
+from typing import Mapping
 
 from celery import Celery
 from celery import __version__ as celery_version
@@ -15,7 +16,7 @@ def before_publish(*args, properties={}, **kwargs):
     properties["published_at"] = time.time()
 
 
-def judoscale_celery(celery: Celery, extra_config: dict = {}) -> None:
+def judoscale_celery(celery: Celery, extra_config: Mapping = {}) -> None:
     celery.conf.task_send_sent_event = True
 
     judoconfig.merge(extra_config)

@@ -30,7 +30,7 @@ class WebMetricsCollector(MetricsCollector):
 
     @property
     def should_collect(self):
-        return self.config.dyno_name == "web"
+        return self.config.runtime_container.is_web_instance
 
     def add(self, metric: Metric):
         """
@@ -52,4 +52,4 @@ class JobMetricsCollector(MetricsCollector):
 
     @property
     def should_collect(self):
-        return self.config.dyno_num == 1
+        return not self.config.runtime_container.is_redundant_instance
