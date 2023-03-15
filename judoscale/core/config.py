@@ -86,5 +86,4 @@ class Config:
             logger.addHandler(stdout_handler)
 
 
-#
-config = Config.initialise(os.environ)
+config = Config.initialise()
