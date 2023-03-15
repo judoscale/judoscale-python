@@ -1,0 +1,3 @@
+#!/bin/bash
+
+DJANGO_SETTINGS_MODULE=django_celery_sample.settings heroku local --procfile Procfile.heroku

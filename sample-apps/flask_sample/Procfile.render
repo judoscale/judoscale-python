@@ -1,0 +1,5 @@
+# The proxy server adds the X_REQUEST_START header for queue time calculations
+proxy: npx judoscale-adapter-proxy-server
+
+web: RENDER_SERVICE_ID=srv-123 RENDER_INSTANCE_ID=srv-123-abc-456 RENDER_SERVICE_TYPE=web poetry run gunicorn --preload 'app:create_app()'
+#web: flask run -p 5100
