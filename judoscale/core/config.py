@@ -34,7 +34,7 @@ class Config:
         self._prepare_logging()
 
     @classmethod
-    def initialise(cls, env: Mapping = os.environ):
+    def initialize(cls, env: Mapping = os.environ):
         if env.get("DYNO"):
             return cls.for_heroku(env)
         elif env.get("RENDER_INSTANCE_ID"):
@@ -86,4 +86,4 @@ class Config:
             logger.addHandler(stdout_handler)
 
 
-config = Config.initialise()
+config = Config.initialize()
