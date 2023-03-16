@@ -18,6 +18,7 @@ from judoscale.rq.collector import RQMetricsCollector
 @fixture
 def celery():
     redis = Mock()
+    redis.configure_mock(**{"info.return_value": {"redis_version": "6.2.7"}})
     celery = Mock()
     connection = Mock(transport=Mock(driver_name="redis"))
     connection.configure_mock(**{"channel.return_value": Mock(client=redis)})
@@ -69,6 +70,13 @@ class TestCeleryMetricsCollector:
     def test_correct_driver(self, worker_1, celery):
         celery.connection_for_read().channel().client.scan_iter.return_value = []
         assert CeleryMetricsCollector(worker_1, celery) is not None
+
+    def test_incorrect_redis_server_version(self, worker_1, celery):
+        celery.connection_for_read().channel().client.info.return_value = {
+            "redis_version": "5.0.14"
+        }
+        with raises(RuntimeError, match="Unsupported Redis server version"):
+            CeleryMetricsCollector(worker_1, celery)
 
     def test_queues_empty(self, heroku_worker_1, celery):
         celery.connection_for_read().channel().client.scan_iter.return_value = [

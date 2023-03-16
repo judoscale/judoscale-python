@@ -3,6 +3,7 @@ import time
 from threading import Thread
 from typing import List, Optional, Set
 
+import redis.exceptions as re
 from celery import Celery
 from kombu import Connection
 from redis import Redis
@@ -49,6 +50,12 @@ class CeleryMetricsCollector(JobMetricsCollector):
             )
 
         self.redis: Redis = connection.channel().client
+
+        if not self.is_supported_redis_version:
+            raise RuntimeError(
+                "Unsupported Redis server version. Minimum Redis version is 6.0."
+            )
+
         self.queues: Set[str] = set()
         self.task_sent_handler = TaskSentHandler(self, connection)
         logger.debug(f"Redis is at {self.redis.connection_pool}")
@@ -61,6 +68,11 @@ class CeleryMetricsCollector(JobMetricsCollector):
         logger.debug(f"Found initial queues: {list(user_queues)}")
         self.queues = user_queues - system_queues
         self.task_sent_handler.start()
+
+    @property
+    def is_supported_redis_version(self):
+        major_version = int(self.redis.info()["redis_version"].split(".")[0])
+        return major_version >= 6
 
     def oldest_task(self, queue: str) -> Optional[dict]:
         """
