@@ -85,7 +85,7 @@ class TestCeleryMetricsCollector:
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics: List[Metric] = collector.collect()
         assert len(metrics) == 1
-        assert metrics[0].value == approx(0, rel=1)
+        assert metrics[0].value == approx(0, abs=1)
         assert metrics[0].queue_name == "foo"
 
     def test_collect_missing_published_at(self, worker_1, celery):
@@ -106,7 +106,7 @@ class TestCeleryMetricsCollector:
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics = collector.collect()
         assert len(metrics) == 1
-        assert metrics[0].value == approx(0, rel=1)
+        assert metrics[0].value == approx(0, abs=1)
         assert metrics[0].queue_name == "foo"
         assert "Unable to get a task from queue: foo" in caplog.messages
 
@@ -146,7 +146,7 @@ class TestRQMetricsCollector:
         collector = RQMetricsCollector(worker_1, redis)
         metrics: List[Metric] = collector.collect()
         assert len(metrics) == 1
-        assert metrics[0].value == approx(0, rel=1)
+        assert metrics[0].value == approx(0, abs=1)
         assert metrics[0].queue_name == "foo"
 
     def test_collect_response_error(self, worker_1, caplog):
@@ -157,7 +157,7 @@ class TestRQMetricsCollector:
         collector = RQMetricsCollector(worker_1, redis)
         metrics = collector.collect()
         assert len(metrics) == 1
-        assert metrics[0].value == approx(0, rel=1)
+        assert metrics[0].value == approx(0, abs=1)
         assert metrics[0].queue_name == "foo"
         assert "Unable to get a task from queue: foo" in caplog.messages
 
@@ -179,5 +179,5 @@ class TestRQMetricsCollector:
         collector = RQMetricsCollector(worker_1, redis)
         metrics: List[Metric] = collector.collect()
         assert len(metrics) == 1
-        assert metrics[0].value == approx(60000, rel=100)
+        assert metrics[0].value == approx(60000, abs=100)
         assert metrics[0].queue_name == "foo"

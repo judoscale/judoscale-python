@@ -13,7 +13,7 @@ class TestMetricsForWeb:
         metric = Metric.for_web(heroku_timestamp)
         # Allow metric value to be within 10ms of 20ms to account for
         # time.sleep() inaccuracy and the time it takes to run the test.
-        assert metric.value == approx(20, rel=10)
+        assert metric.value == approx(20, abs=10)
 
     def test_render_metrics(self):
         # Render timestamp is in integer nanoseconds
@@ -22,7 +22,7 @@ class TestMetricsForWeb:
         metric = Metric.for_web(render_timestamp)
         # Allow metric value to be within 10ms of 20ms to account for
         # time.sleep() inaccuracy and the time it takes to run the test.
-        assert metric.value == approx(20, rel=10)
+        assert metric.value == approx(20, abs=10)
 
     def test_nginx_metrics(self):
         # Nginx timestamp is in seconds with millisecond resolution (3dp).
@@ -34,7 +34,7 @@ class TestMetricsForWeb:
         metric = Metric.for_web(nginx_timestamp)
         # Allow metric value to be within 10ms of 20ms to account for
         # time.sleep() inaccuracy and the time it takes to run the test.
-        assert metric.value == approx(20, rel=10)
+        assert metric.value == approx(20, abs=10)
 
     def test_negative_value(self):
         assert Metric.for_web("t=-123456789") is None
