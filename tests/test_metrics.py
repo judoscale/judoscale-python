@@ -1,10 +1,11 @@
 import time
-import unittest
+
+from pytest import approx
 
 from judoscale.core.metric import Metric
 
 
-class TestMetricsForWeb(unittest.TestCase):
+class TestMetricsForWeb:
     def test_heroku_metrics(self):
         # Heroku timestamp is in integer milliseconds
         heroku_timestamp = str(round(time.time() * 1000))
@@ -12,7 +13,7 @@ class TestMetricsForWeb(unittest.TestCase):
         metric = Metric.for_web(heroku_timestamp)
         # Allow metric value to be within 10ms of 20ms to account for
         # time.sleep() inaccuracy and the time it takes to run the test.
-        self.assertAlmostEqual(metric.value, 20, delta=10)
+        assert metric.value == approx(20, abs=10)
 
     def test_render_metrics(self):
         # Render timestamp is in integer nanoseconds
@@ -21,7 +22,7 @@ class TestMetricsForWeb(unittest.TestCase):
         metric = Metric.for_web(render_timestamp)
         # Allow metric value to be within 10ms of 20ms to account for
         # time.sleep() inaccuracy and the time it takes to run the test.
-        self.assertAlmostEqual(metric.value, 20, delta=10)
+        assert metric.value == approx(20, abs=10)
 
     def test_nginx_metrics(self):
         # Nginx timestamp is in seconds with millisecond resolution (3dp).
@@ -33,10 +34,10 @@ class TestMetricsForWeb(unittest.TestCase):
         metric = Metric.for_web(nginx_timestamp)
         # Allow metric value to be within 10ms of 20ms to account for
         # time.sleep() inaccuracy and the time it takes to run the test.
-        self.assertAlmostEqual(metric.value, 20, delta=10)
+        assert metric.value == approx(20, abs=10)
 
     def test_negative_value(self):
-        self.assertIsNone(Metric.for_web("t=-123456789"))
+        assert Metric.for_web("t=-123456789") is None
 
     def test_garbage_value(self):
-        self.assertIsNone(Metric.for_web("abc."))
+        assert Metric.for_web("t=abc") is None

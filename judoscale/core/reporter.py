@@ -7,7 +7,7 @@ from typing import List
 
 from judoscale.core.adapter import Adapter, AdapterInfo
 from judoscale.core.adapter_api_client import api_client
-from judoscale.core.config import config
+from judoscale.core.config import Config, config
 from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_collectors import Collector
@@ -19,7 +19,8 @@ class Reporter:
     them to the Judoscale API.
     """
 
-    def __init__(self):
+    def __init__(self, config: Config):
+        self.config = config
         self._thread = None
         self._running = False
         self._stopevent = threading.Event()
@@ -78,7 +79,7 @@ class Reporter:
     def _run_loop(self):
         while self.is_running:
             self._report_metrics()
-            time.sleep(config.report_interval_seconds)
+            time.sleep(self.config.report_interval_seconds)
 
             if self._stopevent.is_set():
                 break
@@ -100,13 +101,13 @@ class Reporter:
 
     def _build_report(self, metrics: List[Metric]):
         return {
-            "dyno": config.dyno,
+            "container": str(self.config.runtime_container),
             "pid": self.pid,
-            "config": config.for_report(),
+            "config": self.config.for_report(),
             "adapters": dict(adapter.as_tuple for adapter in self.adapters),
             "metrics": [metric.as_tuple for metric in metrics],
         }
 
 
-reporter = Reporter()
+reporter = Reporter(config=config)
 signal.signal(signal.SIGTERM, reporter.signal_handler)

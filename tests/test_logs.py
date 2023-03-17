@@ -1,6 +1,5 @@
 import io
 import logging
-import unittest
 from unittest import TestCase
 
 
@@ -22,7 +21,3 @@ class TestReporter(TestCase):
         self.logger.warning(msg)
         msg_log = self.stream.getvalue()
         self.assertIn("[Judoscale]", msg_log)
-
-
-if __name__ == "__main__":
-    unittest.main()
