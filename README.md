@@ -12,7 +12,7 @@ It is recommended to install the specific web framework and/or background job li
 
 ## Supported job processors
 
-- [x] [Celery](#using-judoscale-with-celery-and-redis) (with Redis as the broker)
+- [x] [Celery](#using-judoscale-with-celery-and-redis) (with Redis 6.0+ as the broker)
 - [x] [RQ](#using-judoscale-with-rq)
 
 # Using Judoscale with Django
@@ -113,7 +113,7 @@ Install Judoscale for Celery with:
 $ pip install 'judoscale[celery-redis]'
 ```
 
-> :warning: **NOTE 1:** The Judoscale Celery integration currently only works with the [Redis broker](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis).
+> :warning: **NOTE 1:** The Judoscale Celery integration currently only works with the [Redis broker](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html#redis). The minimum supported Redis server version is 6.0.
 
 > :warning: **NOTE 2:** Using [task priorities](https://docs.celeryq.dev/en/latest/userguide/calling.html#advanced-options) is currently not supported by `judoscale`. You can still use task priorities, but `judoscale` won't see and report metrics on any queues other than the default, unprioritised queue.
 
