@@ -3,7 +3,6 @@ import time
 from threading import Thread
 from typing import List, Optional, Set
 
-import redis.exceptions as re
 from celery import Celery
 from kombu import Connection
 from redis import Redis
