@@ -26,7 +26,7 @@ class TaskSentHandler(Thread):
         super().__init__(*args, daemon=True, **kwargs)
 
     def task_sent(self, event):
-        self.collector.queues.add(event["queue"])
+        self.collector._celery_queues.add(event["queue"])
 
     def run(self):
         logger.debug("Starting TaskSentHandler")
@@ -55,7 +55,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
                 "Unsupported Redis server version. Minimum Redis version is 6.0."
             )
 
-        self.queues: Set[str] = set()
+        self._celery_queues: Set[str] = set()
         self.task_sent_handler = TaskSentHandler(self, connection)
         logger.debug(f"Redis is at {self.redis.connection_pool}")
 
@@ -65,7 +65,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
             for q in self.redis.scan_iter(match="[^_]*", _type="list")
         }
         logger.debug(f"Found initial queues: {list(user_queues)}")
-        self.queues = user_queues - system_queues
+        self._celery_queues = user_queues - system_queues
         self.task_sent_handler.start()
 
     @property
@@ -74,8 +74,12 @@ class CeleryMetricsCollector(JobMetricsCollector):
         return major_version >= 6
 
     @property
-    def should_collect(self):
-        return self.config["CELERY"].get("ENABLED") and super().should_collect
+    def adapter_config(self):
+        return self.config["CELERY"]
+
+    @property
+    def _queues(self) -> List[str]:
+        return list(self._celery_queues)
 
     def oldest_task(self, queue: str) -> Optional[dict]:
         """

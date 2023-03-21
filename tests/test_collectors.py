@@ -7,7 +7,6 @@ from unittest.mock import Mock
 import redis.exceptions
 import rq.utils as rq_utils
 from pytest import approx, fixture, raises
-from rq import Queue
 
 from judoscale.celery.collector import CeleryMetricsCollector
 from judoscale.core.metric import Metric
@@ -48,17 +47,50 @@ class TestWebMetricsCollector:
 
 
 class TestJobMetricsCollector:
-    def test_should_collect_web(self, web_1):
-        assert JobMetricsCollector(web_1).should_collect
+    def test_raises_not_implemented_error(self, web_1):
+        with raises(
+            NotImplementedError,
+            match="Implement `adapter_config` in a subclass.",
+        ):
+            assert JobMetricsCollector(web_1).should_collect
 
-    def test_should_not_collect_web(self, heroku_web_2):
-        assert not JobMetricsCollector(heroku_web_2).should_collect
+    def test_limit_max_queues_under_limit(self, web_1, monkeypatch):
+        monkeypatch.setattr(JobMetricsCollector, "adapter_config", {"MAX_QUEUES": 2})
+        collector = JobMetricsCollector(web_1)
+        assert collector.limit_max_queues(["default", "high"]) == {"high", "default"}
 
-    def test_should_collect_worker(self, worker_1):
-        assert JobMetricsCollector(worker_1).should_collect
+    def test_limit_max_queues_over_limit(self, web_1, monkeypatch):
+        monkeypatch.setattr(JobMetricsCollector, "adapter_config", {"MAX_QUEUES": 1})
+        collector = JobMetricsCollector(web_1)
+        assert collector.limit_max_queues(["default", "high"]) == {"high"}
 
-    def test_should_not_collect_worker(self, heroku_worker_2):
-        assert not JobMetricsCollector(heroku_worker_2).should_collect
+    def test_queues_with_user_queues(self, web_1, monkeypatch):
+        monkeypatch.setattr(
+            JobMetricsCollector,
+            "adapter_config",
+            {"QUEUES": ["foo", "bar"], "MAX_QUEUES": 20},
+        )
+        collector = JobMetricsCollector(web_1)
+        assert collector.queues == {"foo", "bar"}
+
+    def test_queues_with_user_queues_and_max_queues(self, web_1, monkeypatch):
+        monkeypatch.setattr(
+            JobMetricsCollector,
+            "adapter_config",
+            {"QUEUES": ["three", "two", "one"], "MAX_QUEUES": 2},
+        )
+        collector = JobMetricsCollector(web_1)
+        assert collector.queues == {"one", "two"}
+
+    def test_queues_without_user_queues_with_max_queues(self, web_1, monkeypatch):
+        monkeypatch.setattr(
+            JobMetricsCollector,
+            "adapter_config",
+            {"QUEUES": [], "MAX_QUEUES": 2},
+        )
+        monkeypatch.setattr(JobMetricsCollector, "_queues", ["queues", "from", "redis"])
+        collector = JobMetricsCollector(web_1)
+        assert collector.queues == {"from", "redis"}
 
 
 class TestCeleryMetricsCollector:
@@ -137,14 +169,14 @@ class TestRQMetricsCollector:
         redis = Mock()
         redis.smembers.return_value = []
         collector = RQMetricsCollector(worker_1, redis)
-        assert collector.queues == []
+        assert collector.queues == set()
 
     def test_queues(self, worker_1):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
 
         collector = RQMetricsCollector(worker_1, redis)
-        assert collector.queues == [Queue("foo", connection=redis)]
+        assert collector.queues == {"foo"}
 
     def test_collect_empty_queue(self, worker_1):
         redis = Mock()

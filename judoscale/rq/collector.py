@@ -21,12 +21,12 @@ class RQMetricsCollector(JobMetricsCollector):
         logger.debug(f"Found initial queues: {list(self.queues)}")
 
     @property
-    def should_collect(self):
-        return self.config["RQ"].get("ENABLED") and super().should_collect
+    def adapter_config(self):
+        return self.config["RQ"]
 
     @property
-    def queues(self) -> List[Queue]:
-        return Queue.all(connection=self.redis)
+    def _queues(self) -> List[str]:
+        return [q.name for q in Queue.all(connection=self.redis)]
 
     def oldest_job(self, queue: Queue) -> Optional[Job]:
         """
@@ -45,7 +45,8 @@ class RQMetricsCollector(JobMetricsCollector):
             return metrics
 
         logger.debug(f"Collecting metrics for queues {list(self.queues)}")
-        for queue in self.queues:
+        queues = [Queue(name=q, connection=self.redis) for q in self.queues]
+        for queue in queues:
             if job := self.oldest_job(queue):
                 if job.enqueued_at is not None:
                     # RQ stores `enqueued_at` as a naive datetime object, which
