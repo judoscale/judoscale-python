@@ -15,9 +15,9 @@ class JudoscaleDjangoConfig(AppConfig):
     verbose_name = "Judoscale (Django)"
 
     def ready(self):
-        judoconfig.merge(getattr(settings, "JUDOSCALE", {}))
+        judoconfig.update(getattr(settings, "JUDOSCALE", {}))
 
-        if judoconfig.api_base_url is None:
+        if judoconfig["API_BASE_URL"] is None:
             logger.info("Not activated - No API URL provided")
             return
 

@@ -1,8 +1,22 @@
 import logging
 import os
+from collections import UserDict
 from typing import Mapping
 
 from judoscale.core.logger import logger
+
+DEFAULTS = {
+    "CELERY": {
+        "ENABLED": True,
+        "MAX_QUEUES": 20,
+        "QUEUES": [],
+    },
+    "RQ": {
+        "ENABLED": True,
+        "MAX_QUEUES": 20,
+        "QUEUES": [],
+    },
+}
 
 
 class RuntimeContainer:
@@ -23,14 +37,18 @@ class RuntimeContainer:
         return f"{self.service_name}.{self.instance}"
 
 
-class Config:
+class Config(UserDict):
     def __init__(
         self, runtime_container: RuntimeContainer, api_base_url: str, log_level: str
     ):
-        self.runtime_container = runtime_container
-        self.log_level = log_level
-        self.report_interval_seconds = 10
-        self.api_base_url = api_base_url
+        initialdata = dict(
+            DEFAULTS,
+            RUNTIME_CONTAINER=runtime_container,
+            LOG_LEVEL=log_level,
+            API_BASE_URL=api_base_url,
+            REPORT_INTERVAL_SECONDS=10,
+        )
+        super().__init__(initialdata)
         self._prepare_logging()
 
     @classmethod
@@ -63,20 +81,24 @@ class Config:
         log_level = env.get("LOG_LEVEL", "INFO").upper()
         return cls(runtime_container, api_base_url, log_level)
 
-    def merge(self, settings: Mapping):
-        for key, value in settings.items():
-            setattr(self, key.lower(), value)
+    def update(self, new_config: Mapping):
+        super().update(new_config)
         self._prepare_logging()
 
+    def merge(self, new_config: Mapping):
+        logger.warning("Config.merge() is deprecated. Use Config.update() instead.")
+        self.update(new_config)
+
+    @property
     def for_report(self):
         # Only include the config options we want to include in the report
         return {
-            "log_level": self.log_level,
-            "report_interval_seconds": self.report_interval_seconds,
+            "log_level": self["LOG_LEVEL"],
+            "report_interval_seconds": self["REPORT_INTERVAL_SECONDS"],
         }
 
     def _prepare_logging(self):
-        log_level = logging.getLevelName(self.log_level.upper())
+        log_level = logging.getLevelName(self["LOG_LEVEL"].upper())
         logger.setLevel(log_level)
 
         if not logger.handlers:

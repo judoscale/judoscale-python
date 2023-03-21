@@ -19,7 +19,7 @@ def before_publish(*args, properties={}, **kwargs):
 def judoscale_celery(celery: Celery, extra_config: Mapping = {}) -> None:
     celery.conf.task_send_sent_event = True
 
-    judoconfig.merge(extra_config)
+    judoconfig.update(extra_config)
     collector = CeleryMetricsCollector(config=judoconfig, broker=celery)
     adapter = Adapter(
         identifier="judoscale-celery",

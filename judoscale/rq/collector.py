@@ -21,6 +21,10 @@ class RQMetricsCollector(JobMetricsCollector):
         logger.debug(f"Found initial queues: {list(self.queues)}")
 
     @property
+    def should_collect(self):
+        return self.config["RQ"].get("ENABLED") and super().should_collect
+
+    @property
     def queues(self) -> List[Queue]:
         return Queue.all(connection=self.redis)
 

@@ -74,6 +74,10 @@ class CeleryMetricsCollector(JobMetricsCollector):
         major_version = int(self.redis.info()["redis_version"].split(".")[0])
         return major_version >= 6
 
+    @property
+    def should_collect(self):
+        return self.config["CELERY"].get("ENABLED") and super().should_collect
+
     def oldest_task(self, queue: str) -> Optional[dict]:
         """
         Get the oldest task from the queue.

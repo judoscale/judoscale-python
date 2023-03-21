@@ -30,7 +30,7 @@ class WebMetricsCollector(MetricsCollector):
 
     @property
     def should_collect(self):
-        return self.config.runtime_container.is_web_instance
+        return self.config["RUNTIME_CONTAINER"].is_web_instance
 
     def add(self, metric: Metric):
         """
@@ -52,4 +52,4 @@ class JobMetricsCollector(MetricsCollector):
 
     @property
     def should_collect(self):
-        return not self.config.runtime_container.is_redundant_instance
+        return not self.config["RUNTIME_CONTAINER"].is_redundant_instance

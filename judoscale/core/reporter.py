@@ -79,7 +79,7 @@ class Reporter:
     def _run_loop(self):
         while self.is_running:
             self._report_metrics()
-            time.sleep(self.config.report_interval_seconds)
+            time.sleep(self.config["REPORT_INTERVAL_SECONDS"])
 
             if self._stopevent.is_set():
                 break
@@ -101,9 +101,9 @@ class Reporter:
 
     def _build_report(self, metrics: List[Metric]):
         return {
-            "container": str(self.config.runtime_container),
+            "container": str(self.config["RUNTIME_CONTAINER"]),
             "pid": self.pid,
-            "config": self.config.for_report(),
+            "config": self.config.for_report,
             "adapters": dict(adapter.as_tuple for adapter in self.adapters),
             "metrics": [metric.as_tuple for metric in metrics],
         }
