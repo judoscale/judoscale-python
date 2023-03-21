@@ -53,7 +53,6 @@ class TestConfig:
             "JUDOSCALE_URL": "https://api.example.com",
         }
         config = Config.for_heroku(fake_env)
-        print(config)
         assert config["API_BASE_URL"] == "https://api.example.com"
         assert config["RUNTIME_CONTAINER"].service_name == "worker"
         assert config["RUNTIME_CONTAINER"].instance == "1"
