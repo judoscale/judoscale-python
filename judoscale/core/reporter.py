@@ -5,8 +5,9 @@ import time
 from platform import python_version
 from typing import List
 
+import requests
+
 from judoscale.core.adapter import Adapter, AdapterInfo
-from judoscale.core.adapter_api_client import api_client
 from judoscale.core.config import Config, config
 from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
@@ -97,7 +98,19 @@ class Reporter:
         return metrics
 
     def _report_metrics(self) -> None:
-        api_client.post_report(self._build_report(self.all_metrics))
+        report = self._build_report(self.all_metrics)
+        url = f"{self.config['API_BASE_URL']}/v3/reports"
+        try:
+            metrics_length = len(report["metrics"])
+            pid = report["pid"]
+            logger.debug(
+                f"Posting {metrics_length} metrics from {pid} "
+                f"to Judoscale adapter API {url}"
+            )
+            response = requests.post(url, timeout=5, json=report)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            logger.warning("Adapter API request failed - {}".format(e))
 
     def _build_report(self, metrics: List[Metric]):
         return {
