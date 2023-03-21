@@ -64,7 +64,13 @@ JUDOSCALE = {
     "API_BASE_URL": "https://requestinspector.com/inspect/judoscale-django-rq",
     "LOG_LEVEL": "DEBUG",
     "REPORT_INTERVAL_SECONDS": 15,
-    # "REDIS": RQ_QUEUES["default"],
+    "REDIS": RQ_QUEUES["default"],
+    # Same as default settings in Config.DEFAULTS
+    "RQ": {
+        "ENABLED": True,
+        "MAX_QUEUES": 20,
+        "QUEUES": [],
+    },
 }
 
 MIDDLEWARE = [

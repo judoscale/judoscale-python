@@ -6,6 +6,7 @@ from typing import Mapping
 from judoscale.core.logger import logger
 
 DEFAULTS = {
+    "REPORT_INTERVAL_SECONDS": 10,
     "CELERY": {
         "ENABLED": True,
         "MAX_QUEUES": 20,
@@ -46,7 +47,6 @@ class Config(UserDict):
             RUNTIME_CONTAINER=runtime_container,
             LOG_LEVEL=log_level,
             API_BASE_URL=api_base_url,
-            REPORT_INTERVAL_SECONDS=10,
         )
         super().__init__(initialdata)
         self._prepare_logging()
