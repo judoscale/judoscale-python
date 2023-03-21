@@ -82,7 +82,11 @@ class Config(UserDict):
         return cls(runtime_container, api_base_url, log_level)
 
     def update(self, new_config: Mapping):
-        super().update(new_config)
+        for k, v in new_config.items():
+            if k in self and isinstance(self[k], dict) and isinstance(v, dict):
+                self[k].update(v)
+            else:
+                self[k] = v
         self._prepare_logging()
 
     def merge(self, new_config: Mapping):

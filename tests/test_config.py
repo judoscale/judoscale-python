@@ -46,6 +46,41 @@ class TestConfig:
             "report_interval_seconds": 20,
         }
 
+    def test_update(self):
+        fake_env = {
+            "DYNO": "worker.1",
+            "LOG_LEVEL": "WARN",
+            "JUDOSCALE_URL": "https://api.example.com",
+        }
+        config = Config.for_heroku(fake_env)
+        print(config)
+        assert config["API_BASE_URL"] == "https://api.example.com"
+        assert config["RUNTIME_CONTAINER"].service_name == "worker"
+        assert config["RUNTIME_CONTAINER"].instance == "1"
+        assert config["RUNTIME_CONTAINER"].service_type == "other"
+        assert config["LOG_LEVEL"] == "WARN"
+        assert config["REPORT_INTERVAL_SECONDS"] == 10
+        assert config["CELERY"]["ENABLED"]
+        assert config["CELERY"]["MAX_QUEUES"] == 20
+        assert config["CELERY"]["QUEUES"] == []
+        assert config["RQ"]["ENABLED"]
+        assert config["RQ"]["MAX_QUEUES"] == 20
+        assert config["RQ"]["QUEUES"] == []
+
+        config.update(
+            {
+                "LOG_LEVEL": "ERROR",
+                "REPORT_INTERVAL_SECONDS": 20,
+                "RQ": {"ENABLED": False, "QUEUES": ["default", "high"]},
+            }
+        )
+
+        assert config["LOG_LEVEL"] == "ERROR"
+        assert config["REPORT_INTERVAL_SECONDS"] == 20
+        assert not config["RQ"]["ENABLED"]
+        assert config["RQ"]["MAX_QUEUES"] == 20
+        assert config["RQ"]["QUEUES"] == ["default", "high"]
+
 
 class TestRuntimeContainer:
     def test_is_web_instance(self):
