@@ -5,19 +5,7 @@ from typing import Mapping
 
 from judoscale.core.logger import logger
 
-DEFAULTS = {
-    "REPORT_INTERVAL_SECONDS": 10,
-    "CELERY": {
-        "ENABLED": True,
-        "MAX_QUEUES": 20,
-        "QUEUES": [],
-    },
-    "RQ": {
-        "ENABLED": True,
-        "MAX_QUEUES": 20,
-        "QUEUES": [],
-    },
-}
+DEFAULTS = {"REPORT_INTERVAL_SECONDS": 10, "LOG_LEVEL": "WARN"}
 
 
 class RuntimeContainer:
@@ -40,14 +28,18 @@ class RuntimeContainer:
 
 class Config(UserDict):
     def __init__(
-        self, runtime_container: RuntimeContainer, api_base_url: str, log_level: str
+        self, runtime_container: RuntimeContainer, api_base_url: str, env: Mapping
     ):
         initialdata = dict(
             DEFAULTS,
             RUNTIME_CONTAINER=runtime_container,
-            LOG_LEVEL=log_level,
             API_BASE_URL=api_base_url,
         )
+
+        for key in {"LOG_LEVEL", "RQ", "CELERY"}:
+            if key in env:
+                initialdata[key] = env[key]
+
         super().__init__(initialdata)
         self._prepare_logging()
 
@@ -58,7 +50,7 @@ class Config(UserDict):
         elif env.get("RENDER_INSTANCE_ID"):
             return cls.for_render(env)
         else:
-            return cls(None, "", "INFO")
+            return cls(None, "", env)
 
     @classmethod
     def for_heroku(cls, env: Mapping):
@@ -67,8 +59,7 @@ class Config(UserDict):
 
         runtime_container = RuntimeContainer(service_name, instance, service_type)
         api_base_url = env.get("JUDOSCALE_URL")
-        log_level = env.get("LOG_LEVEL", "INFO").upper()
-        return cls(runtime_container, api_base_url, log_level)
+        return cls(runtime_container, api_base_url, env)
 
     @classmethod
     def for_render(cls, env: Mapping):
@@ -78,8 +69,7 @@ class Config(UserDict):
 
         runtime_container = RuntimeContainer(service_id, instance, service_type)
         api_base_url = f"https://adapter.judoscale.com/api/{service_id}"
-        log_level = env.get("LOG_LEVEL", "INFO").upper()
-        return cls(runtime_container, api_base_url, log_level)
+        return cls(runtime_container, api_base_url, env)
 
     def update(self, new_config: Mapping):
         for k, v in new_config.items():

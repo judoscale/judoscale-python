@@ -165,6 +165,18 @@ class TestCeleryMetricsCollector:
 
 
 class TestRQMetricsCollector:
+    def test_adapter_config(self, render_worker):
+        render_worker["RQ"] = {
+            "ENABLED": False,
+            "QUEUES": ["foo", "bar"],
+        }
+        collector = RQMetricsCollector(render_worker, Mock())
+        assert collector.adapter_config == {
+            "ENABLED": False,
+            "QUEUES": ["foo", "bar"],
+            "MAX_QUEUES": 20,
+        }
+
     def test_no_queues(self, worker_1):
         redis = Mock()
         redis.smembers.return_value = []

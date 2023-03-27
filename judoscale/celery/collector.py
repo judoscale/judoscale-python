@@ -12,6 +12,12 @@ from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_collectors import JobMetricsCollector
 
+DEFAULTS = {
+    "ENABLED": True,
+    "MAX_QUEUES": 20,
+    "QUEUES": [],
+}
+
 
 class TaskSentHandler(Thread):
     def __init__(
@@ -40,6 +46,8 @@ class TaskSentHandler(Thread):
 class CeleryMetricsCollector(JobMetricsCollector):
     def __init__(self, config: Config, broker: Celery):
         super().__init__(config=config)
+
+        self.config["CELERY"] = {**DEFAULTS, **self.config.get("RQ", {})}
 
         self.broker = broker
         connection = self.broker.connection_for_read()
