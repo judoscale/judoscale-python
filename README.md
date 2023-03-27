@@ -38,15 +38,8 @@ Optionally, you can customize Judoscale in `settings.py`:
 
 ```python
 JUDOSCALE = {
-    # LOG_LEVEL defaults to ENV["LOG_LEVEL"] or "INFO".
+    # Log level defaults to ENV["LOG_LEVEL"] or "INFO".
     "LOG_LEVEL": "DEBUG",
-
-    # API_BASE_URL defaults to ENV["JUDOSCALE_URL"], which is set for you when you install Judoscale.
-    # This is only exposed for testing purposes.
-    "API_BASE_URL": "https://example.com",
-
-    # REPORT_INTERVAL_SECONDS defaults to 10 seconds.
-    "REPORT_INTERVAL_SECONDS": 5,
 }
 ```
 
@@ -91,15 +84,8 @@ Optionally, you can override Judoscale's own configuration via your application'
 
 ```python
 JUDOSCALE = {
-    # LOG_LEVEL defaults to ENV["LOG_LEVEL"] or "INFO".
+    # Log level defaults to ENV["LOG_LEVEL"] or "INFO".
     "LOG_LEVEL": "DEBUG",
-
-    # API_BASE_URL defaults to ENV["JUDOSCALE_URL"], which is set for you when you install Judoscale.
-    # This is only exposed for testing purposes.
-    "API_BASE_URL": "https://example.com",
-
-    # REPORT_INTERVAL_SECONDS defaults to 10 seconds.
-    "REPORT_INTERVAL_SECONDS": 5,
 }
 ```
 
@@ -148,8 +134,6 @@ An example configuration dictionary accepted by `extra_config`:
 ```py
 {
     "LOG_LEVEL": "INFO",
-    "API_BASE_URL": "https://example.com",
-    "REPORT_INTERVAL_SECONDS": 5,
 
     # In addition to global configuration options for the Judoscale
     # integration above, you can also specify the following configuration
@@ -240,8 +224,6 @@ An example configuration dictionary accepted by `extra_config`:
 ```py
  {
     "LOG_LEVEL": "INFO",
-    "API_BASE_URL": "https://example.com",
-    "REPORT_INTERVAL_SECONDS": 5,
 
     # In addition to global configuration options for the Judoscale
     # integration above, you can also specify the following configuration
