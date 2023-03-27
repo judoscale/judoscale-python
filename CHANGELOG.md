@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.0](https://github.com/judoscale/judoscale-python/compare/v1.1.0...v1.2.0) (2023-03-27)
+
+
+### Features
+
+* Handle ambiguous timestamp values in X-Request-Start ([ed56895](https://github.com/judoscale/judoscale-python/commit/ed56895c95269fafbb54c914d588787081458937))
+* Job backend configuration options ([e2d3262](https://github.com/judoscale/judoscale-python/commit/e2d3262fa0b61acc69235a31cff42ec630514509))
+* Render integration ([cd62c24](https://github.com/judoscale/judoscale-python/commit/cd62c24c06a0edce942162a1edd8e6229a5c2216))
+
+
+### Bug Fixes
+
+* Handle minimum Redis version ([a35a38a](https://github.com/judoscale/judoscale-python/commit/a35a38ac4a95615beaf6ac88a0a429b644b86051))
+
 ## [1.1.0](https://github.com/judoscale/judoscale-python/compare/v1.0.0...v1.1.0) (2023-03-08)
 
 
