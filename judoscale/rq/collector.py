@@ -11,18 +11,29 @@ from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_collectors import JobMetricsCollector
 
+DEFAULTS = {
+    "ENABLED": True,
+    "MAX_QUEUES": 20,
+    "QUEUES": [],
+}
+
 
 class RQMetricsCollector(JobMetricsCollector):
     def __init__(self, config: Config, redis: Redis):
         super().__init__(config=config)
 
+        self.config["RQ"] = {**DEFAULTS, **self.config.get("RQ", {})}
         self.redis: Redis = redis
         logger.debug(f"Redis is at {self.redis.connection_pool}")
         logger.debug(f"Found initial queues: {list(self.queues)}")
 
     @property
-    def queues(self) -> List[Queue]:
-        return Queue.all(connection=self.redis)
+    def adapter_config(self):
+        return self.config["RQ"]
+
+    @property
+    def _queues(self) -> List[str]:
+        return [q.name for q in Queue.all(connection=self.redis)]
 
     def oldest_job(self, queue: Queue) -> Optional[Job]:
         """
@@ -41,7 +52,8 @@ class RQMetricsCollector(JobMetricsCollector):
             return metrics
 
         logger.debug(f"Collecting metrics for queues {list(self.queues)}")
-        for queue in self.queues:
+        queues = [Queue(name=q, connection=self.redis) for q in self.queues]
+        for queue in queues:
             if job := self.oldest_job(queue):
                 if job.enqueued_at is not None:
                     # RQ stores `enqueued_at` as a naive datetime object, which

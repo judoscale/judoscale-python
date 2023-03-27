@@ -3,7 +3,6 @@ import time
 from threading import Thread
 from typing import List, Optional, Set
 
-import redis.exceptions as re
 from celery import Celery
 from kombu import Connection
 from redis import Redis
@@ -12,6 +11,12 @@ from judoscale.core.config import Config
 from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_collectors import JobMetricsCollector
+
+DEFAULTS = {
+    "ENABLED": True,
+    "MAX_QUEUES": 20,
+    "QUEUES": [],
+}
 
 
 class TaskSentHandler(Thread):
@@ -27,7 +32,7 @@ class TaskSentHandler(Thread):
         super().__init__(*args, daemon=True, **kwargs)
 
     def task_sent(self, event):
-        self.collector.queues.add(event["queue"])
+        self.collector._celery_queues.add(event["queue"])
 
     def run(self):
         logger.debug("Starting TaskSentHandler")
@@ -41,6 +46,8 @@ class TaskSentHandler(Thread):
 class CeleryMetricsCollector(JobMetricsCollector):
     def __init__(self, config: Config, broker: Celery):
         super().__init__(config=config)
+
+        self.config["CELERY"] = {**DEFAULTS, **self.config.get("RQ", {})}
 
         self.broker = broker
         connection = self.broker.connection_for_read()
@@ -56,7 +63,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
                 "Unsupported Redis server version. Minimum Redis version is 6.0."
             )
 
-        self.queues: Set[str] = set()
+        self._celery_queues: Set[str] = set()
         self.task_sent_handler = TaskSentHandler(self, connection)
         logger.debug(f"Redis is at {self.redis.connection_pool}")
 
@@ -66,13 +73,21 @@ class CeleryMetricsCollector(JobMetricsCollector):
             for q in self.redis.scan_iter(match="[^_]*", _type="list")
         }
         logger.debug(f"Found initial queues: {list(user_queues)}")
-        self.queues = user_queues - system_queues
+        self._celery_queues = user_queues - system_queues
         self.task_sent_handler.start()
 
     @property
     def is_supported_redis_version(self):
         major_version = int(self.redis.info()["redis_version"].split(".")[0])
         return major_version >= 6
+
+    @property
+    def adapter_config(self):
+        return self.config["CELERY"]
+
+    @property
+    def _queues(self) -> List[str]:
+        return list(self._celery_queues)
 
     def oldest_task(self, queue: str) -> Optional[dict]:
         """

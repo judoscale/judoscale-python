@@ -28,7 +28,7 @@ class Judoscale:
             self.init_app(app)
 
     def init_app(self, app: Flask):
-        judoconfig.merge(app.config.get("JUDOSCALE", {}))
+        judoconfig.update(app.config.get("JUDOSCALE", {}))
         collector = WebMetricsCollector(judoconfig)
         adapter = Adapter(
             identifier="judoscale-flask",

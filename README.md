@@ -38,15 +38,8 @@ Optionally, you can customize Judoscale in `settings.py`:
 
 ```python
 JUDOSCALE = {
-    # LOG_LEVEL defaults to ENV["LOG_LEVEL"] or "INFO".
+    # Log level defaults to ENV["LOG_LEVEL"] or "INFO".
     "LOG_LEVEL": "DEBUG",
-
-    # API_BASE_URL defaults to ENV["JUDOSCALE_URL"], which is set for you when you install Judoscale.
-    # This is only exposed for testing purposes.
-    "API_BASE_URL": "https://example.com",
-
-    # REPORT_INTERVAL_SECONDS defaults to 10 seconds.
-    "REPORT_INTERVAL_SECONDS": 5,
 }
 ```
 
@@ -91,15 +84,8 @@ Optionally, you can override Judoscale's own configuration via your application'
 
 ```python
 JUDOSCALE = {
-    # LOG_LEVEL defaults to ENV["LOG_LEVEL"] or "INFO".
+    # Log level defaults to ENV["LOG_LEVEL"] or "INFO".
     "LOG_LEVEL": "DEBUG",
-
-    # API_BASE_URL defaults to ENV["JUDOSCALE_URL"], which is set for you when you install Judoscale.
-    # This is only exposed for testing purposes.
-    "API_BASE_URL": "https://example.com",
-
-    # REPORT_INTERVAL_SECONDS defaults to 10 seconds.
-    "REPORT_INTERVAL_SECONDS": 5,
 }
 ```
 
@@ -141,6 +127,34 @@ If you need to change the Judoscale integration configuration, you can pass a di
 
 ```py
 judoscale_celery(celery_app, extra_config={"LOG_LEVEL": "DEBUG"})
+```
+
+An example configuration dictionary accepted by `extra_config`:
+
+```py
+{
+    "LOG_LEVEL": "INFO",
+
+    # In addition to global configuration options for the Judoscale
+    # integration above, you can also specify the following configuration
+    # options for the Celery integration.
+    "CELERY": {
+        # Enable (default) or disable the Celery integration
+        "ENABLED": True,
+
+        # Report metrics on up to MAX_QUEUES queues.
+        # The list of discovered queues are sorted by the length
+        # of the queue name (shortest first) and metrics are
+        # reported for the first MAX_QUEUES queues.
+        # Defaults to 20.
+        "MAX_QUEUES": 20,
+
+        # Specify a list of known queues to report metrics for.
+        # MAX_QUEUES is still honoured.
+        # Defaults to empty list (report metrics for discovered queues).
+        "QUEUES": []
+    }
+}
 ```
 
 > :warning: **NOTE:** Calling `judoscale_celery` turns on sending [`task-sent`](https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-send-sent-event) events. This is required for the Celery integration with Judoscale to work.
@@ -203,6 +217,33 @@ If you need to change the Judoscale integration configuration, you can pass a di
 
 ```py
 judoscale_rq(redis, extra_config={"LOG_LEVEL": "DEBUG"})
+```
+
+An example configuration dictionary accepted by `extra_config`:
+
+```py
+ {
+    "LOG_LEVEL": "INFO",
+
+    # In addition to global configuration options for the Judoscale
+    # integration above, you can also specify the following configuration
+    # options for the RQ integration.
+    "RQ": {
+        # Enable (default) or disable the RQ integration
+        "ENABLED": True,
+
+        # Report metrics on up to MAX_QUEUES queues.
+        # The list of discovered queues are sorted by the length
+        # of the queue name (shortest first) and metrics are
+        # reported for the first MAX_QUEUES queues.
+        # Defaults to 20.
+        "MAX_QUEUES": 20,
+
+        # Specify a list of known queues to report metrics for.
+        # MAX_QUEUES is still honoured.
+        # Defaults to empty list (report metrics for discovered queues).
+        "QUEUES": []
+}
 ```
 
 ### Judoscale with RQ and Flask

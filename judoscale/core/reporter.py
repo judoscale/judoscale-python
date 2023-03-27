@@ -5,8 +5,9 @@ import time
 from platform import python_version
 from typing import List
 
+import requests
+
 from judoscale.core.adapter import Adapter, AdapterInfo
-from judoscale.core.adapter_api_client import api_client
 from judoscale.core.config import Config, config
 from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
@@ -79,7 +80,7 @@ class Reporter:
     def _run_loop(self):
         while self.is_running:
             self._report_metrics()
-            time.sleep(self.config.report_interval_seconds)
+            time.sleep(self.config["REPORT_INTERVAL_SECONDS"])
 
             if self._stopevent.is_set():
                 break
@@ -97,13 +98,25 @@ class Reporter:
         return metrics
 
     def _report_metrics(self) -> None:
-        api_client.post_report(self._build_report(self.all_metrics))
+        report = self._build_report(self.all_metrics)
+        url = f"{self.config['API_BASE_URL']}/v3/reports"
+        try:
+            metrics_length = len(report["metrics"])
+            pid = report["pid"]
+            logger.debug(
+                f"Posting {metrics_length} metrics from {pid} "
+                f"to Judoscale adapter API {url}"
+            )
+            response = requests.post(url, timeout=5, json=report)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            logger.warning("Adapter API request failed - {}".format(e))
 
     def _build_report(self, metrics: List[Metric]):
         return {
-            "container": str(self.config.runtime_container),
+            "container": str(self.config["RUNTIME_CONTAINER"]),
             "pid": self.pid,
-            "config": self.config.for_report(),
+            "config": self.config.for_report,
             "adapters": dict(adapter.as_tuple for adapter in self.adapters),
             "metrics": [metric.as_tuple for metric in metrics],
         }
