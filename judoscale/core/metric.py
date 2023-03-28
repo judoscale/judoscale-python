@@ -107,3 +107,24 @@ class Metric:
         metric = Metric.new(start_ms=int(oldest_job_ts * 1000), queue_name=queue_name)
         logger.debug(f"queue_name={queue_name}, queue_time={metric.value}ms")
         return metric
+
+    @classmethod
+    def for_busy_queue(cls, queue_name: str, busy_jobs: int) -> "Metric":
+        """
+        Log and return a Metric instance for the number of jobs being processed
+        for a given queue.
+
+        queue_name:
+            The name of the queue.
+
+        busy_jobs:
+            The number of jobs being processed for the given queue.
+        """
+        metric = Metric(
+            measurement="busy",
+            queue_name=queue_name,
+            value=busy_jobs,
+            timestamp=time.time(),
+        )
+        logger.debug(f"queue_name={queue_name}, busy_jobs={metric.value}")
+        return metric

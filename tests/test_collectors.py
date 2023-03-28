@@ -105,6 +105,7 @@ class TestCeleryMetricsCollector:
             "ENABLED": False,
             "QUEUES": ["foo", "bar"],
             "MAX_QUEUES": 20,
+            "TRACK_BUSY_JOBS": False,
         }
 
     def test_incorrect_driver(self, worker_1, celery):
@@ -175,6 +176,37 @@ class TestCeleryMetricsCollector:
 
         collector = CeleryMetricsCollector(worker_1, celery)
         assert len(collector.collect()) == 2
+
+    def test_collect_with_busy_jobs(self, worker_1, celery, monkeypatch):
+        now = time.time()
+
+        inspect = Mock()
+        inspect.active.return_value = {
+            "some_worker": [{"name": "a_task", "delivery_info": {"routing_key": "foo"}}]
+        }
+
+        monkeypatch.setattr(celery.control, "inspect", lambda: inspect)
+        celery.connection_for_read().channel().client.scan_iter.return_value = [
+            b"foo",
+        ]
+        celery.connection_for_read().channel().client.lindex.return_value = bytes(
+            json.dumps({"properties": {"published_at": now - 60}}), "utf-8"
+        )
+        celery.connection_for_read().channel().client.llen.return_value = 1
+
+        worker_1["CELERY"] = {"TRACK_BUSY_JOBS": True}
+        collector = CeleryMetricsCollector(worker_1, celery)
+        metrics = collector.collect()
+
+        assert len(metrics) == 2
+
+        assert metrics[0].measurement == "busy"
+        assert metrics[0].queue_name == "foo"
+        assert metrics[0].value == 1
+
+        assert metrics[1].measurement == "queue_time"
+        assert metrics[1].queue_name == "foo"
+        assert metrics[1].value == approx(60000, abs=100)
 
 
 class TestRQMetricsCollector:

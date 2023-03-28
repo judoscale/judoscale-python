@@ -2,5 +2,5 @@
 proxy: npx judoscale-adapter-proxy-server
 
 web: DYNO=web.1 poetry run gunicorn --preload 'app.app:create_app()'
-worker: DYNO=worker.1 poetry run celery -A app.tasks worker -c 1 --loglevel=INFO -Q low
-worker_high: DYNO=worker_high.1 poetry run celery -A app.tasks worker -c 1 --loglevel=INFO -Q high
+worker: DYNO=worker.1 poetry run celery -A app.tasks worker -c 3 --loglevel=INFO -Q low -n worker
+worker_high: DYNO=worker_high.1 poetry run celery -A app.tasks worker -c 5 --loglevel=INFO -Q high -n worker_high

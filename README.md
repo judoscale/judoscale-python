@@ -152,7 +152,17 @@ An example configuration dictionary accepted by `extra_config`:
         # Specify a list of known queues to report metrics for.
         # MAX_QUEUES is still honoured.
         # Defaults to empty list (report metrics for discovered queues).
-        "QUEUES": []
+        "QUEUES": [],
+
+        # Enable or disable (default) tracking how many jobs are currently being
+        # processed in each queue.
+        # This allows Judoscale to avoid downscaling workers that are executing jobs.
+        # See documentation: https://judoscale.com/docs/long-running-jobs-ruby#enable-long-running-job-support-in-the-dashboard
+        # NOTE: This option requires workers to have unique names. If you are running
+        # multiple Celery workers on the same machine, make sure to give each
+        # worker a distinct name.
+        # More information: https://docs.celeryq.dev/en/stable/userguide/workers.html#starting-the-worker
+        "TRACK_BUSY_JOBS": False,
     }
 }
 ```

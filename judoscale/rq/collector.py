@@ -57,16 +57,10 @@ class RQMetricsCollector(JobMetricsCollector):
 
         for queue in queues:
             if self.adapter_config["TRACK_BUSY_JOBS"]:
-                logger.debug(
-                    f"Queue {queue.name} has {queue.count} job(s) and "
-                    f"{queue.started_job_registry.count} busy job(s)."
-                )
                 metrics.append(
-                    Metric(
-                        timestamp=time.time(),
-                        value=queue.started_job_registry.count,
+                    Metric.for_busy_queue(
                         queue_name=queue.name,
-                        measurement="busy",
+                        busy_jobs=queue.started_job_registry.count,
                     )
                 )
 

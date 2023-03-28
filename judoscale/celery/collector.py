@@ -1,5 +1,6 @@
 import json
 import time
+from collections import defaultdict
 from threading import Thread
 from typing import List, Optional, Set
 
@@ -16,6 +17,7 @@ DEFAULTS = {
     "ENABLED": True,
     "MAX_QUEUES": 20,
     "QUEUES": [],
+    "TRACK_BUSY_JOBS": False,
 }
 
 
@@ -63,6 +65,9 @@ class CeleryMetricsCollector(JobMetricsCollector):
                 "Unsupported Redis server version. Minimum Redis version is 6.0."
             )
 
+        if self.adapter_config["TRACK_BUSY_JOBS"]:
+            self.inspect = broker.control.inspect()
+
         self._celery_queues: Set[str] = set()
         self.task_sent_handler = TaskSentHandler(self, connection)
         logger.debug(f"Redis is at {self.redis.connection_pool}")
@@ -104,6 +109,17 @@ class CeleryMetricsCollector(JobMetricsCollector):
         metrics = []
         if not self.should_collect:
             return metrics
+
+        if self.adapter_config["TRACK_BUSY_JOBS"] and (
+            workers_tasks := self.inspect.active()
+        ):
+            busy_counts = defaultdict(lambda: 0)
+            for active_tasks in workers_tasks.values():
+                for task in active_tasks:
+                    busy_counts[task["delivery_info"]["routing_key"]] += 1
+
+            for queue, count in busy_counts.items():
+                metrics.append(Metric.for_busy_queue(queue_name=queue, busy_jobs=count))
 
         logger.debug(f"Collecting metrics for queues {list(self.queues)}")
         for queue in self.queues:
