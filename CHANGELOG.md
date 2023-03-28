@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/judoscale/judoscale-python/compare/v1.2.0...v1.2.1) (2023-03-28)
+
+
+### Bug Fixes
+
+* Fix pulling incorrect configuration values for Celery ([2b6cbc1](https://github.com/judoscale/judoscale-python/commit/2b6cbc199e7744f801033b6536cc4375d58c8562))
+
 ## [1.2.0](https://github.com/judoscale/judoscale-python/compare/v1.1.0...v1.2.0) (2023-03-27)
 
 
