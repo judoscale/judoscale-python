@@ -188,6 +188,7 @@ class TestRQMetricsCollector:
             "ENABLED": False,
             "QUEUES": ["foo", "bar"],
             "MAX_QUEUES": 20,
+            "TRACK_BUSY_JOBS": False,
         }
 
     def test_no_queues(self, worker_1):
@@ -246,3 +247,33 @@ class TestRQMetricsCollector:
         assert len(metrics) == 1
         assert metrics[0].value == approx(60000, abs=100)
         assert metrics[0].queue_name == "foo"
+
+    def test_collect_with_busy_job_tracking(self, worker_1, monkeypatch):
+        monkeypatch.setattr("rq.registry.StartedJobRegistry.count", 1)
+        redis = Mock()
+        redis.smembers.return_value = [b"rq:queue:foo"]
+        redis.lrange.return_value = [b"123"]
+        redis.hgetall.return_value = {
+            # Simulate a job that was enqueued 1 minute ago
+            b"enqueued_at": rq_utils.utcformat(
+                datetime.utcnow() - timedelta(minutes=1)
+            ).encode(),
+            # Job origin has to match the queue name
+            b"origin": b"foo",
+            # Job data key is required but can be empty
+            b"data": b"",
+        }
+
+        worker_1["RQ"] = {"TRACK_BUSY_JOBS": True}
+        collector = RQMetricsCollector(worker_1, redis)
+        metrics: List[Metric] = collector.collect()
+
+        assert len(metrics) == 2
+
+        assert metrics[0].measurement == "busy"
+        assert metrics[0].queue_name == "foo"
+        assert metrics[0].value == 1
+
+        assert metrics[1].measurement == "queue_time"
+        assert metrics[1].queue_name == "foo"
+        assert metrics[1].value == approx(60000, abs=100)

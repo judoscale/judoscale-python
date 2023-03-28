@@ -242,7 +242,13 @@ An example configuration dictionary accepted by `extra_config`:
         # Specify a list of known queues to report metrics for.
         # MAX_QUEUES is still honoured.
         # Defaults to empty list (report metrics for discovered queues).
-        "QUEUES": []
+        "QUEUES": [],
+
+        # Enable or disable (default) tracking how many jobs are currently being
+        # processed in each queue.
+        # This allows Judoscale to avoid downscaling workers that are executing jobs.
+        # See documentation: https://judoscale.com/docs/long-running-jobs-ruby#enable-long-running-job-support-in-the-dashboard
+        "TRACK_BUSY_JOBS": False,
 }
 ```
 
