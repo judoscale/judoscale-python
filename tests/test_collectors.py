@@ -94,6 +94,19 @@ class TestJobMetricsCollector:
 
 
 class TestCeleryMetricsCollector:
+    def test_adapter_config(self, render_worker, celery):
+        celery.connection_for_read().channel().client.scan_iter.return_value = []
+        render_worker["CELERY"] = {
+            "ENABLED": False,
+            "QUEUES": ["foo", "bar"],
+        }
+        collector = CeleryMetricsCollector(render_worker, celery)
+        assert collector.adapter_config == {
+            "ENABLED": False,
+            "QUEUES": ["foo", "bar"],
+            "MAX_QUEUES": 20,
+        }
+
     def test_incorrect_driver(self, worker_1, celery):
         celery.connection_for_read().transport.driver_name = "not_redis"
         with raises(NotImplementedError):

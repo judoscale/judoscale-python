@@ -47,7 +47,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
     def __init__(self, config: Config, broker: Celery):
         super().__init__(config=config)
 
-        self.config["CELERY"] = {**DEFAULTS, **self.config.get("RQ", {})}
+        self.config["CELERY"] = {**DEFAULTS, **self.config.get("CELERY", {})}
 
         self.broker = broker
         connection = self.broker.connection_for_read()
