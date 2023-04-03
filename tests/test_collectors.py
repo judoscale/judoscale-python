@@ -144,7 +144,7 @@ class TestCeleryMetricsCollector:
     def test_collect_missing_published_at(self, worker_1, celery):
         celery.connection_for_read().channel().client.scan_iter.return_value = [b"foo"]
         celery.connection_for_read().channel().client.lindex.return_value = bytes(
-            json.dumps({"properties": {}}), "utf-8"
+            json.dumps({"id": "123abc", "properties": {}}), "utf-8"
         )
 
         collector = CeleryMetricsCollector(worker_1, celery)
@@ -163,6 +163,17 @@ class TestCeleryMetricsCollector:
         assert metrics[0].queue_name == "foo"
         assert "Unable to get a task from queue: foo" in caplog.messages
 
+    def test_collect_no_properties(self, worker_1, celery):
+        celery.connection_for_read().channel().client.scan_iter.return_value = [
+            b"foo",
+        ]
+        celery.connection_for_read().channel().client.lindex.return_value = bytes(
+            json.dumps({"id": "123abc"}), "utf-8"
+        )
+
+        collector = CeleryMetricsCollector(worker_1, celery)
+        assert len(collector.collect()) == 0
+
     def test_collect(self, worker_1, celery):
         now = time.time()
         celery.connection_for_read().channel().client.scan_iter.return_value = [
@@ -170,7 +181,7 @@ class TestCeleryMetricsCollector:
             b"bar",
         ]
         celery.connection_for_read().channel().client.lindex.return_value = bytes(
-            json.dumps({"properties": {"published_at": now}}), "utf-8"
+            json.dumps({"id": "123abc", "properties": {"published_at": now}}), "utf-8"
         )
 
         collector = CeleryMetricsCollector(worker_1, celery)
