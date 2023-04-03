@@ -1,11 +1,10 @@
 from dataclasses import asdict, dataclass
+from importlib import metadata
 from typing import Optional
-
-from pkg_resources import get_distribution
 
 from judoscale.core.metrics_collectors import Collector
 
-JUDOSCALE_VERSION = get_distribution("judoscale").version
+JUDOSCALE_VERSION = metadata.version("judoscale")
 
 
 @dataclass

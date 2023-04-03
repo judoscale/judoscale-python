@@ -1,4 +1,4 @@
-from django import get_version as django_version
+from importlib import metadata
 
 from judoscale.core.adapter import Adapter, AdapterInfo
 from judoscale.core.config import config as judoconfig
@@ -15,7 +15,7 @@ class RequestQueueTimeMiddleware:
         self.collector = WebMetricsCollector(judoconfig)
         adapter = Adapter(
             identifier="judoscale-django",
-            adapter_info=AdapterInfo(platform_version=django_version()),
+            adapter_info=AdapterInfo(platform_version=metadata.version("django")),
             metrics_collector=self.collector,
         )
         reporter.add_adapter(adapter)

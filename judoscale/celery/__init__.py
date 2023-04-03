@@ -1,8 +1,8 @@
 import time
+from importlib import metadata
 from typing import Mapping
 
 from celery import Celery
-from celery import __version__ as celery_version
 from celery.signals import before_task_publish
 
 from judoscale.celery.collector import CeleryMetricsCollector
@@ -23,7 +23,7 @@ def judoscale_celery(celery: Celery, extra_config: Mapping = {}) -> None:
     collector = CeleryMetricsCollector(config=judoconfig, broker=celery)
     adapter = Adapter(
         identifier="judoscale-celery",
-        adapter_info=AdapterInfo(platform_version=celery_version),
+        adapter_info=AdapterInfo(platform_version=metadata.version("celery")),
         metrics_collector=collector,
     )
 

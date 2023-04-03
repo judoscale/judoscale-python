@@ -1,8 +1,7 @@
+from importlib import metadata
 from typing import Optional
 
-from flask import Flask
-from flask import __version__ as flask_version
-from flask import request
+from flask import Flask, request
 
 from judoscale.core.adapter import Adapter, AdapterInfo
 from judoscale.core.config import config as judoconfig
@@ -32,7 +31,7 @@ class Judoscale:
         collector = WebMetricsCollector(judoconfig)
         adapter = Adapter(
             identifier="judoscale-flask",
-            adapter_info=AdapterInfo(platform_version=flask_version),
+            adapter_info=AdapterInfo(platform_version=metadata.version("flask")),
             metrics_collector=collector,
         )
         reporter.add_adapter(adapter)
