@@ -1,6 +1,6 @@
+from importlib import metadata
 from typing import Mapping
 
-import rq
 from redis import Redis
 
 from judoscale.core.adapter import Adapter, AdapterInfo
@@ -14,7 +14,7 @@ def judoscale_rq(redis: Redis, extra_config: Mapping = {}) -> None:
     collector = RQMetricsCollector(config=judoconfig, redis=redis)
     adapter = Adapter(
         identifier="judoscale-rq",
-        adapter_info=AdapterInfo(platform_version=rq.VERSION),
+        adapter_info=AdapterInfo(platform_version=metadata.version("rq")),
         metrics_collector=collector,
     )
 
