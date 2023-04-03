@@ -108,9 +108,14 @@ class CeleryMetricsCollector(JobMetricsCollector):
         logger.debug(f"Collecting metrics for queues {list(self.queues)}")
         for queue in self.queues:
             if task := self.oldest_task(queue):
-                if published_at := task["properties"].get("published_at"):
+                if published_at := task.get("properties", {}).get("published_at"):
                     metrics.append(
                         Metric.for_queue(queue_name=queue, oldest_job_ts=published_at)
+                    )
+                else:
+                    logger.warning(
+                        "Unable to find `published_at` in task properties for "
+                        f"task ID {task['id']}."
                     )
             else:
                 metrics.append(
