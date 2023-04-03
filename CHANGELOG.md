@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/judoscale/judoscale-python/compare/v1.2.1...v1.2.2) (2023-04-03)
+
+
+### Bug Fixes
+
+* Fix accessing missing Celery task properties ([#52](https://github.com/judoscale/judoscale-python/issues/52)) ([1efd53e](https://github.com/judoscale/judoscale-python/commit/1efd53e0c345dd2e79760f6ac2ff22973a99b614))
+
 ## [1.2.1](https://github.com/judoscale/judoscale-python/compare/v1.2.0...v1.2.1) (2023-03-28)
 
 
