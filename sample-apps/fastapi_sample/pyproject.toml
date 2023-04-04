@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "judoscale-fastapi-sample"
+version = "0.1.0"
+description = "A FastAPI app for testing judoscale-python functionality"
+authors = [
+    "Adam McCrea <adam@adamlogic.com>",
+    "Mara <mara@multiplace.org>",
+    "Karl Sutt <karl@sutt.ee>"
+]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+FastAPI = "^0.95.0"
+judoscale = { path = "../../", extras=["fastapi"], develop = true }
+uvicorn = {extras = ["standard"], version = "^0.21.1"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

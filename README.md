@@ -8,7 +8,7 @@ It is recommended to install the specific web framework and/or background job li
 
 - [x] [Django](#using-judoscale-with-django)
 - [x] [Flask](#using-judoscale-with-flask)
-- [ ] FastAPI
+- [x] [FastAPI](#using-judoscale-with-fastapi)
 
 ## Supported job processors
 
@@ -90,6 +90,33 @@ JUDOSCALE = {
 ```
 
 Note the [official recommendations for configuring Flask](https://flask.palletsprojects.com/en/2.2.x/config/#configuration-best-practices).
+
+# Using Judoscale with FastAPI
+
+Install Judoscale for FastAPI with:
+
+```sh
+$ pip install 'judoscale[fastapi]'
+```
+
+Since FastAPI uses [Starlette](https://www.starlette.io/), an ASGI framework, the integration is packaged into [ASGI middleware](https://asgi.readthedocs.io/en/latest/specs/main.html#middleware). Import the middleare class and register it with your FastAPI app:
+
+```py
+# app.py
+
+from judoscale.asgi.middleware import RequestQueueTimeMiddleware
+
+app = FastAPI()
+app.add_middleware(RequestQueueTimeMiddleware)
+```
+
+This sets up the Judoscale extension to capture request queue times.
+
+Optionally, you can override Judoscale's configuration by passing in extra configuration to the `add_middleware` method:
+
+```py
+app.add_middleware(RequestQueueTimeMiddleware, extra_config={"LOG_LEVEL": "DEBUG"})
+```
 
 # Using Judoscale with Celery and Redis
 

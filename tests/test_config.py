@@ -79,6 +79,25 @@ class TestConfig:
         assert config["RQ"]["MAX_QUEUES"] == 20
         assert config["RQ"]["QUEUES"] == ["low"]
 
+    def test_update_lowercase_keys(self):
+        fake_env = {
+            "DYNO": "worker.1",
+            "LOG_LEVEL": "WARN",
+            "JUDOSCALE_URL": "https://api.example.com",
+            "RQ": {
+                "ENABLED": True,
+                "MAX_QUEUES": 20,
+                "QUEUES": ["default", "high"],
+            },
+        }
+        config = Config.for_heroku(fake_env)
+        assert config["LOG_LEVEL"] == "WARN"
+        assert config["REPORT_INTERVAL_SECONDS"] == 10
+
+        config.update({"log_level": "error", "report_interval_seconds": 20})
+        assert config["LOG_LEVEL"] == "error"
+        assert config["REPORT_INTERVAL_SECONDS"] == 20
+
 
 class TestRuntimeContainer:
     def test_is_web_instance(self):
