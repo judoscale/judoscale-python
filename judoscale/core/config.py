@@ -73,6 +73,7 @@ class Config(UserDict):
 
     def update(self, new_config: Mapping):
         for k, v in new_config.items():
+            k = k.upper()
             if k in self and isinstance(self[k], dict) and isinstance(v, dict):
                 self[k].update(v)
             else:

@@ -23,6 +23,7 @@ python = "^3.8"
 requests = "<3.0.0"
 django = { version = ">=2.1.0,<5.0.0", optional = true }
 flask = { version = ">=1.1.0,<3.0.0", optional = true }
+fastapi = { version = "< 1.0.0", optional = true }
 celery = { version = ">=4.4.0,<6.0.0", extras = ["redis"], optional = true }
 rq = { version = ">=1.0.0,<2.0.0", optional = true }
 
@@ -35,6 +36,7 @@ pytest = "^7.2.2"
 [tool.poetry.extras]
 django = ["django"]
 flask = ["flask"]
+fastapi = ["fastapi"]
 celery-redis = ["celery"]
 rq = ["rq"]
 
