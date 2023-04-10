@@ -106,8 +106,18 @@ Since FastAPI uses [Starlette](https://www.starlette.io/), an ASGI framework, th
 
 from judoscale.asgi.middleware import RequestQueueTimeMiddleware
 
+# If your app is a top-level global
+
 app = FastAPI()
 app.add_middleware(RequestQueueTimeMiddleware)
+
+
+# If your app uses the application factory pattern
+
+def create_app():
+    app = FastAPI()
+    app.add_middleware(RequestQueueTimeMiddleware)
+    return app
 ```
 
 This sets up the Judoscale extension to capture request queue times.
