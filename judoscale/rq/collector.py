@@ -15,6 +15,7 @@ DEFAULTS = {
     "ENABLED": True,
     "MAX_QUEUES": 20,
     "QUEUES": [],
+    "TRACK_BUSY_JOBS": False,
 }
 
 
@@ -53,7 +54,16 @@ class RQMetricsCollector(JobMetricsCollector):
 
         logger.debug(f"Collecting metrics for queues {list(self.queues)}")
         queues = [Queue(name=q, connection=self.redis) for q in self.queues]
+
         for queue in queues:
+            if self.adapter_config["TRACK_BUSY_JOBS"]:
+                metrics.append(
+                    Metric.for_busy_queue(
+                        queue_name=queue.name,
+                        busy_jobs=queue.started_job_registry.count,
+                    )
+                )
+
             if job := self.oldest_job(queue):
                 if job.enqueued_at is not None:
                     # RQ stores `enqueued_at` as a naive datetime object, which
