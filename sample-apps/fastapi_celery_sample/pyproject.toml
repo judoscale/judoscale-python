@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "judoscale-fastapi-celery-sample"
+version = "0.1.0"
+description = "A sample app for testing judoscale with FastAPI and Celery."
+authors = ["Karl Sutt <karl@sutt.ee>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+FastAPI = "^0.95.0"
+celery = {extras = ["redis"], version = "^5.2.7"}
+judoscale = { path = "../../", extras=["celery-redis", "fastapi"], develop = true }
+uvicorn = {extras = ["standard"], version = "^0.21.1"}
+python-multipart = "^0.0.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
