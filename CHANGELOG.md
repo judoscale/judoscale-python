@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/judoscale/judoscale-python/compare/v1.2.2...v1.3.0) (2023-04-10)
+
+
+### Features
+
+* Add FastAPI support as ASGI middleware ([#54](https://github.com/judoscale/judoscale-python/issues/54)) ([1b306a1](https://github.com/judoscale/judoscale-python/commit/1b306a1c357eea876bff30cd02b9bdd5a97b453f))
+* Add support for tracking busy jobs ([#48](https://github.com/judoscale/judoscale-python/issues/48)) ([ad7b3ad](https://github.com/judoscale/judoscale-python/commit/ad7b3adf4c9c3e8b90735fa3498e25c3f6c6b0b6))
+
 ## [1.2.2](https://github.com/judoscale/judoscale-python/compare/v1.2.1...v1.2.2) (2023-04-03)
 
 
