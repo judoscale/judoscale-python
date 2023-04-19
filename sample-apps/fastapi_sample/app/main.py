@@ -2,14 +2,15 @@ from app.config import settings
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-from judoscale.asgi.middleware import RequestQueueTimeMiddleware
+from judoscale.asgi.middleware import FastAPIRequestQueueTimeMiddleware
 from judoscale.core.config import config as judoconfig
 
 
 def create_app() -> FastAPI:
     app = FastAPI()
     app.add_middleware(
-        RequestQueueTimeMiddleware, extra_config=settings.judoscale.dict()
+        FastAPIRequestQueueTimeMiddleware,
+        extra_config=settings.judoscale.dict(),
     )
 
     @app.get("/")
