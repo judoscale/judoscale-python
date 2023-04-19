@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/judoscale/judoscale-python/compare/v1.3.0...v1.4.0) (2023-04-19)
+
+
+### Features
+
+* Generic asgi request queue time middleware ([#57](https://github.com/judoscale/judoscale-python/issues/57)) ([5660ca6](https://github.com/judoscale/judoscale-python/commit/5660ca6a1fd7f65b317a48195380220a07cd4686))
+
 ## [1.3.0](https://github.com/judoscale/judoscale-python/compare/v1.2.2...v1.3.0) (2023-04-10)
 
 
