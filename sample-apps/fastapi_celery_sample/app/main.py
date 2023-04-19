@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.logger import logger
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from judoscale.asgi.middleware import RequestQueueTimeMiddleware
+from judoscale.asgi.middleware import FastAPIRequestQueueTimeMiddleware
 
 
 def publish_task(i=1):
@@ -17,7 +17,9 @@ def publish_task(i=1):
 
 def create_app():
     app = FastAPI()
-    app.add_middleware(RequestQueueTimeMiddleware, extra_config=settings.JUDOSCALE)
+    app.add_middleware(
+        FastAPIRequestQueueTimeMiddleware, extra_config=settings.JUDOSCALE
+    )
 
     @app.get("/")
     async def index():

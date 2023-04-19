@@ -96,27 +96,27 @@ Note the [official recommendations for configuring Flask](https://flask.palletsp
 Install Judoscale for FastAPI with:
 
 ```sh
-$ pip install 'judoscale[fastapi]'
+$ pip install 'judoscale[asgi]'
 ```
 
-Since FastAPI uses [Starlette](https://www.starlette.io/), an ASGI framework, the integration is packaged into [ASGI middleware](https://asgi.readthedocs.io/en/latest/specs/main.html#middleware). Import the middleare class and register it with your FastAPI app:
+Since FastAPI uses [Starlette](https://www.starlette.io/), an ASGI framework, the integration is packaged into [ASGI middleware](https://asgi.readthedocs.io/en/latest/specs/main.html#middleware). Import the middleware class and register it with your FastAPI app:
 
 ```py
 # app.py
 
-from judoscale.asgi.middleware import RequestQueueTimeMiddleware
+from judoscale.asgi.middleware import FastAPIRequestQueueTimeMiddleware
 
 # If your app is a top-level global
 
 app = FastAPI()
-app.add_middleware(RequestQueueTimeMiddleware)
+app.add_middleware(FastAPIRequestQueueTimeMiddleware)
 
 
 # If your app uses the application factory pattern
 
 def create_app():
     app = FastAPI()
-    app.add_middleware(RequestQueueTimeMiddleware)
+    app.add_middleware(FastAPIRequestQueueTimeMiddleware)
     return app
 ```
 
@@ -125,8 +125,34 @@ This sets up the Judoscale extension to capture request queue times.
 Optionally, you can override Judoscale's configuration by passing in extra configuration to the `add_middleware` method:
 
 ```py
-app.add_middleware(RequestQueueTimeMiddleware, extra_config={"LOG_LEVEL": "DEBUG"})
+app.add_middleware(FastAPIRequestQueueTimeMiddleware, extra_config={"LOG_LEVEL": "DEBUG"})
 ```
+
+## Other ASGI frameworks
+
+Judoscale also provides middleware classes for Starlette and Quart. You can use them with
+
+```py
+# For Starlette, if you're using Starlette directly, without FastAPI
+from judoscale.asgi.middleware import StarletteRequestQueueTimeMiddleware
+
+# For Quart
+from judoscale.asgi.middleware import QuartRequestQueueTimeMiddleware
+```
+
+If your app uses a framework for which we have not provided a middleware class, but it implements the [ASGI spec](https://asgi.readthedocs.io/en/latest/specs/index.html), you can easily create your own version of the request queue time middleware.
+
+```py
+from judoscale.asgi.middleware import RequestQueueTimeMiddleware
+
+class YourFrameworkRequestQueueTimeMiddleware(RequestQueueTimeMiddleware):
+    # NOTE: The `platform` class variable value should be the package name
+    # of the web framework you're using. It is used to look up package
+    # metadata for reporting back to the Judoscale API.
+    platform = "your_framework"
+```
+
+Then register `YourFrameworkRequestQueueTimeMiddleware` with your application like you normally would.
 
 # Using Judoscale with Celery and Redis
 
