@@ -71,6 +71,10 @@ class Config(UserDict):
         api_base_url = f"https://adapter.judoscale.com/api/{service_id}"
         return cls(runtime_container, api_base_url, env)
 
+    @property
+    def is_enabled(self) -> bool:
+        return bool(self["API_BASE_URL"])
+
     def update(self, new_config: Mapping):
         for k, v in new_config.items():
             k = k.upper()

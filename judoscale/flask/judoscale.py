@@ -5,6 +5,7 @@ from flask import Flask, request
 
 from judoscale.core.adapter import Adapter, AdapterInfo
 from judoscale.core.config import config as judoconfig
+from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_collectors import WebMetricsCollector
 from judoscale.core.reporter import reporter
@@ -28,6 +29,11 @@ class Judoscale:
 
     def init_app(self, app: Flask):
         judoconfig.update(app.config.get("JUDOSCALE", {}))
+
+        if not judoconfig.is_enabled:
+            logger.info("Not activated - no API URL provivded")
+            return
+
         collector = WebMetricsCollector(judoconfig)
         adapter = Adapter(
             identifier="judoscale-flask",

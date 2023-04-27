@@ -31,6 +31,16 @@ class TestConfig:
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/srv-123"
 
+    def test_is_enabled(self):
+        config = Config(None, "", {})
+        assert not config.is_enabled
+
+        config = Config(None, None, {})
+        assert not config.is_enabled
+
+        config = Config(None, "https://some-url.com", {})
+        assert config.is_enabled
+
     def test_for_report(self):
         fake_env = {
             "DYNO": "web.1",

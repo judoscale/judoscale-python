@@ -3,6 +3,7 @@ from typing import Mapping
 
 from judoscale.core.adapter import Adapter, AdapterInfo
 from judoscale.core.config import config as judoconfig
+from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_collectors import WebMetricsCollector
 from judoscale.core.reporter import reporter
@@ -14,6 +15,11 @@ class RequestQueueTimeMiddleware:
     def __init__(self, app, extra_config: Mapping = {}, **kwargs):
         self.app = app
         judoconfig.update(extra_config)
+
+        if not judoconfig.is_enabled:
+            logger.info("Not activated - no API URL provivded")
+            return
+
         self.collector = WebMetricsCollector(judoconfig)
         adapter = Adapter(
             identifier=f"judoscale-{self.platform}",
@@ -28,14 +34,15 @@ class RequestQueueTimeMiddleware:
             await self.app(scope, receive, send)
             return
 
-        for header, value in scope["headers"]:
-            if header.lower() == b"x-request-start":
-                request_start = value.decode()
-                if metric := Metric.for_web(request_start):
-                    self.collector.add(metric)
-                break
+        if judoconfig.is_enabled:
+            for header, value in scope["headers"]:
+                if header.lower() == b"x-request-start":
+                    request_start = value.decode()
+                    if metric := Metric.for_web(request_start):
+                        self.collector.add(metric)
+                    break
 
-        reporter.ensure_running()
+            reporter.ensure_running()
 
         await self.app(scope, receive, send)
 
