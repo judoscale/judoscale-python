@@ -32,14 +32,17 @@ def many_tasks(request):
 def index(request):
     # Log message in level warning as this is Django's default logging level
     logger.warning("Hello, world")
-    catcher_url = settings.JUDOSCALE["API_BASE_URL"].replace("/inspect/", "/p/")
-    return HttpResponse(
-        "Judoscale Django Celery Sample App. "
-        f"<a target='_blank' href={catcher_url}>Metrics</a>"
-        "<form action='/task' method='POST'>"
-        "<input type='submit' value='Add task'>"
-        "</form>"
-        "<form action='/batch_task' method='POST'>"
-        "<input type='submit' value='Add 10 tasks'>"
-        "</form>"
-    )
+    if url := settings.JUDOSCALE.get("API_BASE_URL"):
+        catcher_url = url.replace("/inspect/", "/p/")
+        return HttpResponse(
+            "Judoscale Django Celery Sample App. "
+            f"<a target='_blank' href={catcher_url}>Metrics</a>"
+            "<form action='/task' method='POST'>"
+            "<input type='submit' value='Add task'>"
+            "</form>"
+            "<form action='/batch_task' method='POST'>"
+            "<input type='submit' value='Add 10 tasks'>"
+            "</form>"
+        )
+    else:
+        return HttpResponse("Judoscale Django Celery Sample App. No API URL provided.")

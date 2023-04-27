@@ -15,13 +15,14 @@ def create_app():
     @app.route("/", methods=["GET"])
     def index():
         current_app.logger.warning("Hello, world")
-        catcher_url = current_app.config["JUDOSCALE"]["API_BASE_URL"].replace(
-            "/inspect/", "/p/"
-        )
-        return (
-            "Judoscale Flask Sample App. "
-            f"<a target='_blank' href={catcher_url}>Metrics</a>"
-        )
+        if url := current_app.config["JUDOSCALE"].get("API_BASE_URL"):
+            catcher_url = url.replace("/inspect/", "/p/")
+            return (
+                "Judoscale Flask Sample App. "
+                f"<a target='_blank' href={catcher_url}>Metrics</a>"
+            )
+        else:
+            return "Judoscale Flask Sample App. No API URL provided."
 
     return app
 
