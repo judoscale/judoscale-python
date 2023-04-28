@@ -23,19 +23,20 @@ def create_app():
     @app.get("/")
     def index():
         current_app.logger.warning("Hello, world")
-        catcher_url = current_app.config["JUDOSCALE"]["API_BASE_URL"].replace(
-            "/inspect/", "/p/"
-        )
-        return (
-            "Judoscale Flask Celery Sample App. "
-            f"<a target='_blank' href={catcher_url}>Metrics</a>"
-            "<form action='/task' method='POST'>"
-            "<input type='submit' value='Add task'>"
-            "</form>"
-            "<form action='/batch_task' method='POST'>"
-            "<input type='submit' value='Add 10 tasks'>"
-            "</form>"
-        )
+        if url := current_app.config["JUDOSCALE"].get("API_BASE_URL"):
+            catcher_url = url.replace("/inspect/", "/p/")
+            return (
+                "Judoscale Flask Celery Sample App. "
+                f"<a target='_blank' href={catcher_url}>Metrics</a>"
+                "<form action='/task' method='POST'>"
+                "<input type='submit' value='Add task'>"
+                "</form>"
+                "<form action='/batch_task' method='POST'>"
+                "<input type='submit' value='Add 10 tasks'>"
+                "</form>"
+            )
+        else:
+            return "Judoscale Flask Celery Sample App. No API URL provided."
 
     @app.post("/task")
     def task():

@@ -17,7 +17,7 @@ class JudoscaleDjangoConfig(AppConfig):
     def ready(self):
         judoconfig.update(getattr(settings, "JUDOSCALE", {}))
 
-        if judoconfig["API_BASE_URL"] is None:
+        if not judoconfig.is_enabled:
             logger.info("Not activated - No API URL provided")
             return
 

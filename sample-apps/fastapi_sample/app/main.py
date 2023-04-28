@@ -15,10 +15,13 @@ def create_app() -> FastAPI:
 
     @app.get("/")
     async def index():
-        catcher_url = judoconfig["API_BASE_URL"].replace("/inspect/", "/p/")
-        return HTMLResponse(
-            "Judoscale FastAPI Sample App. "
-            f"<a target='_blank' href={catcher_url}>Metrics</a>"
-        )
+        if url := judoconfig.get("API_BASE_URL"):
+            catcher_url = url.replace("/inspect/", "/p/")
+            return HTMLResponse(
+                "Judoscale FastAPI Sample App. "
+                f"<a target='_blank' href={catcher_url}>Metrics</a>"
+            )
+        else:
+            return HTMLResponse("Judoscale FastAPI Sample App. No API URL provided.")
 
     return app
