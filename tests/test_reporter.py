@@ -70,3 +70,14 @@ class TestReporter:
         collector_instance_1.add(Metric(measurement="qt", timestamp=0, value=0))
         collector_instance_2.add(Metric(measurement="qt", timestamp=0, value=0))
         assert len(reporter.all_metrics) == 2
+
+    def test_start_without_api_base_url(self, reporter, caplog):
+        assert not reporter.config.is_enabled
+        reporter.start()
+        assert not reporter._running
+
+    def test_start(self, reporter):
+        reporter.config["API_BASE_URL"] = "https://example.com"
+        assert reporter.config.is_enabled
+        reporter.start()
+        assert reporter._running

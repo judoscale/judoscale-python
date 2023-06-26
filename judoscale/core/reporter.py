@@ -48,6 +48,10 @@ class Reporter:
             self.collectors.append(adapter.metrics_collector)
 
     def start(self):
+        if not self.config.is_enabled:
+            logger.info("Reporter not started: API_BASE_URL not set")
+            return
+
         logger.info(f"Starting reporter for process {self.pid}")
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()
