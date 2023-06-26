@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.2](https://github.com/judoscale/judoscale-python/compare/v1.4.1...v1.4.2) (2023-06-26)
+
+
+### Bug Fixes
+
+* Prevent reporter from running if Config.is_enabled is False ([#63](https://github.com/judoscale/judoscale-python/issues/63)) ([daebe4b](https://github.com/judoscale/judoscale-python/commit/daebe4bbbbe0282d8d8bc5b4aef49a3744a81b71))
+
 ## [1.4.1](https://github.com/judoscale/judoscale-python/compare/v1.4.0...v1.4.1) (2023-04-28)
 
 
