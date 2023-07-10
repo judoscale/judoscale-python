@@ -1,4 +1,18 @@
+import pytest
+import responses
+
 from judoscale.core.config import Config, RuntimeContainer
+
+ecs_response = {
+    "DockerId": "b25c2505a33f4b3ab8673c3200c2f245-2750272591",
+    "DockerName": "backend",
+}
+
+
+@pytest.fixture
+def mocked_responses():
+    with responses.RequestsMock() as rsps:
+        yield rsps
 
 
 class TestConfig:
@@ -24,6 +38,29 @@ class TestConfig:
         config = Config.for_render(fake_env)
 
         assert config["RUNTIME_CONTAINER"] == "abc-456"
+        assert config["LOG_LEVEL"] == "WARN"
+        assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/srv-123"
+
+    def test_on_ecs(self, mocked_responses):
+        mocked_responses.get(
+            "https://127.0.0.1/api/123456",
+            status=200,
+            json=ecs_response,
+        )
+
+        fake_env = {
+            "ECS_CONTAINER_METADATA_URI_V4": "https://127.0.0.1/api/123456",
+            "JUDOSCALE_URL": "https://adapter.judoscale.com/api/srv-123",
+            "LOG_LEVEL": "WARN",
+        }
+        config = Config.for_ecs(fake_env)
+
+        assert config["RUNTIME_CONTAINER"].service_name == "backend"
+        assert (
+            config["RUNTIME_CONTAINER"].instance
+            == "b25c2505a33f4b3ab8673c3200c2f245-2750272591"
+        )
+        assert config["RUNTIME_CONTAINER"].service_type == "web"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/srv-123"
 

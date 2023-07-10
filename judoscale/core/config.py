@@ -3,6 +3,8 @@ import os
 from collections import UserDict
 from typing import Mapping
 
+import requests
+
 from judoscale.core.logger import logger
 
 DEFAULTS = {"REPORT_INTERVAL_SECONDS": 10, "LOG_LEVEL": "WARN"}
@@ -38,6 +40,8 @@ class Config(UserDict):
             return cls.for_heroku(env)
         elif env.get("RENDER_INSTANCE_ID"):
             return cls.for_render(env)
+        elif env.get("ECS_CONTAINER_METADATA_URI_V4"):
+            return cls.for_ecs(env)
         else:
             return cls(None, "", env)
 
@@ -53,6 +57,18 @@ class Config(UserDict):
         instance = env.get("RENDER_INSTANCE_ID").replace(f"{service_id}-", "")
         runtime_container = RuntimeContainer(instance)
         api_base_url = f"https://adapter.judoscale.com/api/{service_id}"
+        return cls(runtime_container, api_base_url, env)
+
+    @classmethod
+    def for_ecs(cls, env: Mapping):
+        container_metadata = requests.get(env["ECS_CONTAINER_METADATA_URI_V4"]).json()
+        service_name = container_metadata["DockerName"]
+        instance = container_metadata["DockerId"]
+
+        # All ECS containers have to be manually assigned as web instances,
+        # because ECS does not distinguish between web and worker instances.
+        runtime_container = RuntimeContainer(service_name, instance, "web")
+        api_base_url = env.get("JUDOSCALE_URL")
         return cls(runtime_container, api_base_url, env)
 
     @property
