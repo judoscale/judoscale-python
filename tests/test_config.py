@@ -29,7 +29,7 @@ class TestConfig:
 
     def test_on_ecs(self):
         fake_env = {
-            "ECS_CONTAINER_METADATA_URI_V4": "http://169.254.170.2/v3/a8880ee042bc4db3ba878dce65b769b6-2750272591",  # noqa
+            "ECS_CONTAINER_METADATA_URI": "http://169.254.170.2/v3/a8880ee042bc4db3ba878dce65b769b6-2750272591",  # noqa
             "JUDOSCALE_URL": "https://adapter.judoscale.com/api/srv-123",
             "LOG_LEVEL": "WARN",
         }
