@@ -21,17 +21,13 @@ class MetricsCollector:
 
     @property
     def should_collect(self) -> bool:
-        return True
+        return self.config.is_enabled
 
 
 class WebMetricsCollector(MetricsCollector):
     def __init__(self, config: Config):
         self.store = MetricsStore()
         super().__init__(config=config)
-
-    @property
-    def should_collect(self):
-        return self.config["RUNTIME_CONTAINER"].is_web_instance
 
     def add(self, metric: Metric):
         """
@@ -74,7 +70,8 @@ class JobMetricsCollector(MetricsCollector):
     @property
     def should_collect(self):
         return (
-            self.adapter_config["ENABLED"]
+            super().should_collect
+            and self.adapter_config["ENABLED"]
             and not self.config["RUNTIME_CONTAINER"].is_redundant_instance
         )
 

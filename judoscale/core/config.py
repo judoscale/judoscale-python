@@ -8,22 +8,11 @@ from judoscale.core.logger import logger
 DEFAULTS = {"REPORT_INTERVAL_SECONDS": 10, "LOG_LEVEL": "WARN"}
 
 
-class RuntimeContainer:
-    def __init__(self, service_name, instance, service_type):
-        self.service_name = service_name
-        self.instance = instance
-        self.service_type = service_type
-
-    @property
-    def is_web_instance(self):
-        return self.service_name == "web" or self.service_type == "web"
-
+class RuntimeContainer(str):
     @property
     def is_redundant_instance(self):
-        return self.instance.isdigit() and self.instance != "1"
-
-    def __str__(self):
-        return f"{self.service_name}.{self.instance}"
+        instance_number = self.split(".")[-1]
+        return instance_number.isdigit() and int(instance_number) > 1
 
 
 class Config(UserDict):
@@ -54,10 +43,7 @@ class Config(UserDict):
 
     @classmethod
     def for_heroku(cls, env: Mapping):
-        service_name, instance = env.get("DYNO").split(".")
-        service_type = "web" if service_name == "web" else "other"
-
-        runtime_container = RuntimeContainer(service_name, instance, service_type)
+        runtime_container = RuntimeContainer(env["DYNO"])
         api_base_url = env.get("JUDOSCALE_URL")
         return cls(runtime_container, api_base_url, env)
 
@@ -65,9 +51,7 @@ class Config(UserDict):
     def for_render(cls, env: Mapping):
         service_id = env.get("RENDER_SERVICE_ID")
         instance = env.get("RENDER_INSTANCE_ID").replace(f"{service_id}-", "")
-        service_type = env.get("RENDER_SERVICE_TYPE")
-
-        runtime_container = RuntimeContainer(service_id, instance, service_type)
+        runtime_container = RuntimeContainer(instance)
         api_base_url = f"https://adapter.judoscale.com/api/{service_id}"
         return cls(runtime_container, api_base_url, env)
 

@@ -72,12 +72,12 @@ class TestReporter:
         assert len(reporter.all_metrics) == 2
 
     def test_start_without_api_base_url(self, reporter, caplog):
+        reporter.config["API_BASE_URL"] = None
         assert not reporter.config.is_enabled
         reporter.start()
         assert not reporter._running
 
     def test_start(self, reporter):
-        reporter.config["API_BASE_URL"] = "https://example.com"
         assert reporter.config.is_enabled
         reporter.start()
         assert reporter._running
