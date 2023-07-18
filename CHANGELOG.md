@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/judoscale/judoscale-python/compare/v1.4.2...v1.5.0) (2023-07-18)
+
+
+### Features
+
+* Add support for containers running on AWS ECS ([#65](https://github.com/judoscale/judoscale-python/issues/65)) ([3a6a356](https://github.com/judoscale/judoscale-python/commit/3a6a356597da6bcb25cbb5adf0116ea38f726a0f))
+
 ## [1.4.2](https://github.com/judoscale/judoscale-python/compare/v1.4.1...v1.4.2) (2023-06-26)
 
 
