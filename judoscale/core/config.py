@@ -38,6 +38,8 @@ class Config(UserDict):
             return cls.for_heroku(env)
         elif env.get("RENDER_INSTANCE_ID"):
             return cls.for_render(env)
+        elif env.get("ECS_CONTAINER_METADATA_URI"):
+            return cls.for_ecs(env)
         else:
             return cls(None, "", env)
 
@@ -53,6 +55,13 @@ class Config(UserDict):
         instance = env.get("RENDER_INSTANCE_ID").replace(f"{service_id}-", "")
         runtime_container = RuntimeContainer(instance)
         api_base_url = f"https://adapter.judoscale.com/api/{service_id}"
+        return cls(runtime_container, api_base_url, env)
+
+    @classmethod
+    def for_ecs(cls, env: Mapping):
+        instance = env["ECS_CONTAINER_METADATA_URI"].split("/")[-1]
+        runtime_container = RuntimeContainer(instance)
+        api_base_url = env.get("JUDOSCALE_URL")
         return cls(runtime_container, api_base_url, env)
 
     @property

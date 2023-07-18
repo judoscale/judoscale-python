@@ -27,6 +27,20 @@ class TestConfig:
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/srv-123"
 
+    def test_on_ecs(self):
+        fake_env = {
+            "ECS_CONTAINER_METADATA_URI": "http://169.254.170.2/v3/a8880ee042bc4db3ba878dce65b769b6-2750272591",  # noqa
+            "JUDOSCALE_URL": "https://adapter.judoscale.com/api/srv-123",
+            "LOG_LEVEL": "WARN",
+        }
+        config = Config.for_ecs(fake_env)
+
+        assert (
+            config["RUNTIME_CONTAINER"] == "a8880ee042bc4db3ba878dce65b769b6-2750272591"
+        )
+        assert config["LOG_LEVEL"] == "WARN"
+        assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/srv-123"
+
     def test_is_enabled(self):
         config = Config(None, "", {})
         assert not config.is_enabled
