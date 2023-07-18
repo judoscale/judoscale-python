@@ -5,24 +5,28 @@ from judoscale.core.config import Config
 
 @fixture
 def heroku_web_1(monkeypatch):
+    monkeypatch.setenv("JUDOSCALE_URL", "https://api.example.com")
     monkeypatch.setenv("DYNO", "web.1")
     return Config.initialize()
 
 
 @fixture
 def heroku_web_2(monkeypatch):
+    monkeypatch.setenv("JUDOSCALE_URL", "https://api.example.com")
     monkeypatch.setenv("DYNO", "web.2")
     return Config.initialize()
 
 
 @fixture
 def heroku_worker_1(monkeypatch):
+    monkeypatch.setenv("JUDOSCALE_URL", "https://api.example.com")
     monkeypatch.setenv("DYNO", "worker.1")
     return Config.initialize()
 
 
 @fixture
 def heroku_worker_2(monkeypatch):
+    monkeypatch.setenv("JUDOSCALE_URL", "https://api.example.com")
     monkeypatch.setenv("DYNO", "worker.2")
     return Config.initialize()
 
@@ -31,7 +35,6 @@ def heroku_worker_2(monkeypatch):
 def render_web(monkeypatch):
     monkeypatch.setenv("RENDER_SERVICE_ID", "srv-123")
     monkeypatch.setenv("RENDER_INSTANCE_ID", "srv-123-abc-def")
-    monkeypatch.setenv("RENDER_SERVICE_TYPE", "web")
     return Config.initialize()
 
 
@@ -39,7 +42,6 @@ def render_web(monkeypatch):
 def render_worker(monkeypatch):
     monkeypatch.setenv("RENDER_SERVICE_ID", "srv-123")
     monkeypatch.setenv("RENDER_INSTANCE_ID", "srv-123-abc-def")
-    monkeypatch.setenv("RENDER_SERVICE_TYPE", "worker")
     return Config.initialize()
 
 

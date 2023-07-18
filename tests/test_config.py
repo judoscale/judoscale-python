@@ -10,9 +10,7 @@ class TestConfig:
         }
         config = Config.for_heroku(fake_env)
 
-        assert config["RUNTIME_CONTAINER"].service_name == "web"
-        assert config["RUNTIME_CONTAINER"].instance == "1"
-        assert config["RUNTIME_CONTAINER"].service_type == "web"
+        assert config["RUNTIME_CONTAINER"] == "web.1"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://api.example.com"
 
@@ -25,9 +23,7 @@ class TestConfig:
         }
         config = Config.for_render(fake_env)
 
-        assert config["RUNTIME_CONTAINER"].service_name == "srv-123"
-        assert config["RUNTIME_CONTAINER"].instance == "abc-456"
-        assert config["RUNTIME_CONTAINER"].service_type == "web"
+        assert config["RUNTIME_CONTAINER"] == "abc-456"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/srv-123"
 
@@ -69,9 +65,7 @@ class TestConfig:
         }
         config = Config.for_heroku(fake_env)
         assert config["API_BASE_URL"] == "https://api.example.com"
-        assert config["RUNTIME_CONTAINER"].service_name == "worker"
-        assert config["RUNTIME_CONTAINER"].instance == "1"
-        assert config["RUNTIME_CONTAINER"].service_type == "other"
+        assert config["RUNTIME_CONTAINER"] == "worker.1"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["REPORT_INTERVAL_SECONDS"] == 10
 
@@ -110,22 +104,14 @@ class TestConfig:
 
 
 class TestRuntimeContainer:
-    def test_is_web_instance(self):
-        container = RuntimeContainer("web", "1", "web")
-        assert container.is_web_instance
-
-    def test_is_not_web_instance(self):
-        container = RuntimeContainer("worker", "1", "other")
-        assert not container.is_web_instance
-
     def test_is_redundant_instance(self):
-        container = RuntimeContainer("web", "2", "web")
+        container = RuntimeContainer("web.2")
         assert container.is_redundant_instance
 
     def test_is_not_redundant_instance(self):
-        container = RuntimeContainer("web", "1", "web")
+        container = RuntimeContainer("web.1")
         assert not container.is_redundant_instance
 
     def test_string_representation(self):
-        container = RuntimeContainer("web", "1", "web")
+        container = RuntimeContainer("web.1")
         assert str(container) == "web.1"

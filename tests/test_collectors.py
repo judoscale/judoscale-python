@@ -26,11 +26,11 @@ def celery():
 
 
 class TestWebMetricsCollector:
-    def test_should_collect(self, web_all):
+    def test_should_collect_web(self, web_all):
         assert WebMetricsCollector(web_all).should_collect
 
-    def test_should_not_collect(self, worker_all):
-        assert not WebMetricsCollector(worker_all).should_collect
+    def test_should_collect_worker(self, worker_all):
+        assert WebMetricsCollector(worker_all).should_collect
 
     def test_add(self, web_all):
         collector = WebMetricsCollector(web_all)
@@ -53,6 +53,18 @@ class TestJobMetricsCollector:
             match="Implement `adapter_config` in a subclass.",
         ):
             assert JobMetricsCollector(web_1).should_collect
+
+    def test_should_collect_web(self, web_1, monkeypatch):
+        monkeypatch.setattr(JobMetricsCollector, "adapter_config", {"ENABLED": True})
+        assert JobMetricsCollector(web_1).should_collect
+
+    def test_should_collect_worker(self, worker_1, monkeypatch):
+        monkeypatch.setattr(JobMetricsCollector, "adapter_config", {"ENABLED": True})
+        assert JobMetricsCollector(worker_1).should_collect
+
+    def test_should_not_collect_worker_2(self, heroku_worker_2, monkeypatch):
+        monkeypatch.setattr(JobMetricsCollector, "adapter_config", {"ENABLED": True})
+        assert not JobMetricsCollector(heroku_worker_2).should_collect
 
     def test_limit_max_queues_under_limit(self, web_1, monkeypatch):
         monkeypatch.setattr(JobMetricsCollector, "adapter_config", {"MAX_QUEUES": 2})
