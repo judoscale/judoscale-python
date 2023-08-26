@@ -163,6 +163,15 @@ class TestCeleryMetricsCollector:
         collector = CeleryMetricsCollector(worker_1, celery)
         assert len(collector.collect()) == 0
 
+    def test_collect_missing_published_at_and_id(self, worker_1, celery):
+        celery.connection_for_read().channel().client.scan_iter.return_value = [b"foo"]
+        celery.connection_for_read().channel().client.lindex.return_value = bytes(
+            json.dumps({"properties": {}}), "utf-8"
+        )
+
+        collector = CeleryMetricsCollector(worker_1, celery)
+        assert len(collector.collect()) == 0
+
     def test_collect_response_error(self, worker_1, celery, caplog):
         celery.connection_for_read().channel().client.scan_iter.return_value = [b"foo"]
         celery.connection_for_read().channel().client.lindex.side_effect = (
