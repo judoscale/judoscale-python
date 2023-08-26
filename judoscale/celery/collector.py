@@ -129,9 +129,10 @@ class CeleryMetricsCollector(JobMetricsCollector):
                         Metric.for_queue(queue_name=queue, oldest_job_ts=published_at)
                     )
                 else:
+                    task_id = task.get("id", None)
                     logger.warning(
                         "Unable to find `published_at` in task properties for "
-                        f"task ID {task['id']}."
+                        f"task ID {task_id}."
                     )
             else:
                 metrics.append(
