@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/judoscale/judoscale-python/compare/v1.5.0...v1.5.1) (2023-08-26)
+
+
+### Bug Fixes
+
+* Gracefully handle missing task ID ([#70](https://github.com/judoscale/judoscale-python/issues/70)) ([8292add](https://github.com/judoscale/judoscale-python/commit/8292add5c7a91b766ed107c38bbffd291425ea5f))
+
 ## [1.5.0](https://github.com/judoscale/judoscale-python/compare/v1.4.2...v1.5.0) (2023-07-18)
 
 
