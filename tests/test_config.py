@@ -41,6 +41,19 @@ class TestConfig:
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/srv-123"
 
+    def test_judoscale_log_level_env(self):
+        fake_env = {
+            "DYNO": "web.1",
+            "LOG_LEVEL": "INFO",
+            "JUDOSCALE_LOG_LEVEL": "WARN",
+            "JUDOSCALE_URL": "https://api.example.com",
+        }
+        config = Config.for_heroku(fake_env)
+
+        assert config["RUNTIME_CONTAINER"] == "web.1"
+        assert config["LOG_LEVEL"] == "WARN"
+        assert config["API_BASE_URL"] == "https://api.example.com"
+
     def test_is_enabled(self):
         config = Config(None, "", {})
         assert not config.is_enabled

@@ -25,9 +25,13 @@ class Config(UserDict):
             API_BASE_URL=api_base_url,
         )
 
-        for key in {"LOG_LEVEL", "RQ", "CELERY"}:
+        for key in {"RQ", "CELERY"}:
             if key in env:
                 initialdata[key] = env[key]
+
+        initialdata["LOG_LEVEL"] = env.get(
+            "JUDOSCALE_LOG_LEVEL", env.get("LOG_LEVEL", initialdata["LOG_LEVEL"])
+        )
 
         super().__init__(initialdata)
         self._prepare_logging()
