@@ -46,7 +46,7 @@ JUDOSCALE = {
     # This sample app is intended to be run locally, so Judoscale API requests are
     # sent to a mock endpoint.
     "API_BASE_URL": "https://requestinspector.com/inspect/judoscale-django",
-    "LOG_LEVEL": "DEBUG",
+    # "LOG_LEVEL": "DEBUG",
     "REPORT_INTERVAL_SECONDS": 15,
 }
 

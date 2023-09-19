@@ -416,6 +416,24 @@ JUDOSCALE = {
 
 > :warning: **NOTE:** Django-RQ enables configuring RQ such that different queues and workers use _different_ Redis instances. Judoscale currently only supports connecting to and monitoring queue latency on a single Redis instance.
 
+## Debugging & troubleshooting
+
+If Judoscale is not recognizing your adapter installation or if you're not seeing expected metrics in Judoscale, you'll want to check the logging output. Here's how you'd do that on Heroku.
+
+First, enable debug logging:
+
+```sh
+heroku config:set JUDOSCALE_LOG_LEVEL=debug
+```
+
+Then, tail your logs while your app initializes:
+
+```sh
+heroku logs --tail | grep Judoscale
+```
+
+You should see Judoscale collecting and reporting metrics every 10 seconds from every running process. If the issue is not clear from the logs, email help@judoscale.com for support. Please include any logging you've collected and any other behavior you've observed.
+
 ## Development
 
 This repo includes a `sample-apps` directory containing apps you can run locally. These apps use the `judoscale` adapter, but they override `API_BASE_URL` so they're not connected to the real Judoscale API. Instead, they post API requests to https://requestinspector.com so you can observe the API behavior.
