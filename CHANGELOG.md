@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.6.0](https://github.com/judoscale/judoscale-python/compare/v1.5.1...v1.6.0) (2023-10-02)
+
+
+### Features
+
+* Allow setting Judoscale log level using an env var ([#72](https://github.com/judoscale/judoscale-python/issues/72)) ([b9e9046](https://github.com/judoscale/judoscale-python/commit/b9e9046f0c64ec7cf6d0e0d7367ab2d263f118d6))
+
+
+### Bug Fixes
+
+* judoscale.rq not getting registered in Django &lt; 3.2 ([#74](https://github.com/judoscale/judoscale-python/issues/74)) ([59fb8e1](https://github.com/judoscale/judoscale-python/commit/59fb8e1aa5906e09da5710a5e81dca58a38971b5))
+
 ## [1.5.1](https://github.com/judoscale/judoscale-python/compare/v1.5.0...v1.5.1) (2023-08-26)
 
 
