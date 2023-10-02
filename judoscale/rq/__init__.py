@@ -9,6 +9,16 @@ from judoscale.core.logger import logger
 from judoscale.core.reporter import reporter
 from judoscale.rq.collector import RQMetricsCollector
 
+try:
+    import django
+
+    if django.VERSION < (3, 2, 0):
+        # Only define default_app_config when using a version earlier than 3.2
+        # https://docs.djangoproject.com/en/4.2/releases/3.2/#what-s-new-in-django-3-2
+        default_app_config = "judoscale.rq.apps.JudoscaleRQConfig"
+except ImportError:
+    pass
+
 
 def judoscale_rq(redis: Redis, extra_config: Mapping = {}) -> None:
     judoconfig.update(extra_config)
