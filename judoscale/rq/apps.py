@@ -35,7 +35,8 @@ class JudoscaleRQConfig(AppConfig):
         if redis_config := settings.JUDOSCALE.get("REDIS"):
             config = {k.lower(): v for k, v in redis_config.items()}
             if redis_url := config.get("url"):
-                return Redis.from_url(redis_url)
+                del config["url"]
+                return Redis.from_url(redis_url, **config)
             else:
                 return Redis(**config)
         elif redis_url := os.getenv("REDIS_URL"):
