@@ -1,4 +1,7 @@
+import pytest
+
 from judoscale.core.config import Config, RuntimeContainer
+from judoscale.django.redis import RedisHelper
 
 
 class TestConfig:
@@ -142,3 +145,50 @@ class TestRuntimeContainer:
     def test_string_representation(self):
         container = RuntimeContainer("web.1")
         assert str(container) == "web.1"
+
+
+class TestRedisHelper:
+    def test_without_redis_url_and_judoscale_redis_config(self):
+        rh = RedisHelper()
+        with pytest.raises(RuntimeError):
+            rh.redis_connection(None)
+
+    def test_with_redis_url(self):
+        rh = RedisHelper()
+        redis = rh.redis_connection({"URL": "redis://localhost:6379/0"})
+        assert redis.connection_pool.connection_kwargs == {
+            "host": "localhost",
+            "port": 6379,
+            "db": 0,
+        }
+
+    def test_with_rediss_url(self):
+        rh = RedisHelper()
+        redis = rh.redis_connection({"URL": "rediss://localhost:6379/0"})
+        assert redis.connection_pool.connection_kwargs == {
+            "host": "localhost",
+            "port": 6379,
+            "db": 0,
+        }
+
+    def test_with_rediss_config_on_heroku(self):
+        rh = RedisHelper()
+        redis = rh.redis_connection(
+            {"URL": "rediss://localhost:6379/0", "SSL_CERT_REQS": None}
+        )
+        assert redis.connection_pool.connection_kwargs == {
+            "ssl_cert_reqs": None,
+            "host": "localhost",
+            "port": 6379,
+            "db": 0,
+        }
+
+    def test_with_env_var_redis_url(self, monkeypatch):
+        monkeypatch.setenv("REDIS_URL", "redis://localhost:1234/5")
+        rh = RedisHelper()
+        redis = rh.redis_connection(None)
+        assert redis.connection_pool.connection_kwargs == {
+            "host": "localhost",
+            "port": 1234,
+            "db": 5,
+        }

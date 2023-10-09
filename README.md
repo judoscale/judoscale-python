@@ -385,7 +385,8 @@ Accepted formats are:
 JUDOSCALE = {
     # Configuring with a Redis server URL
     "REDIS": {
-        "URL": os.getenv("REDISTOGO_URL")
+        "URL": os.getenv("REDISTOGO_URL"),
+        "SSL_CERT_REQS": None  # If you are running on Heroku and using Heroku Data for Redis Premium
     }
 
     # Configuring as kwargs to Redis(...)
@@ -393,9 +394,12 @@ JUDOSCALE = {
         "HOST": "localhost",
         "PORT": 6379,
         "DB": 0
+        "SSL_CERT_REQS": None  # If you are running on Heroku and using Heroku Data for Redis Premium
     }
 }
 ```
+
+> :warning: **NOTE:** If you are running on Heroku and using any of the Premium plans for Heroku Data for Redis, you will have to turn off SSL certificate verification as per https://help.heroku.com/HC0F8CUS/redis-connection-issues.
 
 If you are using [Django-RQ](https://github.com/rq/django-rq/tree/master), you can also pull configuration from `RQ_QUEUES` directly:
 
