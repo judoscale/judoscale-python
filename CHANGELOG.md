@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/judoscale/judoscale-python/compare/v1.6.0...v1.6.1) (2023-10-09)
+
+
+### Bug Fixes
+
+* Redis client configuration for RQ ([#75](https://github.com/judoscale/judoscale-python/issues/75)) ([e961b4d](https://github.com/judoscale/judoscale-python/commit/e961b4daf1eaf0a924ea52e06ec6c4ee07f0aa59))
+
 ## [1.6.0](https://github.com/judoscale/judoscale-python/compare/v1.5.1...v1.6.0) (2023-10-02)
 
 
