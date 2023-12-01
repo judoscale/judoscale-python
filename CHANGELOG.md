@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/judoscale/judoscale-python/compare/v1.6.1...v1.6.2) (2023-12-01)
+
+
+### Bug Fixes
+
+* Prevent timing issues by sleeping before reporting metrics ([#78](https://github.com/judoscale/judoscale-python/issues/78)) ([56c6d2f](https://github.com/judoscale/judoscale-python/commit/56c6d2f842a6004122c950472be211564ad9e8c7))
+
 ## [1.6.1](https://github.com/judoscale/judoscale-python/compare/v1.6.0...v1.6.1) (2023-10-09)
 
 
