@@ -83,8 +83,13 @@ class Reporter:
 
     def _run_loop(self):
         while self.is_running:
-            self._report_metrics()
+            # NOTE: we used to report metrics immediately after the process
+            # started, but this caused issues with Celery and Celery Beat
+            # when TRACK_BUSY_JOBS was enabled.
+            # Instead, we now wait for the first interval to pass before
+            # reporting metrics.
             time.sleep(self.config["REPORT_INTERVAL_SECONDS"])
+            self._report_metrics()
 
             if self._stopevent.is_set():
                 break
