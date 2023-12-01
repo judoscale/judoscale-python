@@ -110,15 +110,15 @@ class CeleryMetricsCollector(JobMetricsCollector):
         if not self.should_collect:
             return metrics
 
-        if self.adapter_config["TRACK_BUSY_JOBS"] and (
-            workers_tasks := self.inspect.active()
-        ):
+        if self.adapter_config["TRACK_BUSY_JOBS"]:
             busy_counts = defaultdict(lambda: 0)
-            for active_tasks in workers_tasks.values():
-                for task in active_tasks:
-                    busy_counts[task["delivery_info"]["routing_key"]] += 1
+            if workers_tasks := self.inspect.active():
+                for active_tasks in workers_tasks.values():
+                    for task in active_tasks:
+                        busy_counts[task["delivery_info"]["routing_key"]] += 1
 
-            for queue, count in busy_counts.items():
+            for queue in self.queues:
+                count = busy_counts[queue]
                 metrics.append(Metric.for_busy_queue(queue_name=queue, busy_jobs=count))
 
         logger.debug(f"Collecting metrics for queues {list(self.queues)}")

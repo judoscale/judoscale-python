@@ -224,7 +224,6 @@ class TestCeleryMetricsCollector:
         celery.connection_for_read().channel().client.lindex.return_value = bytes(
             json.dumps({"properties": {"published_at": now - 60}}), "utf-8"
         )
-        celery.connection_for_read().channel().client.llen.return_value = 1
 
         worker_1["CELERY"] = {"TRACK_BUSY_JOBS": True}
         collector = CeleryMetricsCollector(worker_1, celery)
@@ -239,6 +238,57 @@ class TestCeleryMetricsCollector:
         assert metrics[1].measurement == "queue_time"
         assert metrics[1].queue_name == "foo"
         assert metrics[1].value == approx(60000, abs=100)
+
+    def test_collect_with_busy_jobs_and_user_defined_queues(
+        self, worker_1, celery, monkeypatch
+    ):
+        now = time.time()
+
+        inspect = Mock()
+        inspect.active.return_value = {
+            "some_worker": [{"name": "a_task", "delivery_info": {"routing_key": "foo"}}]
+        }
+
+        monkeypatch.setattr(celery.control, "inspect", lambda: inspect)
+        celery.connection_for_read().channel().client.scan_iter.return_value = [
+            b"foo",
+        ]
+
+        def mock_lindex(queue, _):
+            return {
+                "bar": {},
+                "foo": bytes(
+                    json.dumps({"properties": {"published_at": now - 60}}), "utf-8"
+                ),
+            }[queue]
+
+        monkeypatch.setattr(
+            celery.connection_for_read().channel().client, "lindex", mock_lindex
+        )
+
+        worker_1["CELERY"] = {"QUEUES": ["foo", "bar"], "TRACK_BUSY_JOBS": True}
+        collector = CeleryMetricsCollector(worker_1, celery)
+        metrics = collector.collect()
+
+        assert len(metrics) == 4
+        metrics = sorted(metrics, key=lambda m: m.queue_name)
+        metrics = sorted(metrics, key=lambda m: m.measurement)
+
+        assert metrics[0].measurement == "busy"
+        assert metrics[0].queue_name == "bar"
+        assert metrics[0].value == 0
+
+        assert metrics[1].measurement == "busy"
+        assert metrics[1].queue_name == "foo"
+        assert metrics[1].value == 1
+
+        assert metrics[2].measurement == "queue_time"
+        assert metrics[2].queue_name == "bar"
+        assert metrics[2].value == 0
+
+        assert metrics[3].measurement == "queue_time"
+        assert metrics[3].queue_name == "foo"
+        assert metrics[3].value == approx(60000, abs=100)
 
 
 class TestRQMetricsCollector:
