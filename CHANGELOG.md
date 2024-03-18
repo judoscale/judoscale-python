@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/judoscale/judoscale-python/compare/v1.6.2...v1.7.0) (2024-03-18)
+
+
+### Features
+
+* Expand Django version range to cover 5.x.x ([#81](https://github.com/judoscale/judoscale-python/issues/81)) ([a3e5126](https://github.com/judoscale/judoscale-python/commit/a3e5126d95b197ecd38f8ea20c4948691e0cd17e))
+
 ## [1.6.2](https://github.com/judoscale/judoscale-python/compare/v1.6.1...v1.6.2) (2023-12-01)
 
 
