@@ -74,7 +74,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
 
         system_queues = {"unacked", "unacked_index"}
         user_queues = {
-            q.decode("utf-8") if type(q) is bytes else q
+            q.decode("utf-8") if isinstance(q, bytes) else q
             for q in self.redis.scan_iter(match="[^_]*", _type="list")
         }
         logger.debug(f"Found initial queues: {list(user_queues)}")
@@ -132,7 +132,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
                     task_id = task.get("id", None)
                     logger.warning(
                         "Unable to find `published_at` in task properties for "
-                        f"task ID {task_id}."
+                        f"task ID {task_id} in queue {queue}."
                     )
             else:
                 metrics.append(
