@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.1](https://github.com/judoscale/judoscale-python/compare/v1.7.0...v1.7.1) (2024-05-29)
+
+
+### Miscellaneous Chores
+
+* release 1.7.1 ([1f864b8](https://github.com/judoscale/judoscale-python/commit/1f864b815ce1de9ea8fde155b1981abcb0280361))
+
 ## [1.7.0](https://github.com/judoscale/judoscale-python/compare/v1.6.2...v1.7.0) (2024-03-18)
 
 
