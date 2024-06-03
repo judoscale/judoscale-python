@@ -144,6 +144,17 @@ class TestCeleryMetricsCollector:
         collector = CeleryMetricsCollector(heroku_worker_1, celery)
         assert collector.queues == set()
 
+    def test_removing_various_celery_queues(self, heroku_worker_1, celery):
+        celery.connection_for_read().channel().client.scan_iter.return_value = [
+            b"unacked",
+            b"unacked_index",
+            b"_kombu.binding.celeryev",
+            b"e752fa70-f772-3c04-b05d-79b2a79ce766.reply.celery.pidbox",
+            b"user_queue",
+        ]
+        collector = CeleryMetricsCollector(heroku_worker_1, celery)
+        assert collector.queues == {"user_queue"}
+
     def test_collect_empty_queue(self, worker_1, celery):
         celery.connection_for_read().channel().client.scan_iter.return_value = [b"foo"]
         celery.connection_for_read().channel().client.lindex.return_value = None

@@ -73,12 +73,17 @@ class CeleryMetricsCollector(JobMetricsCollector):
         logger.debug(f"Redis is at {self.redis.connection_pool}")
 
         system_queues = {"unacked", "unacked_index"}
-        user_queues = {
-            q.decode("utf-8") if isinstance(q, bytes) else q
-            for q in self.redis.scan_iter(match="[^_]*", _type="list")
-        }
-        logger.debug(f"Found initial queues: {list(user_queues)}")
-        self._celery_queues = user_queues - system_queues
+        for q in self.redis.scan_iter(_type="list"):
+            queue_name = q.decode() if isinstance(q, bytes) else q
+            if (
+                queue_name in system_queues
+                or queue_name.startswith("_kombu")
+                or queue_name.endswith("celery.pidbox")
+            ):
+                continue
+            self._celery_queues.add(queue_name)
+
+        logger.debug(f"Found initial queues: {list(self._celery_queues)}")
         self.task_sent_handler.start()
 
     @property
