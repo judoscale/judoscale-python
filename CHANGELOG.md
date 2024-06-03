@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.2](https://github.com/judoscale/judoscale-python/compare/v1.7.1...v1.7.2) (2024-06-03)
+
+
+### Bug Fixes
+
+* Improve automatic queue finding for Celery ([#85](https://github.com/judoscale/judoscale-python/issues/85)) ([8662e5b](https://github.com/judoscale/judoscale-python/commit/8662e5b3e869f2568167ffebee25e030b394f9a0))
+
 ## [1.7.1](https://github.com/judoscale/judoscale-python/compare/v1.7.0...v1.7.1) (2024-05-29)
 
 
