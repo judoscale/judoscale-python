@@ -1,6 +1,6 @@
 import json
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List
 from unittest.mock import Mock
 
@@ -359,7 +359,8 @@ class TestRQMetricsCollector:
         redis.hgetall.return_value = {
             # Simulate a job that was enqueued 1 minute ago
             b"enqueued_at": rq_utils.utcformat(
-                datetime.utcnow() - timedelta(minutes=1)
+                datetime.now(tz=timezone.utc).replace(tzinfo=None)
+                - timedelta(minutes=1)
             ).encode(),
             # Job origin has to match the queue name
             b"origin": b"foo",
@@ -381,7 +382,8 @@ class TestRQMetricsCollector:
         redis.hgetall.return_value = {
             # Simulate a job that was enqueued 1 minute ago
             b"enqueued_at": rq_utils.utcformat(
-                datetime.utcnow() - timedelta(minutes=1)
+                datetime.now(tz=timezone.utc).replace(tzinfo=None)
+                - timedelta(minutes=1)
             ).encode(),
             # Job origin has to match the queue name
             b"origin": b"foo",
