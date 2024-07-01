@@ -52,6 +52,10 @@ class Reporter:
             logger.info("Reporter not started: API_BASE_URL not set")
             return
 
+        if self.config["RUNTIME_CONTAINER"].is_release_instance:
+            logger.info("Reporter not started: in a build process")
+            return
+
         logger.info(f"Starting reporter for process {self.pid}")
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()

@@ -14,6 +14,13 @@ class RuntimeContainer(str):
         instance_number = self.split(".")[-1]
         return instance_number.isdigit() and int(instance_number) > 1
 
+    @property
+    def is_release_instance(self):
+        # NOTE: this is currently Heroku-specific. We may need to update this
+        # for other platforms in the future and possibly move it to the Config
+        # module.
+        return self.lower().startswith("release")
+
 
 class Config(UserDict):
     def __init__(
