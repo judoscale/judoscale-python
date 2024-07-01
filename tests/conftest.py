@@ -4,6 +4,13 @@ from judoscale.core.config import Config
 
 
 @fixture
+def heroku_release_1(monkeypatch):
+    monkeypatch.setenv("JUDOSCALE_URL", "https://api.example.com")
+    monkeypatch.setenv("DYNO", "release.1")
+    return Config.initialize()
+
+
+@fixture
 def heroku_web_1(monkeypatch):
     monkeypatch.setenv("JUDOSCALE_URL", "https://api.example.com")
     monkeypatch.setenv("DYNO", "web.1")

@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from pytest import fixture
@@ -12,6 +13,11 @@ from judoscale.core.reporter import Reporter
 @fixture
 def reporter(heroku_web_1):
     return Reporter(heroku_web_1)
+
+
+@fixture
+def reporter_in_release(heroku_release_1):
+    return Reporter(heroku_release_1)
 
 
 class TestReporter:
@@ -81,3 +87,14 @@ class TestReporter:
         assert reporter.config.is_enabled
         reporter.start()
         assert reporter._running
+
+    def test_start_in_release(self, reporter_in_release, caplog):
+        caplog.set_level(logging.INFO, logger="judoscale")
+
+        assert reporter_in_release.config.is_enabled
+        reporter_in_release.ensure_running()
+        assert not reporter_in_release._running
+
+        for record in caplog.records:
+            assert record.levelname == "INFO"
+            assert "Reporter not started: in a build process" in record.message

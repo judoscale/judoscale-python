@@ -138,6 +138,14 @@ class TestRuntimeContainer:
         container = RuntimeContainer("web.2")
         assert container.is_redundant_instance
 
+    def test_is_release_instance(self):
+        container = RuntimeContainer("release.1")
+        assert container.is_release_instance
+
+    def test_is_release_instance_2(self):
+        container = RuntimeContainer("release.2")
+        assert container.is_release_instance
+
     def test_is_not_redundant_instance(self):
         container = RuntimeContainer("web.1")
         assert not container.is_redundant_instance
