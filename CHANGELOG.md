@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.3](https://github.com/judoscale/judoscale-python/compare/v1.7.2...v1.7.3) (2024-07-05)
+
+
+### Bug Fixes
+
+* Bump Flask extra to &lt;4.0.0 ([#91](https://github.com/judoscale/judoscale-python/issues/91)) ([271cbad](https://github.com/judoscale/judoscale-python/commit/271cbad8ae075d13269dca6954dd7cc27868f028))
+* Prevent reporter from starting in a build process ([#89](https://github.com/judoscale/judoscale-python/issues/89)) ([4c360d3](https://github.com/judoscale/judoscale-python/commit/4c360d3dfcf7714fc777cc753ab4d55b3a5de377))
+
 ## [1.7.2](https://github.com/judoscale/judoscale-python/compare/v1.7.1...v1.7.2) (2024-06-03)
 
 
