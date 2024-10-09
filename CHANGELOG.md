@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.4](https://github.com/judoscale/judoscale-python/compare/v1.7.3...v1.7.4) (2024-10-09)
+
+
+### Bug Fixes
+
+* Fix FastAPI auto-reloading by stacking the SIGTERM handler instead of replacing it ([e671d08](https://github.com/judoscale/judoscale-python/commit/e671d08f88890e77cbca5fb888c74e7573a77c95))
+
 ## [1.7.3](https://github.com/judoscale/judoscale-python/compare/v1.7.2...v1.7.3) (2024-07-05)
 
 
