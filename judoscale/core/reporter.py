@@ -1,5 +1,6 @@
 import os
 import signal
+import sys
 import threading
 import time
 from platform import python_version
@@ -50,6 +51,10 @@ class Reporter:
     def start(self):
         if not self.config.is_enabled:
             logger.info("Reporter not started: API_BASE_URL not set")
+            return
+
+        if self.config["RUNTIME_CONTAINER"] is None:
+            logger.info("Reporter not started: unknown runtime container")
             return
 
         if self.config["RUNTIME_CONTAINER"].is_release_instance:
@@ -136,4 +141,21 @@ class Reporter:
 
 
 reporter = Reporter(config=config)
-signal.signal(signal.SIGTERM, reporter.signal_handler)
+
+previous_handler = signal.getsignal(signal.SIGTERM)
+
+
+def graceful_shutdown(signum, frame):
+    reporter.signal_handler(signum, frame)
+    # If there was a previous handler and it's not SIG_DFL or SIG_IGN, call it
+    if callable(previous_handler) and previous_handler not in (
+        signal.SIG_DFL,
+        signal.SIG_IGN,
+    ):
+        previous_handler(signum, frame)
+    else:
+        # If no previous handler, use default behavior (exit the process)
+        sys.exit(0)
+
+
+signal.signal(signal.SIGTERM, graceful_shutdown)

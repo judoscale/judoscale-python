@@ -12,9 +12,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-FastAPI = "^0.95.0"
+FastAPI = "^0.115.0"
 judoscale = { path = "../../", extras=["asgi"], develop = true }
-uvicorn = {extras = ["standard"], version = "^0.21.1"}
+uvicorn = {extras = ["standard"], version = "^0.31.0"}
 
 [build-system]
 requires = ["poetry-core"]
