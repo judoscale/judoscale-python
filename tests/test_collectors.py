@@ -228,7 +228,7 @@ class TestCeleryMetricsCollector:
             "some_worker": [{"name": "a_task", "delivery_info": {"routing_key": "foo"}}]
         }
 
-        monkeypatch.setattr(celery.control, "inspect", lambda: inspect)
+        monkeypatch.setattr(celery.control, "inspect", lambda connection: inspect)
         celery.connection_for_read().channel().client.scan_iter.return_value = [
             b"foo",
         ]
@@ -260,7 +260,7 @@ class TestCeleryMetricsCollector:
             "some_worker": [{"name": "a_task", "delivery_info": {"routing_key": "foo"}}]
         }
 
-        monkeypatch.setattr(celery.control, "inspect", lambda: inspect)
+        monkeypatch.setattr(celery.control, "inspect", lambda connection: inspect)
         celery.connection_for_read().channel().client.scan_iter.return_value = [
             b"foo",
         ]

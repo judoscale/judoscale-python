@@ -66,7 +66,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
             )
 
         if self.adapter_config["TRACK_BUSY_JOBS"]:
-            self.inspect = broker.control.inspect()
+            self.inspect = broker.control.inspect(connection=connection)
 
         self._celery_queues: Set[str] = set()
         self.task_sent_handler = TaskSentHandler(self, connection)
