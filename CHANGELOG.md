@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.5](https://github.com/judoscale/judoscale-python/compare/v1.7.4...v1.7.5) (2024-12-05)
+
+
+### Bug Fixes
+
+* Reuse acquired connection for inspecting active workers / tasks ([#95](https://github.com/judoscale/judoscale-python/issues/95)) ([ee2588a](https://github.com/judoscale/judoscale-python/commit/ee2588a11f5470c22cb724eaf6dd80abecfa35f8))
+
 ## [1.7.4](https://github.com/judoscale/judoscale-python/compare/v1.7.3...v1.7.4) (2024-10-09)
 
 
