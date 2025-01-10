@@ -11,7 +11,7 @@ class TestConfig:
             "LOG_LEVEL": "WARN",
             "JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890",
         }
-        config = Config.for_heroku(fake_env)
+        config = Config.initialize(fake_env)
 
         assert config["RUNTIME_CONTAINER"] == "web.1"
         assert config["LOG_LEVEL"] == "WARN"
@@ -25,7 +25,7 @@ class TestConfig:
             "JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890",
             "LOG_LEVEL": "WARN",
         }
-        config = Config.for_render(fake_env)
+        config = Config.initialize(fake_env)
 
         assert config["RUNTIME_CONTAINER"] == "abc-456"
         assert config["LOG_LEVEL"] == "WARN"
@@ -38,7 +38,7 @@ class TestConfig:
             "RENDER_SERVICE_TYPE": "web",
             "LOG_LEVEL": "WARN",
         }
-        config = Config.for_render(fake_env)
+        config = Config.initialize(fake_env)
 
         assert config["RUNTIME_CONTAINER"] == "abc-456"
         assert config["LOG_LEVEL"] == "WARN"
@@ -50,7 +50,7 @@ class TestConfig:
             "JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890",
             "LOG_LEVEL": "WARN",
         }
-        config = Config.for_ecs(fake_env)
+        config = Config.initialize(fake_env)
 
         assert (
             config["RUNTIME_CONTAINER"] == "a8880ee042bc4db3ba878dce65b769b6-2750272591"
@@ -65,7 +65,7 @@ class TestConfig:
             "JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890",
             "LOG_LEVEL": "WARN",
         }
-        config = Config.for_railway(fake_env)
+        config = Config.initialize(fake_env)
 
         assert (
             config["RUNTIME_CONTAINER"] == "f9c88b6e-0e96-46f2-9884-ece3bf53d009"
