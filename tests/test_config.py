@@ -44,6 +44,21 @@ class TestConfig:
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/srv-123"
 
+    def test_on_railway(self):
+        fake_env = {
+            "RAILWAY_SERVICE_ID": "1431de82-74ad-4f1a-b8f2-1952262d66cf",
+            "RAILWAY_REPLICA_ID": "f9c88b6e-0e96-46f2-9884-ece3bf53d009",
+            "JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890",
+            "LOG_LEVEL": "WARN",
+        }
+        config = Config.for_railway(fake_env)
+
+        assert (
+            config["RUNTIME_CONTAINER"] == "f9c88b6e-0e96-46f2-9884-ece3bf53d009"
+        )
+        assert config["LOG_LEVEL"] == "WARN"
+        assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
+
     def test_judoscale_log_level_env(self):
         fake_env = {
             "DYNO": "web.1",
