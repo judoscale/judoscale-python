@@ -9,15 +9,29 @@ class TestConfig:
         fake_env = {
             "DYNO": "web.1",
             "LOG_LEVEL": "WARN",
-            "JUDOSCALE_URL": "https://api.example.com",
+            "JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890",
         }
         config = Config.for_heroku(fake_env)
 
         assert config["RUNTIME_CONTAINER"] == "web.1"
         assert config["LOG_LEVEL"] == "WARN"
-        assert config["API_BASE_URL"] == "https://api.example.com"
+        assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
     def test_on_render(self):
+        fake_env = {
+            "RENDER_SERVICE_ID": "srv-123",
+            "RENDER_INSTANCE_ID": "srv-123-abc-456",
+            "RENDER_SERVICE_TYPE": "web",
+            "JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890",
+            "LOG_LEVEL": "WARN",
+        }
+        config = Config.for_render(fake_env)
+
+        assert config["RUNTIME_CONTAINER"] == "abc-456"
+        assert config["LOG_LEVEL"] == "WARN"
+        assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
+
+    def test_on_render_legacy(self):
         fake_env = {
             "RENDER_SERVICE_ID": "srv-123",
             "RENDER_INSTANCE_ID": "srv-123-abc-456",
@@ -33,7 +47,7 @@ class TestConfig:
     def test_on_ecs(self):
         fake_env = {
             "ECS_CONTAINER_METADATA_URI": "http://169.254.170.2/v3/a8880ee042bc4db3ba878dce65b769b6-2750272591",  # noqa
-            "JUDOSCALE_URL": "https://adapter.judoscale.com/api/srv-123",
+            "JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890",
             "LOG_LEVEL": "WARN",
         }
         config = Config.for_ecs(fake_env)
@@ -42,7 +56,7 @@ class TestConfig:
             config["RUNTIME_CONTAINER"] == "a8880ee042bc4db3ba878dce65b769b6-2750272591"
         )
         assert config["LOG_LEVEL"] == "WARN"
-        assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/srv-123"
+        assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
     def test_on_railway(self):
         fake_env = {

@@ -67,7 +67,7 @@ class Config(UserDict):
         service_id = env.get("RENDER_SERVICE_ID")
         instance = env.get("RENDER_INSTANCE_ID").replace(f"{service_id}-", "")
         runtime_container = RuntimeContainer(instance)
-        api_base_url = f"https://adapter.judoscale.com/api/{service_id}"
+        api_base_url = env.get("JUDOSCALE_URL") or f"https://adapter.judoscale.com/api/{service_id}"
         return cls(runtime_container, api_base_url, env)
 
     @classmethod
