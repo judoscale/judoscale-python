@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/judoscale/judoscale-python/compare/v1.7.5...v1.8.0) (2025-01-15)
+
+
+### Features
+
+* Configure runtime container for Railway ([#98](https://github.com/judoscale/judoscale-python/issues/98)) ([6243c5b](https://github.com/judoscale/judoscale-python/commit/6243c5b0173350eba8401b28709d7b7a0d0c2318))
+
 ## [1.7.5](https://github.com/judoscale/judoscale-python/compare/v1.7.4...v1.7.5) (2024-12-05)
 
 
