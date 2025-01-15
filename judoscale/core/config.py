@@ -51,6 +51,8 @@ class Config(UserDict):
             return cls.for_render(env)
         elif env.get("ECS_CONTAINER_METADATA_URI"):
             return cls.for_ecs(env)
+        elif env.get("RAILWAY_REPLICA_ID"):
+            return cls.for_railway(env)
         else:
             return cls(None, "", env)
 
@@ -65,13 +67,19 @@ class Config(UserDict):
         service_id = env.get("RENDER_SERVICE_ID")
         instance = env.get("RENDER_INSTANCE_ID").replace(f"{service_id}-", "")
         runtime_container = RuntimeContainer(instance)
-        api_base_url = f"https://adapter.judoscale.com/api/{service_id}"
+        api_base_url = env.get("JUDOSCALE_URL") or f"https://adapter.judoscale.com/api/{service_id}"
         return cls(runtime_container, api_base_url, env)
 
     @classmethod
     def for_ecs(cls, env: Mapping):
         instance = env["ECS_CONTAINER_METADATA_URI"].split("/")[-1]
         runtime_container = RuntimeContainer(instance)
+        api_base_url = env.get("JUDOSCALE_URL")
+        return cls(runtime_container, api_base_url, env)
+
+    @classmethod
+    def for_railway(cls, env: Mapping):
+        runtime_container = RuntimeContainer(env["RAILWAY_REPLICA_ID"])
         api_base_url = env.get("JUDOSCALE_URL")
         return cls(runtime_container, api_base_url, env)
 
