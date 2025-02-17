@@ -52,9 +52,20 @@ class TestConfig:
         }
         config = Config.initialize(fake_env)
 
-        assert (
-            config["RUNTIME_CONTAINER"] == "a8880ee042bc4db3ba878dce65b769b6-2750272591"
-        )
+        assert config["RUNTIME_CONTAINER"] == "a8880ee042bc4db3ba878dce65b769b6-2750272591"
+        assert config["LOG_LEVEL"] == "WARN"
+        assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
+
+    def test_on_fly(self):
+        fake_env = {
+            "FLY_MACHINE_ID": "683d924b322418",
+            "FLY_PROCESS_GROUP": "web",
+            "JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890",
+            "LOG_LEVEL": "WARN",
+        }
+        config = Config.initialize(fake_env)
+
+        assert config["RUNTIME_CONTAINER"] == "683d924b322418"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
@@ -67,9 +78,7 @@ class TestConfig:
         }
         config = Config.initialize(fake_env)
 
-        assert (
-            config["RUNTIME_CONTAINER"] == "f9c88b6e-0e96-46f2-9884-ece3bf53d009"
-        )
+        assert config["RUNTIME_CONTAINER"] == "f9c88b6e-0e96-46f2-9884-ece3bf53d009"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
