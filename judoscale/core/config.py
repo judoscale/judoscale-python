@@ -51,6 +51,8 @@ class Config(UserDict):
             return cls.for_render(env)
         elif env.get("ECS_CONTAINER_METADATA_URI"):
             return cls.for_ecs(env)
+        elif env.get("FLY_MACHINE_ID"):
+            return cls.for_fly(env)
         elif env.get("RAILWAY_REPLICA_ID"):
             return cls.for_railway(env)
         else:
@@ -74,6 +76,12 @@ class Config(UserDict):
     def for_ecs(cls, env: Mapping):
         instance = env["ECS_CONTAINER_METADATA_URI"].split("/")[-1]
         runtime_container = RuntimeContainer(instance)
+        api_base_url = env.get("JUDOSCALE_URL")
+        return cls(runtime_container, api_base_url, env)
+
+    @classmethod
+    def for_fly(cls, env: Mapping):
+        runtime_container = RuntimeContainer(env["FLY_MACHINE_ID"])
         api_base_url = env.get("JUDOSCALE_URL")
         return cls(runtime_container, api_base_url, env)
 
