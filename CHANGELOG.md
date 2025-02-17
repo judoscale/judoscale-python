@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/judoscale/judoscale-python/compare/v1.8.0...v1.9.0) (2025-02-17)
+
+
+### Features
+
+* Configure runtime container for Fly.io ([#100](https://github.com/judoscale/judoscale-python/issues/100)) ([e674184](https://github.com/judoscale/judoscale-python/commit/e674184e3ce47ce1ec27d92f27a0b3e66b704949))
+
 ## [1.8.0](https://github.com/judoscale/judoscale-python/compare/v1.7.5...v1.8.0) (2025-01-15)
 
 
