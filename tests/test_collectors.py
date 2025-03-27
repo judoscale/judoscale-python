@@ -246,7 +246,7 @@ class TestCeleryMetricsCollector:
         assert metrics[0].queue_name == "foo"
         assert metrics[0].value == 1
 
-        assert metrics[1].measurement == "queue_time"
+        assert metrics[1].measurement == "qt"
         assert metrics[1].queue_name == "foo"
         assert metrics[1].value == approx(60000, abs=100)
 
@@ -293,11 +293,11 @@ class TestCeleryMetricsCollector:
         assert metrics[1].queue_name == "foo"
         assert metrics[1].value == 1
 
-        assert metrics[2].measurement == "queue_time"
+        assert metrics[2].measurement == "qt"
         assert metrics[2].queue_name == "bar"
         assert metrics[2].value == 0
 
-        assert metrics[3].measurement == "queue_time"
+        assert metrics[3].measurement == "qt"
         assert metrics[3].queue_name == "foo"
         assert metrics[3].value == approx(60000, abs=100)
 
@@ -401,6 +401,6 @@ class TestRQMetricsCollector:
         assert metrics[0].queue_name == "foo"
         assert metrics[0].value == 1
 
-        assert metrics[1].measurement == "queue_time"
+        assert metrics[1].measurement == "qt"
         assert metrics[1].queue_name == "foo"
         assert metrics[1].value == approx(60000, abs=100)
