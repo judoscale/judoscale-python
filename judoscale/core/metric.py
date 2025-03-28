@@ -33,7 +33,7 @@ class Metric:
     timestamp: float  # Unix timestamp in fractional seconds
     value: int
     queue_name: Optional[str] = None
-    measurement: str = "queue_time"
+    measurement: str = "qt"
 
     @property
     def as_tuple(self) -> Tuple[int, int, str, Optional[str]]:
