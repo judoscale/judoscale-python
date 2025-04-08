@@ -24,7 +24,7 @@ def judoscale_rq(redis: Redis, extra_config: Mapping = {}) -> None:
     judoconfig.update(extra_config)
 
     if not judoconfig.is_enabled:
-        logger.info("Not activated - no API URL provivded")
+        logger.info("Not activated - no API URL provided")
         return
 
     collector = RQMetricsCollector(config=judoconfig, redis=redis)

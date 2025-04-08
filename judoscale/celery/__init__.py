@@ -23,7 +23,7 @@ def judoscale_celery(celery: Celery, extra_config: Mapping = {}) -> None:
     judoconfig.update(extra_config)
 
     if not judoconfig.is_enabled:
-        logger.info("Not activated - no API URL provivded")
+        logger.info("Not activated - no API URL provided")
         return
 
     collector = CeleryMetricsCollector(config=judoconfig, broker=celery)

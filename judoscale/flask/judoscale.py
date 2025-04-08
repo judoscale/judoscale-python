@@ -31,7 +31,7 @@ class Judoscale:
         judoconfig.update(app.config.get("JUDOSCALE", {}))
 
         if not judoconfig.is_enabled:
-            logger.info("Not activated - no API URL provivded")
+            logger.info("Not activated - no API URL provided")
             return
 
         collector = WebMetricsCollector(judoconfig)
