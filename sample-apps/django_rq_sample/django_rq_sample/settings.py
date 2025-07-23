@@ -61,7 +61,7 @@ RQ_QUEUES = {
 JUDOSCALE = {
     # This sample app is intended to be run locally, so Judoscale API requests are
     # sent to a mock endpoint.
-    "API_BASE_URL": "https://requestinspector.com/inspect/judoscale-django-rq",
+    "API_BASE_URL": "https://judoscale-python.requestcatcher.com",
     "LOG_LEVEL": "DEBUG",
     "REPORT_INTERVAL_SECONDS": 15,
     "REDIS": RQ_QUEUES["default"],

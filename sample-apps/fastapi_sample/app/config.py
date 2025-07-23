@@ -3,7 +3,7 @@ from pydantic import BaseSettings
 
 class JudoscaleSettings(BaseSettings):
     log_level: str = "DEBUG"
-    api_base_url: str = "https://requestinspector.com/inspect/judoscale-fastapi"
+    api_base_url: str = "https://judoscale-python.requestcatcher.com"
 
 
 class Settings(BaseSettings):

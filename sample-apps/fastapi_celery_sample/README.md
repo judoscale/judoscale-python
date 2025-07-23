@@ -30,6 +30,6 @@ Each script will run, with different environment variables:
 
 ## How to use this sample app
 
-Open https://requestinspector.com/p/judoscale-fastapi-celery in a browser. The sample app is configured to use this Request Catcher endpoint as a mock for the Judoscale Adapter API. This page will monitor all API requests sent from the adapter.
+Open https://judoscale-python.requestcatcher.com in a browser. The sample app is configured to use this Request Catcher endpoint as a mock for the Judoscale Adapter API. This page will monitor all API requests sent from the adapter.
 
 Start the app via `./bin/dev`, then open http://localhost:5000. Clicking on "Add task" will enqueue a task that sleeps between 3 and 5 seconds and then returns the sum of its arguments. The task is enqueued randomly to either the `high` queue or the `low` queue. You will see Judoscale Adapter API requests logged in Request Catcher.
