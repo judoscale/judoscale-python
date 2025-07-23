@@ -50,7 +50,6 @@ class TestApp(TestCase):
         self.assertEqual(reporter.is_running, True)
 
         metrics = reporter.all_metrics
-        print("METRIC", metrics)
         self.assertEqual(len(metrics), 1)
         self.assertNotEqual(metrics[0].value, None)
         self.assertNotEqual(metrics[0].timestamp, None)
