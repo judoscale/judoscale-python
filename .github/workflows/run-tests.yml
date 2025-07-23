@@ -48,3 +48,9 @@ jobs:
 
       - name: Test with pytest
         run: poetry run pytest
+
+      - name: Test django sample app
+        run: cd ./sample-apps/django_sample && poetry install --no-interaction && bin/test
+
+      - name: Test flask sample app
+        run: cd ./sample-apps/flask_sample && poetry install --no-interaction && bin/test
