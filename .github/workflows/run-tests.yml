@@ -50,7 +50,10 @@ jobs:
         run: poetry run pytest
 
       - name: Test django sample app
-        run: cd ./sample-apps/django_sample && poetry install --no-interaction && bin/test
+        run: cd ./sample-apps/django_sample && poetry install --all-extras --no-interaction && bin/test
 
       - name: Test flask sample app
-        run: cd ./sample-apps/flask_sample && poetry install --no-interaction && bin/test
+        run: cd ./sample-apps/flask_sample && poetry install --all-extras --no-interaction && bin/test
+
+      - name: Test fast API sample app
+        run: cd ./sample-apps/fastapi_sample && poetry install --all-extras --no-interaction && bin/test

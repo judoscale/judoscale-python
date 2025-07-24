@@ -16,6 +16,9 @@ FastAPI = "^0.115.0"
 judoscale = { path = "../../", extras=["asgi"], develop = true }
 uvicorn = {extras = ["standard"], version = "^0.31.0"}
 
+[tool.poetry.group.dev.dependencies]
+httpx = "^0.28.1"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

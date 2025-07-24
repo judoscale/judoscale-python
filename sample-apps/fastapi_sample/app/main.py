@@ -1,5 +1,6 @@
 import app.settings as settings
 from fastapi import FastAPI
+from fastapi.logger import logger
 from fastapi.responses import HTMLResponse
 
 from judoscale.asgi.middleware import FastAPIRequestQueueTimeMiddleware
@@ -15,6 +16,7 @@ def create_app() -> FastAPI:
 
     @app.get("/")
     async def index():
+        logger.warning("Hello, world")
         if url := judoconfig.get("API_BASE_URL"):
             catcher_url = url.replace("/inspect/", "/p/")
             return HTMLResponse(
