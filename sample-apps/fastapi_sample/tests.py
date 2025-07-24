@@ -9,9 +9,6 @@ from judoscale.core.config import config, RuntimeContainer
 from judoscale.core.metric import Metric
 from judoscale.core.reporter import reporter
 
-# Disabling HTTP logging so we can test just Judoscale output.
-import logging
-logging.getLogger('httpx').setLevel(logging.WARNING)
 
 class BasicTests(unittest.TestCase):
     def setUp(self):
