@@ -30,10 +30,9 @@ def create_app():
     def index():
         current_app.logger.warning("Hello, world")
         if url := current_app.config["JUDOSCALE"].get("API_BASE_URL"):
-            catcher_url = url.replace("/inspect/", "/p/")
             return (
                 "Judoscale Flask RQ Sample App. "
-                f"<a target='_blank' href={catcher_url}>Metrics</a>"
+                f"<a target='_blank' href={url}>Metrics</a>"
                 "<form action='/task' method='POST'>"
                 "<input type='submit' value='Add task'>"
                 "</form>"
