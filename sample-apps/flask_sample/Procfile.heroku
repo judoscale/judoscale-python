@@ -2,4 +2,4 @@
 proxy: npx judoscale-adapter-proxy-server
 
 web: DYNO=web.1 poetry run gunicorn --preload 'app:create_app()'
-#web: flask run -p 5100
+#web: flask run -p 5106

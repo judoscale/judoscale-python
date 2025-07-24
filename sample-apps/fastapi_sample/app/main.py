@@ -1,4 +1,4 @@
-from app.config import settings
+import app.settings as settings
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
@@ -10,7 +10,7 @@ def create_app() -> FastAPI:
     app = FastAPI()
     app.add_middleware(
         FastAPIRequestQueueTimeMiddleware,
-        extra_config=settings.judoscale.dict(),
+        extra_config=settings.JUDOSCALE,
     )
 
     @app.get("/")
