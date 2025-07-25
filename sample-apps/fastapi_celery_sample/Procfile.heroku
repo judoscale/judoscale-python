@@ -1,6 +1,6 @@
 # The proxy server adds the X_REQUEST_START header for queue time calculations
 proxy: npx judoscale-adapter-proxy-server
 
-web: DYNO=web.1 poetry run uvicorn app.asgi:app --port 5100
+web: DYNO=web.1 poetry run uvicorn app.asgi:app --port 5106
 worker: DYNO=worker.1 poetry run celery -A app.tasks worker -c 1 --loglevel=INFO -Q low
 worker_high: DYNO=worker_high.1 poetry run celery -A app.tasks worker -c 1 --loglevel=INFO -Q high

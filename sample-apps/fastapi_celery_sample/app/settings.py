@@ -1,5 +1,5 @@
 JUDOSCALE = {
-    "API_BASE_URL": "https://requestinspector.com/inspect/judoscale-fastapi-celery",
+    "API_BASE_URL": "https://judoscale-python.requestcatcher.com",
     "LOG_LEVEL": "DEBUG",
     "REPORT_INTERVAL_SECONDS": 15,
     # Same as default settings in Config.DEFAULTS
