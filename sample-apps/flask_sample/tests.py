@@ -1,6 +1,5 @@
 import time
 import unittest
-from typing import List
 
 from app import create_app
 
@@ -11,7 +10,6 @@ from judoscale.core.reporter import reporter
 
 class BasicTests(unittest.TestCase):
     def setUp(self):
-        """Setup executed prior to each test"""
         config["RUNTIME_CONTAINER"] = RuntimeContainer("web.1")
         app = create_app()
         app.config["TESTING"] = True
@@ -19,8 +17,8 @@ class BasicTests(unittest.TestCase):
         self.client = app.test_client()
 
     def tearDown(self):
-        """Teardown executed after each test"""
-        pass
+        # flush metrics to avoid them leaking to other tests
+        reporter.all_metrics
 
     def test_index_view(self):
         response = self.client.get("/", follow_redirects=True)
@@ -44,8 +42,10 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(reporter.is_running, True)
 
-        # no metrics gathered
-        self.assertEqual(len(reporter.all_metrics), 0)
+        # no queue time metrics gathered, only app time
+        metrics = reporter.all_metrics
+        self.assertEqual(len(metrics), 1)
+        self.assertEqual(metrics[0].measurement, "at")
 
     def test_reporter_captures_metrics(self):
         now = round(time.time() * 1000)
@@ -59,11 +59,14 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(reporter.is_running, True)
 
-        metrics: List[Metric] = reporter.all_metrics
-        self.assertEqual(len(metrics), 1)
-        self.assertEqual(metrics[0].measurement, "qt")
+        metrics = reporter.all_metrics
+        self.assertEqual(len(metrics), 2)
+        self.assertEqual(metrics[0].measurement, "at")
         self.assertNotEqual(metrics[0].value, None)
         self.assertNotEqual(metrics[0].timestamp, None)
+        self.assertEqual(metrics[1].measurement, "qt")
+        self.assertNotEqual(metrics[1].value, None)
+        self.assertNotEqual(metrics[1].timestamp, None)
 
 
 if __name__ == "__main__":

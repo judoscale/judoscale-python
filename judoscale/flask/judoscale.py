@@ -1,7 +1,8 @@
+import time
 from importlib import metadata
 from typing import Optional
 
-from flask import Flask, request
+from flask import Flask, request, g
 
 from judoscale.core.adapter import Adapter, AdapterInfo
 from judoscale.core.config import config as judoconfig
@@ -11,7 +12,7 @@ from judoscale.core.metrics_collectors import WebMetricsCollector
 from judoscale.core.reporter import reporter
 
 
-def store_request_metrics(collector: WebMetricsCollector):
+def store_queue_time_metric(collector: WebMetricsCollector):
     def inner():
         request_start_header = request.headers.get("x-request-start", "")
         if metric := Metric.for_web(request_start_header):
@@ -21,6 +22,20 @@ def store_request_metrics(collector: WebMetricsCollector):
 
     return inner
 
+def initialize_app_time_metric():
+    g.judoscale_app_start_time = time.monotonic()
+    return None
+
+def store_app_time_metric(collector: WebMetricsCollector):
+    def inner(response):
+        start = g.judoscale_app_start_time
+        end = time.monotonic()
+        if metric := Metric.for_web_app_time(start=start, end=end):
+            collector.add(metric)
+
+        return response
+
+    return inner
 
 class Judoscale:
     def __init__(self, app: Optional[Flask] = None):
@@ -42,4 +57,6 @@ class Judoscale:
         )
         reporter.add_adapter(adapter)
         reporter.ensure_running()
-        app.before_request(store_request_metrics(collector))
+        app.before_request(store_queue_time_metric(collector))
+        app.before_request(initialize_app_time_metric)
+        app.after_request(store_app_time_metric(collector))
