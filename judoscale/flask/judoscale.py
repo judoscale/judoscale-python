@@ -28,11 +28,7 @@ def initialize_app_time_metric():
 
 def store_app_time_metric(collector: WebMetricsCollector):
     def inner(response):
-        start = g.judoscale_app_start_time
-        end = time.monotonic()
-        if metric := Metric.for_web_app_time(start=start, end=end):
-            collector.add(metric)
-
+        collector.add(Metric.for_web_app_time(start=g.judoscale_app_start_time))
         return response
 
     return inner

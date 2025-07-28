@@ -93,7 +93,7 @@ class Metric:
         return metric
 
     @classmethod
-    def for_web_app_time(cls, start: float, end: float):
+    def for_web_app_time(cls, start: float, end: float = time.monotonic()):
         app_time = end - start
         metric = Metric(
             measurement="at",

@@ -30,7 +30,6 @@ class RequestQueueTimeMiddleware:
 
         start = time.monotonic()
         response = self.get_response(request)
-        end = time.monotonic()
-        self.collector.add(Metric.for_web_app_time(start=start, end=end))
+        self.collector.add(Metric.for_web_app_time(start=start))
 
         return response

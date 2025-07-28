@@ -48,8 +48,7 @@ class RequestQueueTimeMiddleware:
 
         start = time.monotonic()
         response = await self.app(scope, receive, send)
-        end = time.monotonic()
-        self.collector.add(Metric.for_web_app_time(start=start, end=end))
+        self.collector.add(Metric.for_web_app_time(start=start))
 
         response
 
