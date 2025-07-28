@@ -1,3 +1,4 @@
+import time
 from importlib import metadata
 
 from judoscale.core.adapter import Adapter, AdapterInfo
@@ -27,4 +28,9 @@ class RequestQueueTimeMiddleware:
             self.collector.add(metric)
         reporter.ensure_running()
 
-        return self.get_response(request)
+        start = time.monotonic()
+        response = self.get_response(request)
+        end = time.monotonic()
+        self.collector.add(Metric.for_web_app_time(start=start, end=end))
+
+        return response

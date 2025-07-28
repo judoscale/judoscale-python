@@ -93,6 +93,17 @@ class Metric:
         return metric
 
     @classmethod
+    def for_web_app_time(cls, start: float, end: float):
+        app_time = end - start
+        metric = Metric(
+            measurement="at",
+            value=app_time,
+            timestamp=time.time(),
+        )
+        logger.debug(f"app_time={app_time}ms")
+        return metric
+
+    @classmethod
     def for_queue(cls, queue_name: str, oldest_job_ts: float) -> "Metric":
         """
         Calculate how long the oldest job in a queue has been waiting to be

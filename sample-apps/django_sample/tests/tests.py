@@ -12,6 +12,10 @@ class TestApp(TestCase):
         config["RUNTIME_CONTAINER"] = RuntimeContainer("web.1")
         self.client = Client()
 
+    def tearDown(self):
+        # flush metrics to avoid them leaking to other tests
+        reporter.all_metrics
+
     def test_index_view(self):
         response = self.client.get("/", follow_redirects=True)
         self.assertEqual(response.status_code, 200)
@@ -34,8 +38,10 @@ class TestApp(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(reporter.is_running, True)
 
-        # no metrics gathered
-        self.assertEqual(len(reporter.all_metrics), 0)
+        # no queue time metrics gathered, only app time
+        metrics = reporter.all_metrics
+        self.assertEqual(len(metrics), 1)
+        self.assertEqual(metrics[0].measurement, "at")
 
     def test_reporter_captures_metrics(self):
         now = datetime.datetime.now().timestamp()
@@ -49,8 +55,12 @@ class TestApp(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(reporter.is_running, True)
 
+        # metrics are popped off the back of the queue, so the order here is reversed
         metrics = reporter.all_metrics
-        self.assertEqual(len(metrics), 1)
-        self.assertEqual(metrics[0].measurement, "qt")
+        self.assertEqual(len(metrics), 2)
+        self.assertEqual(metrics[0].measurement, "at")
         self.assertNotEqual(metrics[0].value, None)
         self.assertNotEqual(metrics[0].timestamp, None)
+        self.assertEqual(metrics[1].measurement, "qt")
+        self.assertNotEqual(metrics[1].value, None)
+        self.assertNotEqual(metrics[1].timestamp, None)
