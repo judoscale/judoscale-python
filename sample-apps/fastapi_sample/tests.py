@@ -24,7 +24,7 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_app_logging(self):
-        with self.assertLogs('fastapi') as captured:
+        with self.assertLogs("fastapi") as captured:
             response = self.client.get("/", follow_redirects=True)
 
         # assert there is only one log message
@@ -47,10 +47,10 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(metrics[0].measurement, "at")
 
     def test_reporter_captures_metrics(self):
-        now = round(time.time() * 1000)
+        now = time.time()
 
         response = self.client.get("/", headers={
-          "X-Request-Start": f"{now}",
+          "X-Request-Start": f"{round(now * 1000)}",
           "X-Request-Id": "00000000-0000-0000-0000-000000000000"
         })
 
@@ -61,11 +61,11 @@ class BasicTests(unittest.TestCase):
         metrics = reporter.all_metrics
         self.assertEqual(len(metrics), 2)
         self.assertEqual(metrics[0].measurement, "at")
-        self.assertNotEqual(metrics[0].value, None)
-        self.assertNotEqual(metrics[0].timestamp, None)
+        self.assertIsInstance(metrics[0].value, int)
+        self.assertGreater(metrics[0].timestamp, now)
         self.assertEqual(metrics[1].measurement, "qt")
-        self.assertNotEqual(metrics[1].value, None)
-        self.assertNotEqual(metrics[1].timestamp, None)
+        self.assertIsInstance(metrics[1].value, int)
+        self.assertGreater(metrics[1].timestamp, now)
 
 
 if __name__ == "__main__":

@@ -59,8 +59,8 @@ class TestApp(TestCase):
         metrics = reporter.all_metrics
         self.assertEqual(len(metrics), 2)
         self.assertEqual(metrics[0].measurement, "at")
-        self.assertNotEqual(metrics[0].value, None)
-        self.assertNotEqual(metrics[0].timestamp, None)
+        self.assertIsInstance(metrics[0].value, int)
+        self.assertGreater(metrics[0].timestamp, now)
         self.assertEqual(metrics[1].measurement, "qt")
-        self.assertNotEqual(metrics[1].value, None)
-        self.assertNotEqual(metrics[1].timestamp, None)
+        self.assertIsInstance(metrics[1].value, int)
+        self.assertGreater(metrics[1].timestamp, now)

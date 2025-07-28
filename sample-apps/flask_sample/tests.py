@@ -48,11 +48,10 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(metrics[0].measurement, "at")
 
     def test_reporter_captures_metrics(self):
-        now = round(time.time() * 1000)
-        self.client.environ_base["HTTP_X_REQUEST_START"] = now
-        self.client.environ_base[
-            "HTTP_X_REQUEST_ID"
-        ] = "00000000-0000-0000-0000-000000000000"
+        now = time.time()
+
+        self.client.environ_base["HTTP_X_REQUEST_START"] = round(now * 1000)
+        self.client.environ_base["HTTP_X_REQUEST_ID"] = "00000000-0000-0000-0000-000000000000"
 
         response = self.client.get("/", headers={})
 
@@ -62,11 +61,11 @@ class BasicTests(unittest.TestCase):
         metrics = reporter.all_metrics
         self.assertEqual(len(metrics), 2)
         self.assertEqual(metrics[0].measurement, "at")
-        self.assertNotEqual(metrics[0].value, None)
-        self.assertNotEqual(metrics[0].timestamp, None)
+        self.assertIsInstance(metrics[0].value, int)
+        self.assertGreater(metrics[0].timestamp, now)
         self.assertEqual(metrics[1].measurement, "qt")
-        self.assertNotEqual(metrics[1].value, None)
-        self.assertNotEqual(metrics[1].timestamp, None)
+        self.assertIsInstance(metrics[1].value, int)
+        self.assertGreater(metrics[1].timestamp, now)
 
 
 if __name__ == "__main__":
