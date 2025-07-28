@@ -93,15 +93,17 @@ class Metric:
         return metric
 
     @classmethod
-    def for_web_app_time(cls, start: float, end: float = time.monotonic()):
+    def for_web_app_time(cls, start: float, end: float = None):
         """
-        Calculate the elapsed time from the given `start`, log and return the
-        app time Metric instance.
+        Calculate the elapsed time in milliseconds from the given `start`,
+        log and return the app time Metric instance.
 
         start:
             The request start time, using monotonic time: `time.monotonic()`
         """
-        app_time = end - start
+        if end == None:
+            end = time.monotonic()
+        app_time = int((end - start) * 1000)
         metric = Metric(
             measurement="at",
             value=app_time,
