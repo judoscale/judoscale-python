@@ -14,7 +14,6 @@ def create_app():
 
     @app.route("/", methods=["GET"])
     def index():
-        print(current_app.logger)
         current_app.logger.warning("Hello, world")
         if url := current_app.config["JUDOSCALE"].get("API_BASE_URL"):
             return (

@@ -25,11 +25,9 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_app_logging(self):
-        with self.assertLogs() as captured:
+        with self.assertLogs("DemoFlaskApp") as captured:
             response = self.client.get("/", follow_redirects=True)
 
-        print("===>>>")
-        print(captured.records)
         # assert there is only one log message
         self.assertEqual(len(captured.records), 1)
         # assert the content log message
