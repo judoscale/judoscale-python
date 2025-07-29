@@ -59,7 +59,7 @@ JUDOSCALE = {
     # sent to a mock endpoint.
     "API_BASE_URL": "https://01hbrdx18s6yr6q8k8nfgg48dr00-3f8eec45945d49513766.requestinspector.com",  # noqa: E501
     "LOG_LEVEL": "DEBUG",
-    "REPORT_INTERVAL_SECONDS": 2,
+    # "REPORT_INTERVAL_SECONDS": 5,
     "REDIS": RQ_QUEUES["default"],
     "RQ": {
         "ENABLED": True,
