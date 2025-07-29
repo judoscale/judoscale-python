@@ -47,10 +47,8 @@ class RequestQueueTimeMiddleware:
         reporter.ensure_running()
 
         start = time.monotonic()
-        response = await self.app(scope, receive, send)
+        await self.app(scope, receive, send)
         self.collector.add(Metric.for_web_app_time(start=start))
-
-        response
 
 
 class StarletteRequestQueueTimeMiddleware(RequestQueueTimeMiddleware):
