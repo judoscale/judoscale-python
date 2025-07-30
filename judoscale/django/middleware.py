@@ -6,6 +6,7 @@ from judoscale.core.config import config as judoconfig
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_collectors import WebMetricsCollector
 from judoscale.core.reporter import reporter
+from judoscale.core.utilization_tracker import utilization_tracker
 
 
 class RequestQueueTimeMiddleware:
@@ -21,6 +22,9 @@ class RequestQueueTimeMiddleware:
         )
         reporter.add_adapter(adapter)
 
+        if judoconfig.utilization_enabled:
+            utilization_tracker.start(self.collector)
+
     def __call__(self, request):
         request_start_header = request.META.get("HTTP_X_REQUEST_START", "")
 
@@ -28,8 +32,19 @@ class RequestQueueTimeMiddleware:
             self.collector.add(metric)
         reporter.ensure_running()
 
-        start = time.monotonic()
-        response = self.get_response(request)
-        self.collector.add(Metric.for_web_app_time(start=start))
+        try:
+            if judoconfig.utilization_enabled:
+                utilization_tracker.ensure_running()
+                utilization_tracker.incr()
 
-        return response
+            start = time.monotonic()
+            response = self.get_response(request)
+            self.collector.add(Metric.for_web_app_time(start=start))
+
+            return response
+        finally:
+            if judoconfig.utilization_enabled:
+                utilization_tracker.decr()
+
+
+

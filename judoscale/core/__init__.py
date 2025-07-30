@@ -2,11 +2,13 @@ import signal
 import sys
 
 from judoscale.core.reporter import reporter
+from judoscale.core.utilization_tracker import utilization_tracker
 
 previous_handler = signal.getsignal(signal.SIGTERM)
 
 def graceful_shutdown(signum, frame):
     reporter.signal_handler(signum, frame)
+    utilization_tracker.signal_handler(signum, frame)
     # If there was a previous handler and it's not SIG_DFL or SIG_IGN, call it
     if callable(previous_handler) and previous_handler not in (
         signal.SIG_DFL,
