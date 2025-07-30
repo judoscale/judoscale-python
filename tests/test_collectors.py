@@ -10,6 +10,7 @@ from pytest import approx, fixture, raises
 
 from judoscale.celery.collector import CeleryMetricsCollector
 from judoscale.core.metric import Metric
+from judoscale.core.metrics_store import MetricsStore
 from judoscale.core.metrics_collectors import JobMetricsCollector, WebMetricsCollector
 from judoscale.rq.collector import RQMetricsCollector
 
@@ -27,19 +28,19 @@ def celery():
 
 class TestWebMetricsCollector:
     def test_should_collect_web(self, web_all):
-        assert WebMetricsCollector(web_all).should_collect
+        assert WebMetricsCollector(web_all, MetricsStore()).should_collect
 
     def test_should_collect_worker(self, worker_all):
-        assert WebMetricsCollector(worker_all).should_collect
+        assert WebMetricsCollector(worker_all, MetricsStore()).should_collect
 
     def test_add(self, web_all):
-        collector = WebMetricsCollector(web_all)
+        collector = WebMetricsCollector(web_all, MetricsStore())
         metric = Metric.for_web(f"t={time.time():.3f}")
         collector.add(metric)
         assert collector.store.store == [metric]
 
     def test_collect(self, web_all):
-        collector = WebMetricsCollector(web_all)
+        collector = WebMetricsCollector(web_all, MetricsStore())
         metric = Metric.for_web(f"t={time.time():.3f}")
         collector.add(metric)
         assert collector.collect() == [metric]
