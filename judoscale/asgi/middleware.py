@@ -1,4 +1,5 @@
 import time
+from contextlib import contextmanager
 from importlib import metadata
 from typing import Mapping
 
@@ -8,6 +9,7 @@ from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_collectors import WebMetricsCollector
 from judoscale.core.reporter import reporter
+from judoscale.core.utilization_tracker import utilization_tracker
 
 
 class RequestQueueTimeMiddleware:
@@ -37,18 +39,31 @@ class RequestQueueTimeMiddleware:
         if not judoconfig.is_enabled:
             return await self.app(scope, receive, send)
 
-        for header, value in scope["headers"]:
-            if header.lower() == b"x-request-start":
-                request_start = value.decode()
-                if metric := Metric.for_web(request_start):
-                    self.collector.add(metric)
-                break
+        with self.track_utilization():
+            for header, value in scope["headers"]:
+                if header.lower() == b"x-request-start":
+                    request_start = value.decode()
+                    if metric := Metric.for_web(request_start):
+                        self.collector.add(metric)
+                    break
 
-        reporter.ensure_running()
+            reporter.ensure_running()
 
-        start = time.monotonic()
-        await self.app(scope, receive, send)
-        self.collector.add(Metric.for_web_app_time(start=start))
+            start = time.monotonic()
+            await self.app(scope, receive, send)
+            self.collector.add(Metric.for_web_app_time(start=start))
+
+    @contextmanager
+    def track_utilization(self):
+        try:
+            if judoconfig.utilization_enabled:
+                utilization_tracker.ensure_running()
+                utilization_tracker.incr()
+
+            yield
+        finally:
+            if judoconfig.utilization_enabled:
+                utilization_tracker.decr()
 
 
 class StarletteRequestQueueTimeMiddleware(RequestQueueTimeMiddleware):

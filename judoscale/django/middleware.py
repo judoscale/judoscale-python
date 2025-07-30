@@ -1,6 +1,6 @@
 import time
-from importlib import metadata
 from contextlib import contextmanager
+from importlib import metadata
 
 from judoscale.core.adapter import Adapter, AdapterInfo
 from judoscale.core.config import config as judoconfig
