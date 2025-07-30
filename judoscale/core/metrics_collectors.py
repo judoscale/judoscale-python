@@ -3,7 +3,7 @@ from typing import List, Protocol, Set
 from judoscale.core.config import Config
 from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
-from judoscale.core.metrics_store import MetricsStore
+from judoscale.core.metrics_store import MetricsStore, metrics_store
 
 
 class Collector(Protocol):
@@ -25,8 +25,8 @@ class MetricsCollector:
 
 
 class WebMetricsCollector(MetricsCollector):
-    def __init__(self, config: Config):
-        self.store = MetricsStore()
+    def __init__(self, config: Config, store: MetricsStore = metrics_store):
+        self.store = store
         super().__init__(config=config)
 
     def add(self, metric: Metric):

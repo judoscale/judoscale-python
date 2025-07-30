@@ -22,9 +22,6 @@ class RequestQueueTimeMiddleware:
         )
         reporter.add_adapter(adapter)
 
-        if judoconfig.utilization_enabled:
-            utilization_tracker.start(self.collector)
-
     def __call__(self, request):
         request_start_header = request.META.get("HTTP_X_REQUEST_START", "")
 
