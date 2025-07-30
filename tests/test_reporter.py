@@ -12,12 +12,16 @@ from judoscale.core.reporter import Reporter
 
 @fixture
 def reporter(heroku_web_1):
-    return Reporter(heroku_web_1)
+    reporter = Reporter(heroku_web_1)
+    yield reporter
+    reporter.stop()
 
 
 @fixture
 def reporter_in_release(heroku_release_1):
-    return Reporter(heroku_release_1)
+    reporter = Reporter(heroku_release_1)
+    yield reporter
+    reporter.stop()
 
 
 class TestReporter:

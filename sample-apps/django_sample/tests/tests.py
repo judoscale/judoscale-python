@@ -15,6 +15,7 @@ class TestApp(TestCase):
     def tearDown(self):
         # flush metrics to avoid them leaking to other tests
         reporter.all_metrics
+        reporter.stop()
 
     def test_index_view(self):
         response = self.client.get("/", follow_redirects=True)
