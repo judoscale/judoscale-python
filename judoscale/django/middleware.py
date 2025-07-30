@@ -1,5 +1,6 @@
 import time
 from importlib import metadata
+from contextlib import contextmanager
 
 from judoscale.core.adapter import Adapter, AdapterInfo
 from judoscale.core.config import config as judoconfig
@@ -23,25 +24,27 @@ class RequestQueueTimeMiddleware:
         reporter.add_adapter(adapter)
 
     def __call__(self, request):
-        request_start_header = request.META.get("HTTP_X_REQUEST_START", "")
+        with self.track_utilization():
+            request_start_header = request.META.get("HTTP_X_REQUEST_START", "")
 
-        if metric := Metric.for_web(request_start_header):
-            self.collector.add(metric)
-        reporter.ensure_running()
-
-        try:
-            if judoconfig.utilization_enabled:
-                utilization_tracker.ensure_running()
-                utilization_tracker.incr()
+            if metric := Metric.for_web(request_start_header):
+                self.collector.add(metric)
+            reporter.ensure_running()
 
             start = time.monotonic()
             response = self.get_response(request)
             self.collector.add(Metric.for_web_app_time(start=start))
 
             return response
+
+    @contextmanager
+    def track_utilization(self):
+        try:
+            if judoconfig.utilization_enabled:
+                utilization_tracker.ensure_running()
+                utilization_tracker.incr()
+
+            yield
         finally:
             if judoconfig.utilization_enabled:
                 utilization_tracker.decr()
-
-
-
