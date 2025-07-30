@@ -72,9 +72,12 @@ class Reporter:
             logger.warning(f"{e.args} - No reporter has initiated")
             pass
 
-    def signal_handler(self, signum, frame):
+    def stop(self):
         self._stopevent.set()
         self._running = False
+
+    def signal_handler(self, signum, frame):
+        self.stop()
 
     @property
     def is_running(self):
