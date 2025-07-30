@@ -79,9 +79,11 @@ class UtilizationTracker:
                 break
 
     def _track_current_state(self):
-        active_processes = 1 if self.active_requests > 0 else 0
-        logger.debug(f"-> utilization {self.pid}: track current state: {active_processes}")
-        self.store.add(Metric.for_web_utilization(active_processes))
+        active_requests = self.active_requests
+        active_processes = 1 if active_requests > 0 else 0
+        logger.debug(f"-> utilization {self.pid}: track current state: pu={active_processes} ru={active_requests}")
+        self.store.add(Metric.for_web_process_utilization(active_processes))
+        self.store.add(Metric.for_web_request_utilization(active_requests))
 
 
 utilization_tracker = UtilizationTracker(config=config, store=metrics_store)
