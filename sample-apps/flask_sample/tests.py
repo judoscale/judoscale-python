@@ -1,6 +1,5 @@
 import time
 import unittest
-from typing import List
 
 from app import create_app
 
@@ -11,7 +10,6 @@ from judoscale.core.reporter import reporter
 
 class BasicTests(unittest.TestCase):
     def setUp(self):
-        """Setup executed prior to each test"""
         config["RUNTIME_CONTAINER"] = RuntimeContainer("web.1")
         app = create_app()
         app.config["TESTING"] = True
@@ -19,15 +17,15 @@ class BasicTests(unittest.TestCase):
         self.client = app.test_client()
 
     def tearDown(self):
-        """Teardown executed after each test"""
-        pass
+        # flush metrics to avoid them leaking to other tests
+        reporter.all_metrics
 
     def test_index_view(self):
         response = self.client.get("/", follow_redirects=True)
         self.assertEqual(response.status_code, 200)
 
     def test_app_logging(self):
-        with self.assertLogs() as captured:
+        with self.assertLogs("DemoFlaskApp") as captured:
             response = self.client.get("/", follow_redirects=True)
 
         # assert there is only one log message
@@ -44,26 +42,30 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(reporter.is_running, True)
 
-        # no metrics gathered
-        self.assertEqual(len(reporter.all_metrics), 0)
+        # no queue time metrics gathered, only app time
+        metrics = reporter.all_metrics
+        self.assertEqual(len(metrics), 1)
+        self.assertEqual(metrics[0].measurement, "at")
 
     def test_reporter_captures_metrics(self):
-        now = round(time.time() * 1000)
-        self.client.environ_base["HTTP_X_REQUEST_START"] = now
-        self.client.environ_base[
-            "HTTP_X_REQUEST_ID"
-        ] = "00000000-0000-0000-0000-000000000000"
+        now = time.time()
+
+        self.client.environ_base["HTTP_X_REQUEST_START"] = round(now * 1000)
+        self.client.environ_base["HTTP_X_REQUEST_ID"] = "00000000-0000-0000-0000-000000000000"
 
         response = self.client.get("/", headers={})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(reporter.is_running, True)
 
-        metrics: List[Metric] = reporter.all_metrics
-        self.assertEqual(len(metrics), 1)
-        self.assertEqual(metrics[0].measurement, "qt")
-        self.assertNotEqual(metrics[0].value, None)
-        self.assertNotEqual(metrics[0].timestamp, None)
+        metrics = reporter.all_metrics
+        self.assertEqual(len(metrics), 2)
+        self.assertEqual(metrics[0].measurement, "at")
+        self.assertIsInstance(metrics[0].value, int)
+        self.assertGreater(metrics[0].timestamp, now)
+        self.assertEqual(metrics[1].measurement, "qt")
+        self.assertIsInstance(metrics[1].value, int)
+        self.assertGreater(metrics[1].timestamp, now)
 
 
 if __name__ == "__main__":

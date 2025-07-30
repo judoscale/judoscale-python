@@ -63,7 +63,7 @@ JUDOSCALE = {
     # sent to a mock endpoint.
     "API_BASE_URL": "https://judoscale-python.requestcatcher.com",
     "LOG_LEVEL": "DEBUG",
-    "REPORT_INTERVAL_SECONDS": 15,
+    # "REPORT_INTERVAL_SECONDS": 5,
     "REDIS": RQ_QUEUES["default"],
     # Same as default settings in Config.DEFAULTS
     "RQ": {

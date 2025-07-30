@@ -1,3 +1,4 @@
+import time
 from importlib import metadata
 from typing import Mapping
 
@@ -31,20 +32,23 @@ class RequestQueueTimeMiddleware:
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
-            await self.app(scope, receive, send)
-            return
+            return await self.app(scope, receive, send)
 
-        if judoconfig.is_enabled:
-            for header, value in scope["headers"]:
-                if header.lower() == b"x-request-start":
-                    request_start = value.decode()
-                    if metric := Metric.for_web(request_start):
-                        self.collector.add(metric)
-                    break
+        if not judoconfig.is_enabled:
+            return await self.app(scope, receive, send)
 
-            reporter.ensure_running()
+        for header, value in scope["headers"]:
+            if header.lower() == b"x-request-start":
+                request_start = value.decode()
+                if metric := Metric.for_web(request_start):
+                    self.collector.add(metric)
+                break
 
+        reporter.ensure_running()
+
+        start = time.monotonic()
         await self.app(scope, receive, send)
+        self.collector.add(Metric.for_web_app_time(start=start))
 
 
 class StarletteRequestQueueTimeMiddleware(RequestQueueTimeMiddleware):

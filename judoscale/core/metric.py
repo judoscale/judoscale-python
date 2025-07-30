@@ -93,6 +93,26 @@ class Metric:
         return metric
 
     @classmethod
+    def for_web_app_time(cls, start: float, end: float = None):
+        """
+        Calculate the elapsed time in milliseconds from the given `start`,
+        log and return the app time Metric instance.
+
+        start:
+            The request start time, using monotonic time: `time.monotonic()`
+        """
+        if end == None:
+            end = time.monotonic()
+        app_time = int((end - start) * 1000)
+        metric = Metric(
+            measurement="at",
+            value=app_time,
+            timestamp=time.time(),
+        )
+        logger.debug(f"app_time={app_time}ms")
+        return metric
+
+    @classmethod
     def for_queue(cls, queue_name: str, oldest_job_ts: float) -> "Metric":
         """
         Calculate how long the oldest job in a queue has been waiting to be
