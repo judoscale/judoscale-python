@@ -104,13 +104,16 @@ class Metric:
         if end == None:
             end = time.monotonic()
         app_time = int((end - start) * 1000)
-        metric = Metric(
-            measurement="at",
-            value=app_time,
-            timestamp=time.time(),
-        )
         logger.debug(f"app_time={app_time}ms")
-        return metric
+        return Metric(measurement="at", value=app_time, timestamp=time.time())
+
+    @classmethod
+    def for_web_utilization(cls, utilization: float):
+        """
+        Log and return Metric instance for utilization
+        """
+        logger.debug(f"utilization={utilization}")
+        return Metric(measurement="pu", value=utilization, timestamp=time.time())
 
     @classmethod
     def for_queue(cls, queue_name: str, oldest_job_ts: float) -> "Metric":

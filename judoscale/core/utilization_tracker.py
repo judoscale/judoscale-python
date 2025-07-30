@@ -10,14 +10,18 @@ from judoscale.core.metrics_collectors import WebMetricsCollector
 
 class UtilizationTracker:
     """
-
+    Tracks a count of active requests, incremented / decremented by the request
+    middleware, and runs a separate thread that adds a "utilization" metric
+    based on the process being currently handling any requests or idle.
     """
 
     def __init__(self, config: Config):
         self.config = config
         self.collector = None
+        self.active_requests = 0
         self._thread = None
         self._running = False
+        self._lock = threading.Lock()
         self._stopevent = threading.Event()
 
     def start(self, collector: WebMetricsCollector):
@@ -37,10 +41,14 @@ class UtilizationTracker:
         self._running = False
 
     def incr(self):
-        logger.info(f"-> utilization #{self.pid}: incr")
+        logger.debug(f"-> utilization {self.pid}: incr")
+        with self._lock:
+            self.active_requests = self.active_requests + 1
 
     def decr(self):
-        logger.info(f"-> utilization #{self.pid}: decr")
+        logger.debug(f"-> utilization {self.pid}: decr")
+        with self._lock:
+            self.active_requests = self.active_requests - 1
 
     @property
     def is_running(self):
@@ -55,9 +63,6 @@ class UtilizationTracker:
         return os.getpid()
 
     def _start(self):
-        # if not self.config.utilization_enabled:
-        #     logger.info("Utilization tracker not enabled")
-        #     return
         logger.info(f"Starting utilization tracker for process {self.pid}")
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()
@@ -72,8 +77,9 @@ class UtilizationTracker:
                 break
 
     def _track_current_state(self):
-        logger.info(f"-> utilization #{self.pid}: track current state")
-        pass
+        active_processes = 1 if self.active_requests > 0 else 0
+        logger.debug(f"-> utilization {self.pid}: track current state: {active_processes}")
+        self.collector.add(Metric.for_web_utilization(active_processes))
 
 
 utilization_tracker = UtilizationTracker(config=config)
