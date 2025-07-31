@@ -19,13 +19,11 @@ def store_queue_time_metric(collector: WebMetricsCollector):
         if metric := Metric.for_web(request_start_header):
             collector.add(metric)
         reporter.ensure_running()
-        return None
 
     return inner
 
 def initialize_app_time_metric():
     g.judoscale_app_start_time = time.monotonic()
-    return None
 
 def store_app_time_metric(collector: WebMetricsCollector):
     def inner(response):
@@ -37,7 +35,6 @@ def store_app_time_metric(collector: WebMetricsCollector):
 def start_utilization_request_tracking():
     utilization_tracker.ensure_running()
     utilization_tracker.incr()
-    return None
 
 def finish_utilization_request_tracking(exception):
     utilization_tracker.decr()
