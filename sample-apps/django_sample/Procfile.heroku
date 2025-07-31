@@ -2,4 +2,5 @@
 proxy: npx judoscale-adapter-proxy-server
 
 # Run with --noreload to avoid multiple server processes (and multiple Judoscale reporters)
-web: DYNO=web.1 poetry run gunicorn django_sample.wsgi:application --preload
+# web: DYNO=web.1 poetry run gunicorn django_sample.wsgi:application --preload
+web: DYNO=web.1 poetry run gunicorn django_sample.wsgi:application --preload --workers 3 --threads 2
