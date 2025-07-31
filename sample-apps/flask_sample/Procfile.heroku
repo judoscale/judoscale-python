@@ -1,5 +1,6 @@
 # The proxy server adds the X_REQUEST_START header for queue time calculations
 proxy: npx judoscale-adapter-proxy-server
 
-web: DYNO=web.1 poetry run gunicorn --preload 'app:create_app()'
+# web: DYNO=web.1 poetry run gunicorn --preload 'app:create_app()'
+web: DYNO=web.1 poetry run gunicorn 'app:create_app()' --preload --workers 3 --threads 2
 #web: flask run -p 5106
