@@ -10,6 +10,7 @@ from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_collectors import WebMetricsCollector
 from judoscale.core.reporter import reporter
+from judoscale.core.utilization_tracker import utilization_tracker
 
 
 def store_queue_time_metric(collector: WebMetricsCollector):
@@ -33,6 +34,14 @@ def store_app_time_metric(collector: WebMetricsCollector):
 
     return inner
 
+def start_utilization_request_tracking():
+    utilization_tracker.ensure_running()
+    utilization_tracker.incr()
+    return None
+
+def finish_utilization_request_tracking(exception):
+    utilization_tracker.decr()
+
 class Judoscale:
     def __init__(self, app: Optional[Flask] = None):
         if app is not None:
@@ -53,6 +62,13 @@ class Judoscale:
         )
         reporter.add_adapter(adapter)
         reporter.ensure_running()
+
+        if judoconfig.utilization_enabled:
+            app.before_request(start_utilization_request_tracking)
         app.before_request(store_queue_time_metric(collector))
         app.before_request(initialize_app_time_metric)
         app.after_request(store_app_time_metric(collector))
+        if judoconfig.utilization_enabled:
+            # `teardown_request` is more commonly used to cleanup resources, regardless
+            # of success/exception response, and runs later than `after_request`.
+            app.teardown_request(finish_utilization_request_tracking)
