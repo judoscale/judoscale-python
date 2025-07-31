@@ -1,5 +1,6 @@
+import time, random
 import settings
-from flask import Flask, current_app
+from flask import Flask, current_app, request
 
 from judoscale.flask import Judoscale
 
@@ -15,6 +16,10 @@ def create_app():
     @app.route("/", methods=["GET"])
     def index():
         current_app.logger.warning("Hello, world")
+
+        if request.args.get("sleep"):
+            time.sleep(random.randint(0,2))
+
         if url := current_app.config["JUDOSCALE"].get("API_BASE_URL"):
             return (
                 "Judoscale Flask Sample App. "
