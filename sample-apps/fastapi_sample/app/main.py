@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse
 
 from judoscale.asgi.middleware import FastAPIRequestQueueTimeMiddleware
 from judoscale.core.config import config as judoconfig
+from judoscale.core.utilization_tracker import utilization_tracker
 
 
 def create_app() -> FastAPI:
@@ -29,5 +30,12 @@ def create_app() -> FastAPI:
             )
         else:
             return HTMLResponse("Judoscale FastAPI Sample App. No API URL provided.")
+
+    @app.get("/test_utilization_tracker")
+    async def test_utilization_tracker():
+        # Run utilization tracker in the foreground to execute the tracking mid-request.
+        utilization_tracker._track_current_state()
+
+        return HTMLResponse(f"utilization_tracker={utilization_tracker.active_requests}")
 
     return app

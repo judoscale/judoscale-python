@@ -4,6 +4,8 @@ import time, random
 from django.conf import settings
 from django.http import HttpResponse
 
+from judoscale.core.utilization_tracker import utilization_tracker
+
 logger = logging.getLogger(__name__)
 
 def index(request):
@@ -20,3 +22,9 @@ def index(request):
         )
     else:
         return HttpResponse("Judoscale Django Sample App. No API URL provided.")
+
+def test_utilization_tracker(request):
+    # Run utilization tracker in the foreground to execute the tracking mid-request.
+    utilization_tracker._track_current_state()
+
+    return HttpResponse(f"utilization_tracker={utilization_tracker.active_requests}")
