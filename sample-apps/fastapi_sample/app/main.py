@@ -1,3 +1,4 @@
+import time, random
 import app.settings as settings
 from fastapi import FastAPI
 from fastapi.logger import logger
@@ -15,8 +16,16 @@ def create_app() -> FastAPI:
     )
 
     @app.get("/")
-    async def index():
+    async def index(sleep = None):
         logger.warning("Hello, world")
+
+        if sleep:
+            try:
+                sleep_for = float(sleep)
+            except:
+                sleep_for = random.randint(0, 2)
+            time.sleep(sleep_for)
+
         if url := judoconfig.get("API_BASE_URL"):
             return HTMLResponse(
                 "Judoscale FastAPI Sample App. "
