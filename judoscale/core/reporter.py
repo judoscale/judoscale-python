@@ -23,6 +23,7 @@ class Reporter:
         self.config = config
         self._thread = None
         self._running = False
+        self._lock = threading.Lock()
         self._stopevent = threading.Event()
         self.collectors: List[Collector] = []
         self.adapters: List[Adapter] = []
@@ -65,8 +66,9 @@ class Reporter:
 
     def ensure_running(self):
         try:
-            if not self.is_running:
-                return self.start()
+            with self._lock:
+                if not self.is_running:
+                    return self.start()
         except Exception as e:
             logger.warning(f"{e.args} - No reporter has initiated")
             pass
