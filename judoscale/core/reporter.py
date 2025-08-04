@@ -62,7 +62,6 @@ class Reporter:
         logger.info(f"Starting reporter for process {self.pid}")
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()
-        self._running = True
 
     def ensure_running(self):
         try:
@@ -78,11 +77,7 @@ class Reporter:
 
     @property
     def is_running(self):
-        if self._thread and self._thread.is_alive():
-            self._running = True
-        else:
-            self._running = False
-        return self._running
+        return self._thread and self._thread.is_alive()
 
     @property
     def pid(self) -> int:
