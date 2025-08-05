@@ -1,6 +1,4 @@
 import os
-import signal
-import sys
 import threading
 import time
 from platform import python_version
@@ -25,6 +23,7 @@ class Reporter:
         self.config = config
         self._thread = None
         self._running = False
+        self._lock = threading.Lock()
         self._stopevent = threading.Event()
         self.collectors: List[Collector] = []
         self.adapters: List[Adapter] = []
@@ -64,27 +63,23 @@ class Reporter:
         logger.info(f"Starting reporter for process {self.pid}")
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()
-        self._running = True
 
     def ensure_running(self):
         try:
-            if not self.is_running:
-                return self.start()
+            with self._lock:
+                if not self.is_running:
+                    return self.start()
         except Exception as e:
             logger.warning(f"{e.args} - No reporter has initiated")
             pass
 
-    def signal_handler(self, signum, frame):
+    def stop(self):
         self._stopevent.set()
         self._running = False
 
     @property
     def is_running(self):
-        if self._thread and self._thread.is_alive():
-            self._running = True
-        else:
-            self._running = False
-        return self._running
+        return self._thread and self._thread.is_alive()
 
     @property
     def pid(self) -> int:
@@ -141,21 +136,3 @@ class Reporter:
 
 
 reporter = Reporter(config=config)
-
-previous_handler = signal.getsignal(signal.SIGTERM)
-
-
-def graceful_shutdown(signum, frame):
-    reporter.signal_handler(signum, frame)
-    # If there was a previous handler and it's not SIG_DFL or SIG_IGN, call it
-    if callable(previous_handler) and previous_handler not in (
-        signal.SIG_DFL,
-        signal.SIG_IGN,
-    ):
-        previous_handler(signum, frame)
-    else:
-        # If no previous handler, use default behavior (exit the process)
-        sys.exit(0)
-
-
-signal.signal(signal.SIGTERM, graceful_shutdown)

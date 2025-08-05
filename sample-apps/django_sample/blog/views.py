@@ -1,14 +1,22 @@
 import logging
+import time, random
 
 from django.conf import settings
 from django.http import HttpResponse
 
 logger = logging.getLogger(__name__)
 
-
 def index(request):
     # Log message in level warning as this is Django's default logging level
     logger.warning("Hello, world")
+
+    if sleep_for := request.GET.get("sleep"):
+        try:
+            sleep_for = float(sleep_for)
+        except:
+            sleep_for = random.randint(0, 2)
+        time.sleep(sleep_for)
+
     if url := settings.JUDOSCALE.get("API_BASE_URL"):
         return HttpResponse(
             "Judoscale Django Sample App. "
