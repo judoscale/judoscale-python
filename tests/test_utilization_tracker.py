@@ -3,7 +3,6 @@ from datetime import datetime
 
 from pytest import fixture
 
-from judoscale.core.config import config
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_store import MetricsStore
 from judoscale.core.utilization_tracker import UtilizationTracker
@@ -11,7 +10,7 @@ from judoscale.core.utilization_tracker import UtilizationTracker
 
 @fixture
 def utilization_tracker():
-    tracker = UtilizationTracker(config=config, store=MetricsStore())
+    tracker = UtilizationTracker(store=MetricsStore())
     yield tracker
     tracker.stop()
 

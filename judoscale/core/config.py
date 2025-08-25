@@ -5,7 +5,7 @@ from typing import Mapping
 
 from judoscale.core.logger import logger
 
-DEFAULTS = {"REPORT_INTERVAL_SECONDS": 10, "LOG_LEVEL": "WARN", "UTILIZATION_ENABLED": True, "UTILIZATION_INTERVAL": 1.0}
+DEFAULTS = {"REPORT_INTERVAL_SECONDS": 10, "LOG_LEVEL": "WARN"}
 
 
 class RuntimeContainer(str):
@@ -94,14 +94,6 @@ class Config(UserDict):
     @property
     def is_enabled(self) -> bool:
         return bool(self["API_BASE_URL"])
-
-    @property
-    def utilization_enabled(self) -> bool:
-        return bool(self["UTILIZATION_ENABLED"])
-
-    @property
-    def utilization_interval(self) -> float:
-        return float(self["UTILIZATION_INTERVAL"])
 
     def update(self, new_config: Mapping):
         for k, v in new_config.items():

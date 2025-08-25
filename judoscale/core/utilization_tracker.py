@@ -2,7 +2,6 @@ import os
 import threading
 import time
 
-from judoscale.core.config import Config, config
 from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_store import MetricsStore, metrics_store
@@ -18,8 +17,7 @@ class UtilizationTracker:
     WebMetricsCollector, which are them flushed and included with reports.
     """
 
-    def __init__(self, config: Config, store: MetricsStore):
-        self.config = config
+    def __init__(self, store: MetricsStore):
         self.store = store
         self.active_requests = 0
         self._thread = None
@@ -69,7 +67,8 @@ class UtilizationTracker:
 
     def _run_loop(self):
         while self.is_running:
-            time.sleep(self.config.utilization_interval)
+            # TODO: to be removed with utilization tracker thread implementation.
+            time.sleep(1.0)
             self._track_current_state()
 
             if self._stopevent.is_set():
@@ -83,4 +82,4 @@ class UtilizationTracker:
         self.store.add(Metric.for_web_request_utilization(active_requests))
 
 
-utilization_tracker = UtilizationTracker(config=config, store=metrics_store)
+utilization_tracker = UtilizationTracker(store=metrics_store)

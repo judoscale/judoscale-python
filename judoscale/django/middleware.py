@@ -40,11 +40,9 @@ class RequestQueueTimeMiddleware:
     @contextmanager
     def track_utilization(self):
         try:
-            if judoconfig.utilization_enabled:
-                utilization_tracker.ensure_running()
-                utilization_tracker.incr()
+            utilization_tracker.ensure_running()
+            utilization_tracker.incr()
 
             yield
         finally:
-            if judoconfig.utilization_enabled:
-                utilization_tracker.decr()
+            utilization_tracker.decr()

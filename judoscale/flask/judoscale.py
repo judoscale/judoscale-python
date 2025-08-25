@@ -60,12 +60,10 @@ class Judoscale:
         reporter.add_adapter(adapter)
         reporter.ensure_running()
 
-        if judoconfig.utilization_enabled:
-            app.before_request(start_utilization_request_tracking)
+        app.before_request(start_utilization_request_tracking)
         app.before_request(store_queue_time_metric(collector))
         app.before_request(initialize_app_time_metric)
         app.after_request(store_app_time_metric(collector))
-        if judoconfig.utilization_enabled:
-            # `teardown_request` is more commonly used to cleanup resources, regardless
-            # of success/exception response, and runs later than `after_request`.
-            app.teardown_request(finish_utilization_request_tracking)
+        # `teardown_request` is more commonly used to cleanup resources, regardless
+        # of success/exception response, and runs later than `after_request`.
+        app.teardown_request(finish_utilization_request_tracking)
