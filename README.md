@@ -472,5 +472,5 @@ $ poetry shell
 Run tests with
 
 ```sh
-$ pytest
+$ poetry run pytest
 ```
