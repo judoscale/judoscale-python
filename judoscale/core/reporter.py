@@ -23,6 +23,7 @@ class Reporter:
         self.config = config
         self._thread = None
         self._running = False
+        self._lock = threading.Lock()
         self._stopevent = threading.Event()
         self.collectors: List[Collector] = []
         self.adapters: List[Adapter] = []
@@ -62,12 +63,12 @@ class Reporter:
         logger.info(f"Starting reporter for process {self.pid}")
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()
-        self._running = True
 
     def ensure_running(self):
         try:
-            if not self.is_running:
-                return self.start()
+            with self._lock:
+                if not self.is_running:
+                    return self.start()
         except Exception as e:
             logger.warning(f"{e.args} - No reporter has initiated")
             pass
@@ -76,16 +77,9 @@ class Reporter:
         self._stopevent.set()
         self._running = False
 
-    def signal_handler(self, signum, frame):
-        self.stop()
-
     @property
     def is_running(self):
-        if self._thread and self._thread.is_alive():
-            self._running = True
-        else:
-            self._running = False
-        return self._running
+        return self._thread and self._thread.is_alive()
 
     @property
     def pid(self) -> int:

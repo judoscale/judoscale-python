@@ -45,9 +45,6 @@ class UtilizationTracker:
         self._stopevent.set()
         self._running = False
 
-    def signal_handler(self, signum, frame):
-        self.stop()
-
     def incr(self):
         logger.debug(f"-> utilization {self.pid}: incr")
         with self._lock:

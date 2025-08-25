@@ -12,8 +12,12 @@ def index(request):
     # Log message in level warning as this is Django's default logging level
     logger.warning("Hello, world")
 
-    if request.GET.get("sleep"):
-        time.sleep(random.randint(0,2))
+    if sleep_for := request.GET.get("sleep"):
+        try:
+            sleep_for = float(sleep_for)
+        except:
+            sleep_for = random.randint(0, 2)
+        time.sleep(sleep_for)
 
     if url := settings.JUDOSCALE.get("API_BASE_URL"):
         return HttpResponse(

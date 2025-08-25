@@ -21,7 +21,11 @@ def create_app() -> FastAPI:
         logger.warning("Hello, world")
 
         if sleep:
-            time.sleep(random.randint(0,2))
+            try:
+                sleep_for = float(sleep)
+            except:
+                sleep_for = random.randint(0, 2)
+            time.sleep(sleep_for)
 
         if url := judoconfig.get("API_BASE_URL"):
             return HTMLResponse(
