@@ -2,10 +2,6 @@ from unittest import mock
 
 from judoscale.core.utilization_tracker import UtilizationTracker
 
-import logging, time
-
-logger = logging.getLogger(__name__)
-
 
 class TestUtilizationTracker:
     def test_tracks_utilization_percentage_based_on_time_spent_with_no_active_requests(
