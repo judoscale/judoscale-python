@@ -22,8 +22,10 @@ def store_queue_time_metric(collector: WebMetricsCollector):
 
     return inner
 
+
 def initialize_app_time_metric():
     g.judoscale_app_start_time = time.monotonic()
+
 
 def store_app_time_metric(collector: WebMetricsCollector):
     def inner(response):
@@ -32,12 +34,15 @@ def store_app_time_metric(collector: WebMetricsCollector):
 
     return inner
 
+
 def start_utilization_request_tracking():
-    utilization_tracker.ensure_running()
+    utilization_tracker.start()
     utilization_tracker.incr()
+
 
 def finish_utilization_request_tracking(exception):
     utilization_tracker.decr()
+
 
 class Judoscale:
     def __init__(self, app: Optional[Flask] = None):

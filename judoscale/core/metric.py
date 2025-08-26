@@ -108,24 +108,12 @@ class Metric:
         return Metric(measurement="at", value=app_time, timestamp=time.time())
 
     @classmethod
-    def for_web_process_utilization(cls, process_utilization: int):
+    def for_web_utilization_pct(cls, utilization_pct: int):
         """
-        Log and return Metric instance for process utilization
+        Log and return Metric instance for utilization percentage
         """
-        logger.debug(f"process_utilization={process_utilization}")
-        return Metric(
-            measurement="pu", value=process_utilization, timestamp=time.time()
-        )
-
-    @classmethod
-    def for_web_request_utilization(cls, request_utilization: int):
-        """
-        Log and return Metric instance for request utilization
-        """
-        logger.debug(f"request_utilization={request_utilization}")
-        return Metric(
-            measurement="ru", value=request_utilization, timestamp=time.time()
-        )
+        logger.debug(f"utilization_pct={utilization_pct}")
+        return Metric(measurement="up", value=utilization_pct, timestamp=time.time())
 
     @classmethod
     def for_queue(cls, queue_name: str, oldest_job_ts: float) -> "Metric":

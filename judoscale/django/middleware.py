@@ -40,7 +40,7 @@ class RequestQueueTimeMiddleware:
     @contextmanager
     def track_utilization(self):
         try:
-            utilization_tracker.ensure_running()
+            utilization_tracker.start()
             utilization_tracker.incr()
 
             yield

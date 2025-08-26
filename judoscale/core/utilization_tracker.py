@@ -14,6 +14,9 @@ class UtilizationTracker:
 
     def __init__(self):
         self._active_request_counter = 0
+        self._idle_started_at = None
+        self._report_cycle_started_at = None
+        self._total_idle_time = 0.0
         self._started = False
         self._lock = threading.Lock()
 
@@ -26,6 +29,15 @@ class UtilizationTracker:
             if not self.is_started:
                 self._started = True
                 self._init_idle_report_cycle()
+
+    def stop(self):
+        with self._lock:
+            if self.is_started:
+                self._started = False
+                self._idle_started_at = None
+                self._report_cycle_started_at = None
+                self._total_idle_time = 0.0
+                self._active_request_counter = 0
 
     def incr(self):
         with self._lock:

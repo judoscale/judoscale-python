@@ -12,6 +12,7 @@ from judoscale.celery.collector import CeleryMetricsCollector
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_store import MetricsStore
 from judoscale.core.metrics_collectors import JobMetricsCollector, WebMetricsCollector
+from judoscale.core.utilization_tracker import utilization_tracker
 from judoscale.rq.collector import RQMetricsCollector
 
 
@@ -26,9 +27,17 @@ def celery():
     return celery
 
 
+@fixture(autouse=True)
+def run_before_and_after_tests():
+    yield
+    utilization_tracker.stop()
+
+
 class TestWebMetricsCollector:
     def test_should_collect_web(self, web_all):
-        assert WebMetricsCollector(web_all, MetricsStore()).should_collect
+        assert WebMetricsCollector(
+            web_all,
+        ).should_collect
 
     def test_should_collect_worker(self, worker_all):
         assert WebMetricsCollector(worker_all, MetricsStore()).should_collect
@@ -45,6 +54,25 @@ class TestWebMetricsCollector:
         collector.add(metric)
         assert collector.collect() == [metric]
         assert collector.store.store == []
+
+    def test_collect_with_utilization_tracker(self, web_all):
+        utilization_tracker.start()
+        collector = WebMetricsCollector(web_all, MetricsStore())
+
+        time.sleep(0.001)
+        collected_metrics = collector.collect()
+        assert len(collected_metrics) == 1
+        assert collected_metrics[0].measurement == "up"
+        assert collected_metrics[0].value == 0
+        assert collector.store.store == []
+
+        utilization_tracker.incr()
+        time.sleep(0.001)
+
+        collected_metrics = collector.collect()
+        assert len(collected_metrics) == 1
+        assert collected_metrics[0].measurement == "up"
+        assert collected_metrics[0].value > 0
 
 
 class TestJobMetricsCollector:
