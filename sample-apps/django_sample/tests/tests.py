@@ -26,6 +26,18 @@ class TestApp(TestCase):
         response = client.get("/", follow_redirects=True)
         self.assertEqual(response.status_code, 200)
 
+    def test_app_logging(self):
+        with self.assertLogs() as captured:
+            response = client.get("/")
+
+        # assert there is only one log message
+        self.assertEqual(len(captured.records), 1)
+        # assert the content log message
+        msg_log = captured.records[0].getMessage()
+        self.assertEqual(msg_log, "Hello, world")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Judoscale Django Sample App", response.content)
+
     def test_reporter_starts_even_without_the_extra_request_start_header(self):
         response = client.get("/")
 
