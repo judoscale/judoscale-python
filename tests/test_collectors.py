@@ -35,9 +35,7 @@ def run_before_and_after_tests():
 
 class TestWebMetricsCollector:
     def test_should_collect_web(self, web_all):
-        assert WebMetricsCollector(
-            web_all,
-        ).should_collect
+        assert WebMetricsCollector(web_all).should_collect
 
     def test_should_collect_worker(self, worker_all):
         assert WebMetricsCollector(worker_all, MetricsStore()).should_collect

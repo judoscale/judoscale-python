@@ -16,10 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from blog.views import index, test_utilization_tracker
+from blog.views import index
 
 urlpatterns = [
     path('', index, name='index'),
-    path("test_utilization_tracker", test_utilization_tracker),
     path("admin/", admin.site.urls),
 ]

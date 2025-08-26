@@ -2,7 +2,6 @@ import time, random
 import settings
 from flask import Flask, current_app, request
 
-from judoscale.core.utilization_tracker import utilization_tracker
 from judoscale.flask import Judoscale
 
 judoscale = Judoscale()
@@ -32,13 +31,6 @@ def create_app():
             )
         else:
             return "Judoscale Flask Sample App. No API URL provided."
-
-    @app.route("/test_utilization_tracker", methods=["GET"])
-    def test_utilization_tracker():
-        # Run utilization tracker in the foreground to execute the tracking mid-request.
-        utilization_tracker._track_current_state()
-
-        return f"utilization_tracker={utilization_tracker.active_requests}"
 
     return app
 

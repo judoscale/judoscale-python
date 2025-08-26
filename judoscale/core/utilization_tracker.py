@@ -60,7 +60,6 @@ class UtilizationTracker:
 
     def utilization_pct(self, reset=True):
         with self._lock:
-            # breakpoint()
             current_time = self._get_current_time()
             idle_ratio = self._get_idle_ratio(current_time=current_time)
 
