@@ -5,11 +5,11 @@ import time
 class UtilizationTracker:
     """
     Tracks a count of active requests, incremented / decremented by the request
-    middleware, and runs a separate thread that adds a "utilization" metric to
-    the store, based on the process handling any requests or being idle.
+    middleware, and tracks "idle time" when there aren't active requests (when
+    we're moving between 1 -> 0 -> 1 requests).
 
-    It pushes metrics directly to the underlying store, the same used by the
-    WebMetricsCollector, which are them flushed and included with reports.
+    The total "idle time" is then converted to "utilization percentage" and
+    collected as a web metric, which is then included with reports.
     """
 
     def __init__(self):
