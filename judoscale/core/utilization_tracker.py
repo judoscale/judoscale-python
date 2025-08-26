@@ -1,10 +1,5 @@
-import os
 import threading
 import time
-
-from judoscale.core.logger import logger
-from judoscale.core.metric import Metric
-from judoscale.core.metrics_store import MetricsStore, metrics_store
 
 
 class UtilizationTracker:
@@ -17,69 +12,78 @@ class UtilizationTracker:
     WebMetricsCollector, which are them flushed and included with reports.
     """
 
-    def __init__(self, store: MetricsStore):
-        self.store = store
-        self.active_requests = 0
-        self._thread = None
-        self._running = False
+    def __init__(self):
+        self._active_request_counter = 0
+        self._started = False
         self._lock = threading.Lock()
-        self._stopevent = threading.Event()
+
+    @property
+    def is_started(self):
+        return self._started
 
     def start(self):
-        logger.info(f"Starting utilization tracker for process {self.pid}")
-        self._thread = threading.Thread(target=self._run_loop, daemon=True)
-        self._thread.start()
-        self._running = True
-
-    def ensure_running(self):
-        try:
-            if not self.is_running:
-                return self.start()
-        except Exception as e:
-            logger.warning(f"{e.args} - No utilization tracker has initiated")
-            pass
-
-    def stop(self):
-        self._stopevent.set()
-        self._running = False
+        with self._lock:
+            if not self.is_started:
+                self._started = True
+                self._init_idle_report_cycle()
 
     def incr(self):
-        logger.debug(f"-> utilization {self.pid}: incr")
         with self._lock:
-            self.active_requests = self.active_requests + 1
+            if self._active_request_counter == 0 and self._idle_started_at != None:
+                # We were idle and now we're not - add to total idle time
+                self._total_idle_time += (
+                    self._get_current_time() - self._idle_started_at
+                )
+                self._idle_started_at = None
+
+            self._active_request_counter += 1
 
     def decr(self):
-        logger.debug(f"-> utilization {self.pid}: decr")
         with self._lock:
-            self.active_requests = self.active_requests - 1
+            self._active_request_counter -= 1
 
-    @property
-    def is_running(self):
-        if self._thread and self._thread.is_alive():
-            self._running = True
-        else:
-            self._running = False
-        return self._running
+            if self._active_request_counter == 0:
+                # We're now idle - start tracking idle time
+                self._idle_started_at = self._get_current_time()
 
-    @property
-    def pid(self) -> int:
-        return os.getpid()
+    def utilization_pct(self, reset=True):
+        with self._lock:
+            # breakpoint()
+            current_time = self._get_current_time()
+            idle_ratio = self._get_idle_ratio(current_time=current_time)
 
-    def _run_loop(self):
-        while self.is_running:
-            # TODO: to be removed with utilization tracker thread implementation.
-            time.sleep(1.0)
-            self._track_current_state()
+            if reset:
+                self._reset_idle_report_cycle(current_time=current_time)
 
-            if self._stopevent.is_set():
-                break
+            return int((1.0 - idle_ratio) * 100.0)
 
-    def _track_current_state(self):
-        active_requests = self.active_requests
-        active_processes = 1 if active_requests > 0 else 0
-        logger.debug(f"-> utilization {self.pid}: track current state: pu={active_processes} ru={active_requests}")
-        self.store.add(Metric.for_web_process_utilization(active_processes))
-        self.store.add(Metric.for_web_request_utilization(active_requests))
+    def _get_current_time(self):
+        return time.monotonic()
+
+    def _init_idle_report_cycle(self):
+        current_time = self._get_current_time()
+        self._idle_started_at = current_time
+        self._reset_idle_report_cycle(current_time=current_time)
+
+    def _reset_idle_report_cycle(self, current_time):
+        self._total_idle_time = 0.0
+        self._report_cycle_started_at = current_time
+
+    def _get_idle_ratio(self, current_time):
+        if self._report_cycle_started_at == None:
+            return 0.0
+
+        total_report_cycle_time = current_time - self._report_cycle_started_at
+
+        if total_report_cycle_time <= 0:
+            return 0.0
+
+        # Capture remaining idle time
+        if self._idle_started_at:
+            self._total_idle_time += current_time - self._idle_started_at
+            self._idle_started_at = current_time
+
+        return self._total_idle_time / total_report_cycle_time
 
 
-utilization_tracker = UtilizationTracker(store=metrics_store)
+utilization_tracker = UtilizationTracker()
