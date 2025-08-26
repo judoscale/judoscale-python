@@ -27,13 +27,12 @@ def celery():
     return celery
 
 
-@fixture(autouse=True)
-def run_before_and_after_tests():
-    yield
-    utilization_tracker.stop()
-
-
 class TestWebMetricsCollector:
+    @fixture(autouse=True)
+    def run_around_tests(self):
+        yield
+        utilization_tracker.stop()
+
     def test_should_collect_web(self, web_all):
         assert WebMetricsCollector(web_all).should_collect
 
