@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+./bin/test &&
+  echo "-> Running Django sample app tests" &&
+    cd ./sample-apps/django_sample && ./bin/test && cd - &&
+  echo "-> Running FastAPI sample app tests" &&
+    cd ./sample-apps/fastapi_sample && ./bin/test && cd - &&
+  echo "-> Running Flask sample app tests" &&
+    cd ./sample-apps/flask_sample && ./bin/test && cd -
+
