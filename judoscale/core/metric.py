@@ -93,7 +93,7 @@ class Metric:
         return metric
 
     @classmethod
-    def for_web_app_time(cls, start: float, end: float = None):
+    def for_web_app_time(cls, start: float, end: float | None = None):
         """
         Calculate the elapsed time in milliseconds from the given `start`,
         log and return the app time Metric instance.
@@ -113,7 +113,9 @@ class Metric:
         Log and return Metric instance for process utilization
         """
         logger.debug(f"process_utilization={process_utilization}")
-        return Metric(measurement="pu", value=process_utilization, timestamp=time.time())
+        return Metric(
+            measurement="pu", value=process_utilization, timestamp=time.time()
+        )
 
     @classmethod
     def for_web_request_utilization(cls, request_utilization: int):
@@ -121,7 +123,9 @@ class Metric:
         Log and return Metric instance for request utilization
         """
         logger.debug(f"request_utilization={request_utilization}")
-        return Metric(measurement="ru", value=request_utilization, timestamp=time.time())
+        return Metric(
+            measurement="ru", value=request_utilization, timestamp=time.time()
+        )
 
     @classmethod
     def for_queue(cls, queue_name: str, oldest_job_ts: float) -> "Metric":
