@@ -93,7 +93,7 @@ class Metric:
         return metric
 
     @classmethod
-    def for_web_app_time(cls, start: float, end: float | None = None):
+    def for_web_app_time(cls, start: float, end: float = None):
         """
         Calculate the elapsed time in milliseconds from the given `start`,
         log and return the app time Metric instance.
