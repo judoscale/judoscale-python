@@ -472,5 +472,25 @@ $ poetry shell
 Run tests with
 
 ```sh
-$ pytest
+$ ./bin/test
+# or
+$ poetry run pytest
+```
+
+_Note_: when using a `breakpoint()` to debug stuff, use this extra argument:
+
+```sh
+$ poetry run pytest --capture=no
+```
+
+Some sample apps have framework-specific tests, notably django/fastapi/flask. Run them from within the sample app folder with:
+
+```sh
+$ ./bin/test
+```
+
+Run both package & sample apps tests with:
+
+```sh
+$ ./bin/test_all
 ```

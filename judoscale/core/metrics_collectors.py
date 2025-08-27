@@ -4,15 +4,14 @@ from judoscale.core.config import Config
 from judoscale.core.logger import logger
 from judoscale.core.metric import Metric
 from judoscale.core.metrics_store import MetricsStore
+from judoscale.core.utilization_tracker import utilization_tracker
 
 
 class Collector(Protocol):
-    def collect(self) -> List[Metric]:
-        ...
+    def collect(self) -> List[Metric]: ...
 
     @property
-    def should_collect(self) -> bool:
-        ...
+    def should_collect(self) -> bool: ...
 
 
 class MetricsCollector:
@@ -25,8 +24,8 @@ class MetricsCollector:
 
 
 class WebMetricsCollector(MetricsCollector):
-    def __init__(self, config: Config):
-        self.store = MetricsStore()
+    def __init__(self, config: Config, store: MetricsStore = MetricsStore()):
+        self.store = store
         super().__init__(config=config)
 
     def add(self, metric: Metric):
@@ -38,8 +37,12 @@ class WebMetricsCollector(MetricsCollector):
 
     def collect(self) -> List[Metric]:
         """
-        Return all metrics in the store and clear the store.
+        Return all metrics in the store, including utilization, and clear the store.
         """
+        if utilization_tracker.is_started:
+            utilization_pct = utilization_tracker.utilization_pct()
+            self.add(Metric.for_web_utilization_pct(utilization_pct))
+
         return self.store.flush()
 
 

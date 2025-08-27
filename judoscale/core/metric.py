@@ -104,13 +104,16 @@ class Metric:
         if end == None:
             end = time.monotonic()
         app_time = int((end - start) * 1000)
-        metric = Metric(
-            measurement="at",
-            value=app_time,
-            timestamp=time.time(),
-        )
         logger.debug(f"app_time={app_time}ms")
-        return metric
+        return Metric(measurement="at", value=app_time, timestamp=time.time())
+
+    @classmethod
+    def for_web_utilization_pct(cls, utilization_pct: int):
+        """
+        Log and return Metric instance for utilization percentage
+        """
+        logger.debug(f"utilization_pct={utilization_pct}")
+        return Metric(measurement="up", value=utilization_pct, timestamp=time.time())
 
     @classmethod
     def for_queue(cls, queue_name: str, oldest_job_ts: float) -> "Metric":
