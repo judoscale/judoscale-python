@@ -9,7 +9,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.8"
 Flask = "^2.0"
-celery = {extras = ["redis"], version = "^5.2.7"}
+celery = {extras = ["redis"], version = ">=4.4.0,<6.0.0"}
 judoscale = { path = "../../", extras=["celery-redis", "flask"], develop = true }
 gunicorn = "^20.1.0"
 
