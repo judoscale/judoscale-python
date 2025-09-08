@@ -56,7 +56,7 @@ def create_app():
 
     @app.post("/schedule_task")
     async def schedule_task():
-        publish_task(countdown=60)
+        publish_task(countdown=30)
         return RedirectResponse(url="/", status_code=303)
 
     return app
