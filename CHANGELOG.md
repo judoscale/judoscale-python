@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.10.0](https://github.com/judoscale/judoscale-python/compare/v1.9.0...v1.10.0) (2025-09-08)
+
+
+### Features
+
+* Collect & report app time for Django/FastAPI/Flask ([#104](https://github.com/judoscale/judoscale-python/issues/104)) ([958de13](https://github.com/judoscale/judoscale-python/commit/958de138f2872b14ce229258c0f006fa592e4e2d))
+* Collect & report new utilization metric for Django/FastAPI/Flask ([#106](https://github.com/judoscale/judoscale-python/issues/106)) ([32184a0](https://github.com/judoscale/judoscale-python/commit/32184a0de623504192ab526fb2df8562d5b724cf))
+
+
+### Bug Fixes
+
+* Ensure reporter thread only starts once per process ([#107](https://github.com/judoscale/judoscale-python/issues/107)) ([b8ef521](https://github.com/judoscale/judoscale-python/commit/b8ef52148fcdb2f49ff5267e31b674e091f8a533))
+
 ## [1.9.0](https://github.com/judoscale/judoscale-python/compare/v1.8.0...v1.9.0) (2025-02-17)
 
 
