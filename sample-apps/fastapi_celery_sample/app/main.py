@@ -10,7 +10,7 @@ from judoscale.asgi.middleware import FastAPIRequestQueueTimeMiddleware
 
 
 def publish_task(i=1, countdown=None):
-    queue = "high" if random.random() > 0.5 else "low"
+    queue = "high"  # if random.random() > 0.5 else "low"
     logger.debug(f"Enqueuing a task on {queue=}")
     add.s(i, i).apply_async(queue=queue, countdown=countdown)
 
@@ -37,6 +37,9 @@ def create_app():
                 "<form action='/schedule_task' method='POST'>"
                 "<input type='submit' value='Add scheduled task'>"
                 "</form>"
+                "<form action='/batch_schedule_task' method='POST'>"
+                "<input type='submit' value='Add 10 scheduled tasks'>"
+                "</form>"
             )
         else:
             return HTMLResponse(
@@ -56,7 +59,13 @@ def create_app():
 
     @app.post("/schedule_task")
     async def schedule_task():
-        publish_task(countdown=30)
+        publish_task(countdown=120)
+        return RedirectResponse(url="/", status_code=303)
+
+    @app.post("/batch_schedule_task")
+    async def batch_schedule_task():
+        for i in range(10):
+            publish_task(i, countdown=120)
         return RedirectResponse(url="/", status_code=303)
 
     return app

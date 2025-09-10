@@ -7,6 +7,9 @@ from celery import Celery
 from judoscale.celery import judoscale_celery
 
 celery = Celery("CelerySampleApp", broker="redis://localhost:6379/0")
+# celery.conf.broker_transport_options = {"visibility_timeout": 20}
+# celery.conf.result_backend_transport_options = {"visibility_timeout": 20}
+# celery.conf.visibility_timeout = 20
 
 judoscale_celery(celery, extra_config=settings.JUDOSCALE)
 
