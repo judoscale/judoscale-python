@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.10.0](https://github.com/judoscale/judoscale-python/compare/v1.9.0...v1.10.0) (2025-09-08)
+## [1.10.0](https://github.com/judoscale/judoscale-python/compare/v1.9.0...v1.10.0) (2025-09-26)
 
 
 ### Features
