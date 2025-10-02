@@ -1,8 +1,9 @@
 import json
 import time
+from datetime import datetime
 from collections import defaultdict
 from threading import Thread
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Tuple
 
 from celery import Celery
 from kombu import Connection
@@ -99,15 +100,38 @@ class CeleryMetricsCollector(JobMetricsCollector):
     def _queues(self) -> List[str]:
         return list(self._celery_queues)
 
-    def oldest_task(self, queue: str) -> Optional[dict]:
+    def oldest_task_and_timestamp(
+        self, queue: str
+    ) -> Optional[Tuple[dict, Optional[float]]]:
         """
-        Get the oldest task from the queue.
+        Get the oldest task from the queue, alongside the timestamp to be used for latency.
+
+        When a task contains no `eta`, we use the `published_at` timestamp we inject;
+        When a task contains a past `eta`, we use it instead of `published_at`;
+        When a task contains a future `eta`, we skip that task and continue looking through tasks in the queue.
         """
         try:
-            if payload := self.redis.lindex(queue, -1):
-                return json.loads(payload)
+            last_index = -1
+            now = time.time()
+
+            while payload := self.redis.lindex(queue, last_index):
+                payload = json.loads(payload)
+
+                if eta := payload.get("headers", {}).get("eta"):
+                    eta = datetime.fromisoformat(eta).timestamp()
+
+                    if eta <= now:
+                        return payload, eta
+                    else:
+                        last_index = last_index - 1
+                elif published_at := payload.get("properties", {}).get("published_at"):
+                    return payload, published_at
+                else:
+                    return payload, None
+
         except Exception as e:
             logger.warning(f"Unable to get a task from queue: {queue}", exc_info=e)
+
         return None
 
     def collect(self) -> List[Metric]:
@@ -128,10 +152,11 @@ class CeleryMetricsCollector(JobMetricsCollector):
 
         logger.debug(f"Collecting metrics for queues {list(self.queues)}")
         for queue in self.queues:
-            if task := self.oldest_task(queue):
-                if published_at := task.get("properties", {}).get("published_at"):
+            if result := self.oldest_task_and_timestamp(queue):
+                task, timestamp = result
+                if timestamp:
                     metrics.append(
-                        Metric.for_queue(queue_name=queue, oldest_job_ts=published_at)
+                        Metric.for_queue(queue_name=queue, oldest_job_ts=timestamp)
                     )
                 else:
                     task_id = task.get("id", None)
