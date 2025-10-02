@@ -240,11 +240,23 @@ class TestCeleryMetricsCollector:
             b"bar",
         ]
         celery.connection_for_read().channel().client.lindex.return_value = bytes(
-            json.dumps({"id": "123abc", "properties": {"published_at": now}}), "utf-8"
+            json.dumps({"id": "123abc", "properties": {"published_at": now - 60}}),
+            "utf-8",
         )
 
         collector = CeleryMetricsCollector(worker_1, celery)
-        assert len(collector.collect()) == 2
+        metrics = collector.collect()
+        metrics = sorted(metrics, key=lambda m: m.queue_name)
+
+        assert len(metrics) == 2
+
+        assert metrics[0].measurement == "qt"
+        assert metrics[0].queue_name == "bar"
+        assert metrics[0].value == approx(60000, abs=100)
+
+        assert metrics[1].measurement == "qt"
+        assert metrics[1].queue_name == "foo"
+        assert metrics[1].value == approx(60000, abs=100)
 
     def test_collect_with_busy_jobs(self, worker_1, celery, monkeypatch):
         now = time.time()
