@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.1](https://github.com/judoscale/judoscale-python/compare/v1.10.0...v1.10.1) (2025-10-06)
+
+
+### Bug Fixes
+
+* Handle Celery `eta`/`countdown` by skipping future dates and using past dates ([#110](https://github.com/judoscale/judoscale-python/issues/110)) ([c2c515d](https://github.com/judoscale/judoscale-python/commit/c2c515de16503a8f1e8fb153cc2807b9e3dfa38a))
+
 ## [1.10.0](https://github.com/judoscale/judoscale-python/compare/v1.9.0...v1.10.0) (2025-09-26)
 
 
