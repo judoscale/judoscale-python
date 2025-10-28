@@ -455,7 +455,7 @@ all = ["flake8 (>=7.1.1)", "mypy (>=1.11.2)", "pytest (>=8.3.2)", "ruff (>=0.6.2
 
 [[package]]
 name = "judoscale"
-version = "1.9.0"
+version = "1.10.1"
 description = "Official Python adapter for Judoscale — the advanced autoscaler for Heroku"
 optional = false
 python-versions = "^3.8"

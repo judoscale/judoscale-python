@@ -421,7 +421,7 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "judoscale"
-version = "1.9.0"
+version = "1.10.1"
 description = "Official Python adapter for Judoscale — the advanced autoscaler for Heroku"
 optional = false
 python-versions = "^3.8"
