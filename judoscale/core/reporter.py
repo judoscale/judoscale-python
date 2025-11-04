@@ -52,10 +52,6 @@ class Reporter:
             logger.info("Reporter not started: API_BASE_URL not set")
             return
 
-        if self.config["RUNTIME_CONTAINER"] is None:
-            logger.info("Reporter not started: unknown runtime container")
-            return
-
         if self.config["RUNTIME_CONTAINER"].is_release_instance:
             logger.info("Reporter not started: in a build process")
             return
