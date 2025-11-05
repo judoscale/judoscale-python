@@ -56,7 +56,7 @@ class Config(UserDict):
         elif env.get("RAILWAY_REPLICA_ID"):
             return cls.for_railway(env)
         else:
-            return cls(None, "", env)
+            return cls.for_custom(env)
 
     @classmethod
     def for_heroku(cls, env: Mapping):
@@ -90,6 +90,10 @@ class Config(UserDict):
         runtime_container = RuntimeContainer(env["RAILWAY_REPLICA_ID"])
         api_base_url = env.get("JUDOSCALE_URL")
         return cls(runtime_container, api_base_url, env)
+
+    @classmethod
+    def for_custom(cls, env: Mapping):
+        return cls(RuntimeContainer(""), env.get("JUDOSCALE_URL"), env)
 
     @property
     def is_enabled(self) -> bool:

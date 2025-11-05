@@ -82,6 +82,14 @@ class TestConfig:
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
+    def test_on_custom(self):
+        fake_env = {"JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890"}
+        config = Config.initialize(fake_env)
+
+        assert config["RUNTIME_CONTAINER"] == ""
+        assert config["LOG_LEVEL"] == "WARN"
+        assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
+
     def test_judoscale_log_level_env(self):
         fake_env = {
             "DYNO": "web.1",
