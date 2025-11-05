@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.2](https://github.com/judoscale/judoscale-python/compare/v1.10.1...v1.10.2) (2025-11-05)
+
+
+### Bug Fixes
+
+* Accept JUDOSCALE_URL when we cannot identify the runtime container ([#112](https://github.com/judoscale/judoscale-python/issues/112)) ([44d4565](https://github.com/judoscale/judoscale-python/commit/44d4565b66c7ceac6fc5294bd4178d98f304cf44))
+
 ## [1.10.1](https://github.com/judoscale/judoscale-python/compare/v1.10.0...v1.10.1) (2025-10-06)
 
 
