@@ -8,7 +8,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-FastAPI = "^0.115.0"
+FastAPI = "^0.121.0"
 celery = {extras = ["redis"], version = ">=4.4.0,<6.0.0"}
 judoscale = { path = "../../", extras=["celery-redis", "fastapi"], develop = true }
 uvicorn = {extras = ["standard"], version = "^0.31.1"}
