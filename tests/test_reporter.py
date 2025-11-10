@@ -32,10 +32,29 @@ class TestReporter:
         report = reporter._build_report([metric])
 
         assert sorted(list(report.keys())) == sorted(
-            ["adapters", "config", "container", "pid", "metrics"]
+            ["adapters", "config", "container", "pid", "metrics", "metadata"]
         )
         assert len(report["metrics"]) == 1
         assert report["metrics"][0] == (1355314320, 123, "test", None)
+        assert report["metadata"] == dict()
+
+    def test_build_report_metadata(self, reporter):
+        ts = datetime.fromisoformat("2012-12-12T12:12:00+00:00").timestamp()
+
+        metric = Metric(measurement="qt", timestamp=ts, value=123, queue_name="q1")
+        metric.report_metadata = {"task": "my.task1", "id": "1", "published_at": 999}
+
+        metric2 = Metric(measurement="qt", timestamp=ts, value=456, queue_name="q2")
+        metric2.report_metadata = {"task": "my.task2", "id": "2", "published_at": 987}
+
+        metric3 = Metric(measurement="qt", timestamp=ts, value=789, queue_name="nope")
+
+        report = reporter._build_report([metric, metric2, metric3])
+
+        assert report["metadata"] == {
+            "q1": {"task": "my.task1", "id": "1", "published_at": 999},
+            "q2": {"task": "my.task2", "id": "2", "published_at": 987},
+        }
 
     def test_no_explicit_adapter(self, reporter):
         assert len(reporter.adapters) == 1

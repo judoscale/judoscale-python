@@ -128,6 +128,11 @@ class Reporter:
             "config": self.config.for_report,
             "adapters": dict(adapter.as_tuple for adapter in self.adapters),
             "metrics": [metric.as_tuple for metric in metrics],
+            "metadata": dict(
+                (metric.queue_name, metric.report_metadata)
+                for metric in metrics
+                if metric.report_metadata is not None
+            ),
         }
 
 
