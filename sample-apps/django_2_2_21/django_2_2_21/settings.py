@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,7 +44,9 @@ INSTALLED_APPS = [
 JUDOSCALE = {
     # This sample app is intended to be run locally, so Judoscale API requests are
     # sent to a mock endpoint.
-    "API_BASE_URL": "https://judoscale-python.requestcatcher.com",
+    "API_BASE_URL": os.getenv(
+        "JUDOSCALE_URL", "https://judoscale-python.requestcatcher.com"
+    ),
     "LOG_LEVEL": "DEBUG",
     # "REPORT_INTERVAL_SECONDS": 5,
 }
