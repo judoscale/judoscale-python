@@ -31,7 +31,9 @@ class TestReporter:
 
         report = reporter._build_report([metric])
 
-        assert list(report.keys()).sort() == ["config", "dyno", "pid", "metrics"].sort()
+        assert sorted(list(report.keys())) == sorted(
+            ["adapters", "config", "container", "pid", "metrics"]
+        )
         assert len(report["metrics"]) == 1
         assert report["metrics"][0] == (1355314320, 123, "test", None)
 
