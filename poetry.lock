@@ -824,18 +824,18 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "rq"
-version = "1.16.2"
+version = "2.3.3"
 description = "RQ is a simple, lightweight, library for creating background jobs, and processing them."
 optional = true
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "rq-1.16.2-py3-none-any.whl", hash = "sha256:52e619f6cb469b00e04da74305045d244b75fecb2ecaa4f26422add57d3c5f09"},
-    {file = "rq-1.16.2.tar.gz", hash = "sha256:5c5b9ad5fbaf792b8fada25cc7627f4d206a9a4455aced371d4f501cc3f13b34"},
+    {file = "rq-2.3.3-py3-none-any.whl", hash = "sha256:2202c4409c4c527ac4bee409867d6c02515dd110030499eb0de54c7374aee0ce"},
+    {file = "rq-2.3.3.tar.gz", hash = "sha256:20c41c977b6f27c852a41bd855893717402bae7b8d9607dca21fe9dd55453e22"},
 ]
 
 [package.dependencies]
 click = ">=5"
-redis = ">=3.5"
+redis = ">=3.5,<6.0.0 || >6.0.0"
 
 [[package]]
 name = "six"
@@ -1011,4 +1011,4 @@ rq = ["rq"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "79aff140ed052f5f236e62611fb3c96347be6aeb5b1d2b10e8af5e0e284110e6"
+content-hash = "7dd21e06ef9abcbbf8e10f73b5e48bc12c2014f0fb8958639ddb0adb0ddd9932"
