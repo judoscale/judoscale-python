@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/judoscale/judoscale-python/compare/v1.10.2...v1.11.0) (2025-12-18)
+
+
+### Features
+
+* Enable support to RQ v2+ ([#117](https://github.com/judoscale/judoscale-python/issues/117)) ([b2818ea](https://github.com/judoscale/judoscale-python/commit/b2818ea07c636767a642044957d1da59e7394234))
+
 ## [1.10.2](https://github.com/judoscale/judoscale-python/compare/v1.10.1...v1.10.2) (2025-11-05)
 
 
