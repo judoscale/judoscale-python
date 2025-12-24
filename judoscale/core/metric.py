@@ -34,6 +34,7 @@ class Metric:
     value: int
     queue_name: Optional[str] = None
     measurement: str = "qt"
+    report_metadata: Optional[dict] = None
 
     @property
     def as_tuple(self) -> Tuple[int, int, str, Optional[str]]:

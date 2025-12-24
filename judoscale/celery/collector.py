@@ -154,10 +154,19 @@ class CeleryMetricsCollector(JobMetricsCollector):
         for queue in self.queues:
             if result := self.oldest_task_and_timestamp(queue):
                 task, timestamp = result
+                logger.debug(f"Task: {timestamp} | {task}")
                 if timestamp:
-                    metrics.append(
-                        Metric.for_queue(queue_name=queue, oldest_job_ts=timestamp)
-                    )
+                    metric = Metric.for_queue(queue_name=queue, oldest_job_ts=timestamp)
+                    metric.report_metadata = {
+                        "task": task.get("headers", {}).get("task"),
+                        "id": task.get("headers", {}).get("id"),
+                        "eta": task.get("headers", {}).get("eta"),
+                        "retries": task.get("headers", {}).get("retries"),
+                        "published_at": task.get("properties", {}).get("published_at"),
+                        "timestamp": timestamp,
+                    }
+
+                    metrics.append(metric)
                 else:
                     task_id = task.get("id", None)
                     logger.warning(
