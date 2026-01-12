@@ -1011,4 +1011,4 @@ rq = ["rq"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "7dd21e06ef9abcbbf8e10f73b5e48bc12c2014f0fb8958639ddb0adb0ddd9932"
+content-hash = "1f863aa211c4056d4a10ae926c7b590418c91ada78cd46dc73f98974b909fdb0"
