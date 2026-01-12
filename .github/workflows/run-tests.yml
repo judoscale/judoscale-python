@@ -1,5 +1,8 @@
 name: Run tests
-on: [push]
+on:
+  push:
+    branches: [main]
+  pull_request: {}
 jobs:
   build:
     runs-on: ubuntu-22.04
