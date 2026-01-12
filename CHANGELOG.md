@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.11.0](https://github.com/judoscale/judoscale-python/compare/v1.10.2...v1.11.0) (2026-01-12)
+
+
+### Features
+
+* Enable support to Django v6.x ([#121](https://github.com/judoscale/judoscale-python/issues/121)) ([0e07e54](https://github.com/judoscale/judoscale-python/commit/0e07e54f627df10a47a090a47155b679839e5502))
+* Enable support to RQ v2+ ([#117](https://github.com/judoscale/judoscale-python/issues/117)) ([b2818ea](https://github.com/judoscale/judoscale-python/commit/b2818ea07c636767a642044957d1da59e7394234))
+
 ## [1.10.2](https://github.com/judoscale/judoscale-python/compare/v1.10.1...v1.10.2) (2025-11-05)
 
 
