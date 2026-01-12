@@ -235,8 +235,8 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "judoscale"
-version = "1.10.2"
-description = "Official Python adapter for Judoscale — the advanced autoscaler for Heroku"
+version = "1.11.0"
+description = "Official Python package for the Judoscale autoscaler"
 optional = false
 python-versions = "^3.8"
 files = []
@@ -249,7 +249,7 @@ requests = "<3.0.0"
 [package.extras]
 asgi = []
 celery-redis = ["celery[redis] (>=4.4.0,<6.0.0)"]
-django = ["django (>=2.1.0,<6.0.0)"]
+django = ["django (>=2.1.0,<7.0.0)"]
 flask = ["flask (>=1.1.0,<4.0.0)"]
 rq = ["rq (>=1.0.0,<3.0.0)"]
 
