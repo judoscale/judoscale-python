@@ -44,24 +44,22 @@ class Config(UserDict):
     @classmethod
     def initialize(cls, env: Mapping = os.environ):
         if env.get("JUDOSCALE_CONTAINER"):
-            runtime_container = RuntimeContainer(env["JUDOSCALE_CONTAINER"])
+            container = env["JUDOSCALE_CONTAINER"]
         elif env.get("DYNO"):
-            runtime_container = RuntimeContainer(env["DYNO"])
+            container = env["DYNO"]
         elif env.get("RENDER_INSTANCE_ID"):
             service_id = env.get("RENDER_SERVICE_ID")
-            instance = env["RENDER_INSTANCE_ID"].replace(f"{service_id}-", "")
-            runtime_container = RuntimeContainer(instance)
+            container = env["RENDER_INSTANCE_ID"].replace(f"{service_id}-", "")
         elif env.get("ECS_CONTAINER_METADATA_URI"):
-            instance = env["ECS_CONTAINER_METADATA_URI"].split("/")[-1]
-            runtime_container = RuntimeContainer(instance)
+            container = env["ECS_CONTAINER_METADATA_URI"].split("/")[-1]
         elif env.get("FLY_MACHINE_ID"):
-            runtime_container = RuntimeContainer(env["FLY_MACHINE_ID"])
+            container = env["FLY_MACHINE_ID"]
         elif env.get("RAILWAY_REPLICA_ID"):
-            runtime_container = RuntimeContainer(env["RAILWAY_REPLICA_ID"])
+            container = env["RAILWAY_REPLICA_ID"]
         else:
-            runtime_container = RuntimeContainer("")
+            container = ""
 
-        config = cls(runtime_container, env)
+        config = cls(RuntimeContainer(container), env)
 
         # Render legacy support: fall back to constructing URL from service ID
         if not config["API_BASE_URL"] and env.get("RENDER_SERVICE_ID"):
