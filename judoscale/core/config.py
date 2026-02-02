@@ -45,7 +45,9 @@ class Config(UserDict):
 
     @classmethod
     def initialize(cls, env: Mapping = os.environ):
-        if env.get("DYNO"):
+        if env.get("JUDOSCALE_CONTAINER"):
+            return cls.for_custom(env)
+        elif env.get("DYNO"):
             return cls.for_heroku(env)
         elif env.get("RENDER_INSTANCE_ID"):
             return cls.for_render(env)
@@ -56,7 +58,7 @@ class Config(UserDict):
         elif env.get("RAILWAY_REPLICA_ID"):
             return cls.for_railway(env)
         else:
-            return cls.for_custom(env)
+            return cls.for_unknown(env)
 
     @classmethod
     def for_heroku(cls, env: Mapping):
@@ -93,6 +95,12 @@ class Config(UserDict):
 
     @classmethod
     def for_custom(cls, env: Mapping):
+        runtime_container = RuntimeContainer(env["JUDOSCALE_CONTAINER"])
+        api_base_url = env.get("JUDOSCALE_URL")
+        return cls(runtime_container, api_base_url, env)
+
+    @classmethod
+    def for_unknown(cls, env: Mapping):
         return cls(RuntimeContainer(""), env.get("JUDOSCALE_URL"), env)
 
     @property
