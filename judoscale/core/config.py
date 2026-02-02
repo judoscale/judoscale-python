@@ -44,59 +44,30 @@ class Config(UserDict):
     @classmethod
     def initialize(cls, env: Mapping = os.environ):
         if env.get("JUDOSCALE_CONTAINER"):
-            return cls.for_custom(env)
+            runtime_container = RuntimeContainer(env["JUDOSCALE_CONTAINER"])
         elif env.get("DYNO"):
-            return cls.for_heroku(env)
+            runtime_container = RuntimeContainer(env["DYNO"])
         elif env.get("RENDER_INSTANCE_ID"):
-            return cls.for_render(env)
+            service_id = env.get("RENDER_SERVICE_ID")
+            instance = env["RENDER_INSTANCE_ID"].replace(f"{service_id}-", "")
+            runtime_container = RuntimeContainer(instance)
         elif env.get("ECS_CONTAINER_METADATA_URI"):
-            return cls.for_ecs(env)
+            instance = env["ECS_CONTAINER_METADATA_URI"].split("/")[-1]
+            runtime_container = RuntimeContainer(instance)
         elif env.get("FLY_MACHINE_ID"):
-            return cls.for_fly(env)
+            runtime_container = RuntimeContainer(env["FLY_MACHINE_ID"])
         elif env.get("RAILWAY_REPLICA_ID"):
-            return cls.for_railway(env)
+            runtime_container = RuntimeContainer(env["RAILWAY_REPLICA_ID"])
         else:
-            return cls.for_unknown(env)
+            runtime_container = RuntimeContainer("")
 
-    @classmethod
-    def for_heroku(cls, env: Mapping):
-        runtime_container = RuntimeContainer(env["DYNO"])
-        return cls(runtime_container, env)
-
-    @classmethod
-    def for_render(cls, env: Mapping):
-        service_id = env.get("RENDER_SERVICE_ID")
-        instance = env.get("RENDER_INSTANCE_ID").replace(f"{service_id}-", "")
-        runtime_container = RuntimeContainer(instance)
         config = cls(runtime_container, env)
-        if not config["API_BASE_URL"]:
-            config["API_BASE_URL"] = f"https://adapter.judoscale.com/api/{service_id}"
+
+        # Render legacy support: fall back to constructing URL from service ID
+        if not config["API_BASE_URL"] and env.get("RENDER_SERVICE_ID"):
+            config["API_BASE_URL"] = f"https://adapter.judoscale.com/api/{env['RENDER_SERVICE_ID']}"
+
         return config
-
-    @classmethod
-    def for_ecs(cls, env: Mapping):
-        instance = env["ECS_CONTAINER_METADATA_URI"].split("/")[-1]
-        runtime_container = RuntimeContainer(instance)
-        return cls(runtime_container, env)
-
-    @classmethod
-    def for_fly(cls, env: Mapping):
-        runtime_container = RuntimeContainer(env["FLY_MACHINE_ID"])
-        return cls(runtime_container, env)
-
-    @classmethod
-    def for_railway(cls, env: Mapping):
-        runtime_container = RuntimeContainer(env["RAILWAY_REPLICA_ID"])
-        return cls(runtime_container, env)
-
-    @classmethod
-    def for_custom(cls, env: Mapping):
-        runtime_container = RuntimeContainer(env["JUDOSCALE_CONTAINER"])
-        return cls(runtime_container, env)
-
-    @classmethod
-    def for_unknown(cls, env: Mapping):
-        return cls(RuntimeContainer(""), env)
 
     @property
     def is_enabled(self) -> bool:
