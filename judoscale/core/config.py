@@ -23,13 +23,11 @@ class RuntimeContainer(str):
 
 
 class Config(UserDict):
-    def __init__(
-        self, runtime_container: RuntimeContainer, api_base_url: str, env: Mapping
-    ):
+    def __init__(self, runtime_container: RuntimeContainer, env: Mapping):
         initialdata = dict(
             DEFAULTS,
             RUNTIME_CONTAINER=runtime_container,
-            API_BASE_URL=api_base_url,
+            API_BASE_URL=env.get("JUDOSCALE_URL"),
         )
 
         for key in {"RQ", "CELERY"}:
@@ -63,45 +61,42 @@ class Config(UserDict):
     @classmethod
     def for_heroku(cls, env: Mapping):
         runtime_container = RuntimeContainer(env["DYNO"])
-        api_base_url = env.get("JUDOSCALE_URL")
-        return cls(runtime_container, api_base_url, env)
+        return cls(runtime_container, env)
 
     @classmethod
     def for_render(cls, env: Mapping):
         service_id = env.get("RENDER_SERVICE_ID")
         instance = env.get("RENDER_INSTANCE_ID").replace(f"{service_id}-", "")
         runtime_container = RuntimeContainer(instance)
-        api_base_url = env.get("JUDOSCALE_URL") or f"https://adapter.judoscale.com/api/{service_id}"
-        return cls(runtime_container, api_base_url, env)
+        config = cls(runtime_container, env)
+        if not config["API_BASE_URL"]:
+            config["API_BASE_URL"] = f"https://adapter.judoscale.com/api/{service_id}"
+        return config
 
     @classmethod
     def for_ecs(cls, env: Mapping):
         instance = env["ECS_CONTAINER_METADATA_URI"].split("/")[-1]
         runtime_container = RuntimeContainer(instance)
-        api_base_url = env.get("JUDOSCALE_URL")
-        return cls(runtime_container, api_base_url, env)
+        return cls(runtime_container, env)
 
     @classmethod
     def for_fly(cls, env: Mapping):
         runtime_container = RuntimeContainer(env["FLY_MACHINE_ID"])
-        api_base_url = env.get("JUDOSCALE_URL")
-        return cls(runtime_container, api_base_url, env)
+        return cls(runtime_container, env)
 
     @classmethod
     def for_railway(cls, env: Mapping):
         runtime_container = RuntimeContainer(env["RAILWAY_REPLICA_ID"])
-        api_base_url = env.get("JUDOSCALE_URL")
-        return cls(runtime_container, api_base_url, env)
+        return cls(runtime_container, env)
 
     @classmethod
     def for_custom(cls, env: Mapping):
         runtime_container = RuntimeContainer(env["JUDOSCALE_CONTAINER"])
-        api_base_url = env.get("JUDOSCALE_URL")
-        return cls(runtime_container, api_base_url, env)
+        return cls(runtime_container, env)
 
     @classmethod
     def for_unknown(cls, env: Mapping):
-        return cls(RuntimeContainer(""), env.get("JUDOSCALE_URL"), env)
+        return cls(RuntimeContainer(""), env)
 
     @property
     def is_enabled(self) -> bool:

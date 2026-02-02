@@ -125,13 +125,10 @@ class TestConfig:
         assert config["API_BASE_URL"] == "https://api.example.com"
 
     def test_is_enabled(self):
-        config = Config(None, "", {})
+        config = Config(RuntimeContainer(""), {})
         assert not config.is_enabled
 
-        config = Config(None, None, {})
-        assert not config.is_enabled
-
-        config = Config(None, "https://some-url.com", {})
+        config = Config(RuntimeContainer(""), {"JUDOSCALE_URL": "https://some-url.com"})
         assert config.is_enabled
 
     def test_for_report(self):
