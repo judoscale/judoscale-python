@@ -118,20 +118,17 @@ class TestConfig:
             "JUDOSCALE_LOG_LEVEL": "WARN",
             "JUDOSCALE_URL": "https://api.example.com",
         }
-        config = Config.for_heroku(fake_env)
+        config = Config.initialize(fake_env)
 
         assert config["RUNTIME_CONTAINER"] == "web.1"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://api.example.com"
 
     def test_is_enabled(self):
-        config = Config(None, "", {})
+        config = Config(RuntimeContainer(""), {})
         assert not config.is_enabled
 
-        config = Config(None, None, {})
-        assert not config.is_enabled
-
-        config = Config(None, "https://some-url.com", {})
+        config = Config(RuntimeContainer(""), {"JUDOSCALE_URL": "https://some-url.com"})
         assert config.is_enabled
 
     def test_for_report(self):
@@ -140,7 +137,7 @@ class TestConfig:
             "LOG_LEVEL": "WARN",
             "JUDOSCALE_URL": "https://api.example.com",
         }
-        config = Config.for_heroku(fake_env)
+        config = Config.initialize(fake_env)
         assert config.for_report == {"log_level": "WARN", "report_interval_seconds": 10}
 
         config.update({"LOG_LEVEL": "ERROR", "REPORT_INTERVAL_SECONDS": 20})
@@ -160,7 +157,7 @@ class TestConfig:
                 "QUEUES": ["default", "high"],
             },
         }
-        config = Config.for_heroku(fake_env)
+        config = Config.initialize(fake_env)
         assert config["API_BASE_URL"] == "https://api.example.com"
         assert config["RUNTIME_CONTAINER"] == "worker.1"
         assert config["LOG_LEVEL"] == "WARN"
@@ -191,7 +188,7 @@ class TestConfig:
                 "QUEUES": ["default", "high"],
             },
         }
-        config = Config.for_heroku(fake_env)
+        config = Config.initialize(fake_env)
         assert config["LOG_LEVEL"] == "WARN"
         assert config["REPORT_INTERVAL_SECONDS"] == 10
 
