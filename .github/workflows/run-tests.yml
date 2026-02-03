@@ -40,7 +40,16 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          key: venv-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
+
+      - name: Load cached venv (sample apps)
+        uses: actions/cache@v4
+        with:
+          path: |
+            sample-apps/django_sample/.venv
+            sample-apps/flask_sample/.venv
+            sample-apps/fastapi_sample/.venv
+          key: venv-samples-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('sample-apps/**/poetry.lock') }}
 
       - name: Install dependencies
         run: poetry install --all-extras --no-interaction --no-root
