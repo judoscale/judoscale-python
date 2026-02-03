@@ -5,7 +5,7 @@ This is a minimal Flask and RQ app for testing the judoscale package.
 ## Prerequisites
 
 - Python 3.10+
-- [Poetry 1.3+](https://python-poetry.org/)
+- [Poetry 1.8+](https://python-poetry.org/)
 - Node
 - [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
 - Redis
