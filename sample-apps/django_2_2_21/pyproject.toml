@@ -7,7 +7,7 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 Django = "2.2.21"
 gunicorn = "^20.1.0"
 judoscale = { path = "../../", extras=["django"], develop = true }

@@ -11,7 +11,7 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 FastAPI = "^0.121.0"
 judoscale = { path = "../../", extras=["asgi"], develop = true }
 uvicorn = {extras = ["standard"], version = "^0.31.0"}

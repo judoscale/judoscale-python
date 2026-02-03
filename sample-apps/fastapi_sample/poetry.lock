@@ -22,9 +22,6 @@ files = [
     {file = "annotated_types-0.7.0.tar.gz", hash = "sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89"},
 ]
 
-[package.dependencies]
-typing-extensions = {version = ">=4.0.0", markers = "python_version < \"3.9\""}
-
 [[package]]
 name = "anyio"
 version = "4.5.2"
@@ -353,7 +350,7 @@ name = "judoscale"
 version = "1.11.0"
 description = "Official Python package for the Judoscale autoscaler"
 optional = false
-python-versions = "^3.8"
+python-versions = "^3.10"
 files = []
 develop = true
 
@@ -624,7 +621,6 @@ files = [
 
 [package.dependencies]
 anyio = ">=3.4.0,<5"
-typing-extensions = {version = ">=3.10.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
 full = ["httpx (>=0.27.0,<0.29.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.18)", "pyyaml"]
@@ -926,5 +922,5 @@ files = [
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.8"
-content-hash = "752ade82e6298d7130a64b7a9944012a58257dcb901fc52b4e99055a284c9329"
+python-versions = "^3.10"
+content-hash = "8d7e59de96ce2c6da084c81c94a4ec50018af336553f547909d40a33b6f10d4d"

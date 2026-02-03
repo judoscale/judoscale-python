@@ -150,7 +150,7 @@ name = "judoscale"
 version = "1.11.0"
 description = "Official Python package for the Judoscale autoscaler"
 optional = false
-python-versions = "^3.8"
+python-versions = "^3.10"
 files = []
 develop = true
 
@@ -246,5 +246,5 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.8"
-content-hash = "ae1a0885c4ec8ad37020f97de94c24a77783e4a437d45a050d5c217e57c51a12"
+python-versions = "^3.10"
+content-hash = "f30dd53640e2989876603b40cf97067ade8ba900d5aa3b58ec9849985b455ea5"
