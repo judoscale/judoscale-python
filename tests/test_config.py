@@ -83,6 +83,27 @@ class TestConfig:
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
     def test_on_custom(self):
+        fake_env = {
+            "JUDOSCALE_CONTAINER": "my-custom-container",
+            "JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890",
+        }
+        config = Config.initialize(fake_env)
+
+        assert config["RUNTIME_CONTAINER"] == "my-custom-container"
+        assert config["LOG_LEVEL"] == "WARN"
+        assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
+
+    def test_on_custom_takes_precedence(self):
+        fake_env = {
+            "JUDOSCALE_CONTAINER": "my-custom-container",
+            "DYNO": "web.1",
+            "JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890",
+        }
+        config = Config.initialize(fake_env)
+
+        assert config["RUNTIME_CONTAINER"] == "my-custom-container"
+
+    def test_on_unknown(self):
         fake_env = {"JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890"}
         config = Config.initialize(fake_env)
 
