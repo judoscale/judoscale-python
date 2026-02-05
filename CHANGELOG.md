@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.0](https://github.com/judoscale/judoscale-python/compare/v1.11.0...v1.12.0) (2026-02-05)
+
+
+### Features
+
+* Add support to JUDOSCALE_CONTAINER ENV var for custom containers ([#122](https://github.com/judoscale/judoscale-python/issues/122)) ([203891b](https://github.com/judoscale/judoscale-python/commit/203891bcf041cbc62fef0dbe1a52e237cc51fd14))
+* Add support to Python 3.14, drop Python &lt; 3.10 ([#115](https://github.com/judoscale/judoscale-python/issues/115)) ([d3d1764](https://github.com/judoscale/judoscale-python/commit/d3d17645cb7781d284a4c48faa351e2c6ba7aa6d))
+
 ## [1.11.0](https://github.com/judoscale/judoscale-python/compare/v1.10.2...v1.11.0) (2026-01-12)
 
 
