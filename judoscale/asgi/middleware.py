@@ -26,7 +26,7 @@ class RequestQueueTimeMiddleware:
         self.collector = WebMetricsCollector(judoconfig)
         adapter = Adapter(
             identifier=f"judoscale-{self.platform}",
-            adapter_info=AdapterInfo(platform_version=metadata.version(self.platform)),
+            adapter_info=AdapterInfo(runtime_version=metadata.version(self.platform)),
             metrics_collector=self.collector,
         )
         reporter.add_adapter(adapter)

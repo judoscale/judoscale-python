@@ -11,7 +11,7 @@ JUDOSCALE_VERSION = metadata.version("judoscale")
 class AdapterInfo:
     """Information about the adapter"""
 
-    platform_version: str
+    runtime_version: str
     adapter_version: str = JUDOSCALE_VERSION
 
 

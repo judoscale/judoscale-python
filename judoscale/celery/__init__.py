@@ -29,7 +29,7 @@ def judoscale_celery(celery: Celery, extra_config: Mapping = {}) -> None:
     collector = CeleryMetricsCollector(config=judoconfig, broker=celery)
     adapter = Adapter(
         identifier="judoscale-celery",
-        adapter_info=AdapterInfo(platform_version=metadata.version("celery")),
+        adapter_info=AdapterInfo(runtime_version=metadata.version("celery")),
         metrics_collector=collector,
     )
 

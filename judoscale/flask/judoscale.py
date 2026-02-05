@@ -59,7 +59,7 @@ class Judoscale:
         collector = WebMetricsCollector(judoconfig)
         adapter = Adapter(
             identifier="judoscale-flask",
-            adapter_info=AdapterInfo(platform_version=metadata.version("flask")),
+            adapter_info=AdapterInfo(runtime_version=metadata.version("flask")),
             metrics_collector=collector,
         )
         reporter.add_adapter(adapter)

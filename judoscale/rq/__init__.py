@@ -30,7 +30,7 @@ def judoscale_rq(redis: Redis, extra_config: Mapping = {}) -> None:
     collector = RQMetricsCollector(config=judoconfig, redis=redis)
     adapter = Adapter(
         identifier="judoscale-rq",
-        adapter_info=AdapterInfo(platform_version=metadata.version("rq")),
+        adapter_info=AdapterInfo(runtime_version=metadata.version("rq")),
         metrics_collector=collector,
     )
 
