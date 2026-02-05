@@ -459,7 +459,7 @@ Verify that you are on a recent version of Poetry:
 
 ```sh
 $ poetry --version
-Poetry (version 1.3.1)
+Poetry (version 1.8.4)
 ```
 
 Install dependencies with Poetry and activate the virtualenv
