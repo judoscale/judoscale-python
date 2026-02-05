@@ -37,7 +37,7 @@ jobs:
           python-version: 3.9
 
       - name: Cache Poetry install
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.local
           # NB! Update key when Poetry version is updated
@@ -53,7 +53,7 @@ jobs:
 
       - name: Load cached venv
         id: cached-poetry-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .venv
           key: venv-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}

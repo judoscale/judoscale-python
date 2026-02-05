@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -21,26 +21,35 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Cache Poetry install
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.local
           # NB! Update key when Poetry version is updated
-          key: python-${{ steps.setup-python.outputs.python-version }}-poetry-1.2.2
+          key: python-${{ steps.setup-python.outputs.python-version }}-poetry-1.8.4
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
           # NB! Update Poetry cache key when updating Poetry version
-          version: 1.2.2
+          version: 1.8.4
           virtualenvs-create: true
           virtualenvs-in-project: true
 
       - name: Load cached venv
         id: cached-poetry-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .venv
-          key: venv-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          key: venv-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
+
+      - name: Load cached venv (sample apps)
+        uses: actions/cache@v5
+        with:
+          path: |
+            sample-apps/django_sample/.venv
+            sample-apps/flask_sample/.venv
+            sample-apps/fastapi_sample/.venv
+          key: venv-samples-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('sample-apps/**/poetry.lock') }}
 
       - name: Install dependencies
         run: poetry install --all-extras --no-interaction --no-root
