@@ -44,7 +44,7 @@ class TestReporter:
     def test_add_adapter_no_collector(self, reporter):
         adapter = Adapter(
             identifier="test",
-            adapter_info=AdapterInfo(platform_version="0.0.0"),
+            adapter_info=AdapterInfo(runtime_version="0.0.0"),
             metrics_collector=None,
         )
         reporter.add_adapter(adapter)
@@ -54,7 +54,7 @@ class TestReporter:
     def test_add_adapter_with_collector(self, reporter):
         adapter = Adapter(
             identifier="test",
-            adapter_info=AdapterInfo(platform_version="0.0.0"),
+            adapter_info=AdapterInfo(runtime_version="0.0.0"),
             metrics_collector=WebMetricsCollector(config),
         )
         reporter.add_adapter(adapter)
@@ -68,13 +68,13 @@ class TestReporter:
         collector_instance_1 = WebMetricsCollector(reporter.config)
         adapter_instance_1 = Adapter(
             identifier="test",
-            adapter_info=AdapterInfo(platform_version="0.0.0"),
+            adapter_info=AdapterInfo(runtime_version="0.0.0"),
             metrics_collector=collector_instance_1,
         )
         collector_instance_2 = WebMetricsCollector(reporter.config)
         adapter_instance_2 = Adapter(
             identifier="test",
-            adapter_info=AdapterInfo(platform_version="0.0.0"),
+            adapter_info=AdapterInfo(runtime_version="0.0.0"),
             metrics_collector=collector_instance_2,
         )
         reporter.add_adapter(adapter_instance_1)

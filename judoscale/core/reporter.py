@@ -31,7 +31,7 @@ class Reporter:
         self.adapters.append(
             Adapter(
                 identifier="judoscale-python",
-                adapter_info=AdapterInfo(platform_version=python_version()),
+                adapter_info=AdapterInfo(runtime_version=python_version()),
             )
         )
 
