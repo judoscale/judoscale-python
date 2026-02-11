@@ -234,21 +234,21 @@ An example configuration dictionary accepted by `extra_config`:
 
 ### Judoscale with Celery and Flask
 
-Depending on how you've structured your Flask app, you should call `judoscale_celery` after your application has finished configuring the Celery app instance. If you have followed the [Flask guide](https://flask.palletsprojects.com/en/2.2.x/patterns/celery/) in the Flask documentation, the easiest place to initialise the Judoscale integration is in the application factory:
+Depending on how you've structured your Flask app, you should call `judoscale_celery` after your application has finished configuring the Celery app instance. If you have followed the [Flask guide](https://flask.palletsprojects.com/en/2.2.x/patterns/celery/) in the Flask documentation, the easiest place to initialize the Judoscale integration is in the application factory:
 
 ```py
 def create_app():
     app = Flask(__name__)
     app.config.from_object(...) # or however you configure your app
     celery_app = celery_init_app(app)
-    # Initialise the Judoscale integration
+    # Initialize the Judoscale integration
     judoscale_celery(celery_app, extra_config=app.config["JUDOSCALE"])
     return app
 ```
 
 ### Judoscale with Celery and Django
 
-If you have followed the [Django guide](https://docs.celeryq.dev/en/stable/django/first-steps-with-django.html) in the Celery documentation, you should have a module where you initialise the Celery app instance, auto-discover tasks, etc. You should call `judoscale_celery` after you have configured the Celery app instance:
+If you have followed the [Django guide](https://docs.celeryq.dev/en/stable/django/first-steps-with-django.html) in the Celery documentation, you should have a module where you initialize the Celery app instance, auto-discover tasks, etc. You should call `judoscale_celery` after you have configured the Celery app instance:
 
 ```py
 from celery import Celery
@@ -258,7 +258,7 @@ from judoscale.celery import judoscale_celery
 app = Celery()
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
-# Initialise the Judoscale integration
+# Initialize the Judoscale integration
 judoscale_celery(app, extra_config=settings.JUDOSCALE)
 ```
 
@@ -327,7 +327,7 @@ An example configuration dictionary accepted by `extra_config`:
 
 ### Judoscale with RQ and Flask
 
-The recommended way to initialise Judoscale for RQ is in the application factory:
+The recommended way to initialize Judoscale for RQ is in the application factory:
 
 ```py
 judoscale = Judoscale()
@@ -337,16 +337,16 @@ def create_app():
     app.config.from_object("...") # or however you configure your application
     app.redis = Redis()
 
-    # Initialise the Judoscale integration for Flask
+    # Initialize the Judoscale integration for Flask
     judoscale.init_app(app)
 
-    # Initialise the Judoscale integration for RQ
+    # Initialize the Judoscale integration for RQ
     judoscale_rq(app.redis)
 
     return app
 ```
 
-Then, in your worker script, make sure that you create an app, which will initialise the Judoscale integration with RQ. Although not required, it's useful to run the worker within the Flask app context. If you have followed the [RQ on Heroku pattern](https://python-rq.org/patterns/) for setting up your RQ workers on Heroku, your worker script should look something like this:
+Then, in your worker script, make sure that you create an app, which will initialize the Judoscale integration with RQ. Although not required, it's useful to run the worker within the Flask app context. If you have followed the [RQ on Heroku pattern](https://python-rq.org/patterns/) for setting up your RQ workers on Heroku, your worker script should look something like this:
 
 ```py
 from rq.worker import HerokuWorker as Worker
