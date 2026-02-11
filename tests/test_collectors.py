@@ -522,7 +522,7 @@ class TestDramatiqMetricsCollector:
         return broker
 
     def test_adapter_config(self, render_worker, dramatiq_broker):
-        dramatiq_broker.client.scan_iter.return_value = []
+        dramatiq_broker.get_declared_queues.return_value = set()
         render_worker["DRAMATIQ"] = {
             "ENABLED": False,
             "QUEUES": ["foo", "bar"],
@@ -540,28 +540,25 @@ class TestDramatiqMetricsCollector:
             DramatiqMetricsCollector(worker_1, broker)
 
     def test_correct_broker(self, worker_1, dramatiq_broker):
-        dramatiq_broker.client.scan_iter.return_value = []
+        dramatiq_broker.get_declared_queues.return_value = set()
         assert DramatiqMetricsCollector(worker_1, dramatiq_broker) is not None
 
     def test_queues_empty(self, heroku_worker_1, dramatiq_broker):
-        dramatiq_broker.client.scan_iter.return_value = []
+        dramatiq_broker.get_declared_queues.return_value = set()
         collector = DramatiqMetricsCollector(heroku_worker_1, dramatiq_broker)
         assert collector.queues == set()
 
-    def test_queues_filters_internal_queues(self, heroku_worker_1, dramatiq_broker):
-        dramatiq_broker.client.scan_iter.return_value = [
-            b"dramatiq:default",
-            b"dramatiq:default.DQ",
-            b"dramatiq:default.XQ",
-            b"dramatiq:high-priority",
-            b"dramatiq:__acks__",
-            b"dramatiq:emails.notifications",
-        ]
+    def test_queues(self, heroku_worker_1, dramatiq_broker):
+        dramatiq_broker.get_declared_queues.return_value = {
+            "default",
+            "high-priority",
+            "emails.notifications",
+        }
         collector = DramatiqMetricsCollector(heroku_worker_1, dramatiq_broker)
         assert collector.queues == {"default", "high-priority", "emails.notifications"}
 
     def test_collect_empty_queue(self, worker_1, dramatiq_broker):
-        dramatiq_broker.client.scan_iter.return_value = [b"dramatiq:foo"]
+        dramatiq_broker.get_declared_queues.return_value = {"foo"}
         dramatiq_broker.client.lindex.return_value = None
 
         collector = DramatiqMetricsCollector(worker_1, dramatiq_broker)
@@ -571,7 +568,7 @@ class TestDramatiqMetricsCollector:
         assert metrics[0].queue_name == "foo"
 
     def test_collect_response_error(self, worker_1, dramatiq_broker, caplog):
-        dramatiq_broker.client.scan_iter.return_value = [b"dramatiq:foo"]
+        dramatiq_broker.get_declared_queues.return_value = {"foo"}
         dramatiq_broker.client.lindex.side_effect = redis.exceptions.ResponseError
 
         collector = DramatiqMetricsCollector(worker_1, dramatiq_broker)
@@ -583,10 +580,7 @@ class TestDramatiqMetricsCollector:
 
     def test_collect(self, worker_1, dramatiq_broker):
         now = time.time()
-        dramatiq_broker.client.scan_iter.return_value = [
-            b"dramatiq:foo",
-            b"dramatiq:bar",
-        ]
+        dramatiq_broker.get_declared_queues.return_value = {"foo", "bar"}
         # message_timestamp is in milliseconds
         dramatiq_broker.client.lindex.return_value = bytes(
             json.dumps({"message_timestamp": int((now - 60) * 1000)}),
@@ -608,7 +602,7 @@ class TestDramatiqMetricsCollector:
         assert metrics[1].value == approx(60000, abs=100)
 
     def test_collect_missing_message_timestamp(self, worker_1, dramatiq_broker):
-        dramatiq_broker.client.scan_iter.return_value = [b"dramatiq:foo"]
+        dramatiq_broker.get_declared_queues.return_value = {"foo"}
         dramatiq_broker.client.lindex.return_value = bytes(
             json.dumps({"queue_name": "foo"}), "utf-8"
         )

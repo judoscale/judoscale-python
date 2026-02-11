@@ -38,15 +38,7 @@ class DramatiqMetricsCollector(JobMetricsCollector):
 
     @property
     def _queues(self) -> List[str]:
-        queues = []
-        for key in self.redis.scan_iter("dramatiq:*", _type="list"):
-            queue_name = key.decode() if isinstance(key, bytes) else key
-            name = queue_name.removeprefix("dramatiq:")
-            # Skip internal queues (delay queues, dead-letter queues, acks, heartbeats)
-            if name.startswith("__") or name.endswith((".DQ", ".XQ")):
-                continue
-            queues.append(name)
-        return queues
+        return list(self.broker.get_declared_queues())
 
     def oldest_message_timestamp(self, queue: str) -> Optional[float]:
         """
