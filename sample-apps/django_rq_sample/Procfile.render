@@ -1,7 +1,0 @@
-# The proxy server adds the X_REQUEST_START header for queue time calculations
-proxy: npx judoscale-adapter-proxy-server
-
-# Run with --noreload to avoid multiple server processes (and multiple Judoscale reporters)
-web: RENDER_SERVICE_ID=srv-123 RENDER_INSTANCE_ID=srv-123-abc-456 RENDER_SERVICE_TYPE=web poetry run gunicorn django_rq_sample.wsgi:application --preload
-worker: RENDER_SERVICE_ID=wrk-123 RENDER_INSTANCE_ID=wrk-123-abc-456 RENDER_SERVICE_TYPE=worker poetry run python manage.py rqworker default low
-worker_high: RENDER_SERVICE_ID=wrk-456 RENDER_INSTANCE_ID=wrk-456-abc-789 RENDER_SERVICE_TYPE=worker poetry run python manage.py rqworker high

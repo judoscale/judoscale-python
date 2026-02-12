@@ -20,10 +20,7 @@ This will install the dependencies, including `judoscale` as a [path dependency]
 
 ## Run the app
 
-* Run `bin/heroku` to run the app in Heroku-mode.
-* Run `bin/render` to run the app in Render-mode.
-
-Each script will run, with different environment variables:
+Run `bin/dev` to start:
 
 - a [tiny proxy server](https://github.com/judoscale/judoscale-adapter-proxy-server) that adds the `X-Request-Start` request header so we can test request queue time reporting; and
 - the sample app for testing Celery with Django.
