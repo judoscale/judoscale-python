@@ -1,0 +1,7 @@
+# The proxy server adds the X_REQUEST_START header for queue time calculations
+proxy: npx judoscale-adapter-proxy-server
+
+# Run with --noreload to avoid multiple server processes (and multiple Judoscale reporters)
+web: DYNO=web.1 poetry run gunicorn django_dramatiq_sample.wsgi:application --preload
+worker: DYNO=worker.1 poetry run python3 manage.py rundramatiq --processes 1 --threads 2 --queues low
+worker_high: DYNO=worker_high.1 poetry run python3 manage.py rundramatiq --processes 1 --threads 2 --queues high
