@@ -407,6 +407,126 @@ class TestCeleryMetricsCollector:
         assert metrics[3].value == approx(60000, abs=100)
 
 
+class TestDramatiqMetricsCollector:
+    @fixture
+    def dramatiq_broker(self):
+        from dramatiq.brokers.redis import RedisBroker
+
+        redis = Mock()
+        broker = Mock(spec=RedisBroker)
+        broker.client = redis
+        return broker
+
+    def test_adapter_config(self, render_worker, dramatiq_broker):
+        dramatiq_broker.get_declared_queues.return_value = set()
+        render_worker["DRAMATIQ"] = {
+            "ENABLED": False,
+            "QUEUES": ["foo", "bar"],
+        }
+        collector = DramatiqMetricsCollector(render_worker, dramatiq_broker)
+        assert collector.adapter_config == {
+            "ENABLED": False,
+            "QUEUES": ["foo", "bar"],
+            "MAX_QUEUES": 20,
+        }
+
+    def test_incorrect_broker(self, worker_1):
+        broker = Mock(spec=[])  # No client attribute
+        with raises(NotImplementedError, match="only supports the Redis broker"):
+            DramatiqMetricsCollector(worker_1, broker)
+
+    def test_correct_broker(self, worker_1, dramatiq_broker):
+        dramatiq_broker.get_declared_queues.return_value = set()
+        assert DramatiqMetricsCollector(worker_1, dramatiq_broker) is not None
+
+    def test_queues_empty(self, heroku_worker_1, dramatiq_broker):
+        dramatiq_broker.get_declared_queues.return_value = set()
+        collector = DramatiqMetricsCollector(heroku_worker_1, dramatiq_broker)
+        assert collector.queues == set()
+
+    def test_queues(self, heroku_worker_1, dramatiq_broker):
+        dramatiq_broker.get_declared_queues.return_value = {
+            "default",
+            "high-priority",
+            "emails.notifications",
+        }
+        collector = DramatiqMetricsCollector(heroku_worker_1, dramatiq_broker)
+        assert collector.queues == {"default", "high-priority", "emails.notifications"}
+
+    def test_queues_with_config(self, heroku_worker_1, dramatiq_broker):
+        dramatiq_broker.get_declared_queues.return_value = {
+            "default",
+            "high",
+            "low",
+        }
+        heroku_worker_1["DRAMATIQ"] = {
+            "QUEUES": ["high", "low"],
+            "MAX_QUEUES": 20,
+        }
+        collector = DramatiqMetricsCollector(heroku_worker_1, dramatiq_broker)
+        assert collector.queues == {"high", "low"}
+
+    def test_collect_empty_queue(self, worker_1, dramatiq_broker):
+        dramatiq_broker.get_declared_queues.return_value = {"foo"}
+        dramatiq_broker.client.lindex.return_value = None
+
+        collector = DramatiqMetricsCollector(worker_1, dramatiq_broker)
+        metrics: List[Metric] = collector.collect()
+        assert len(metrics) == 1
+        assert metrics[0].value == approx(0, abs=1)
+        assert metrics[0].queue_name == "foo"
+
+    def test_collect_response_error(self, worker_1, dramatiq_broker, caplog):
+        dramatiq_broker.get_declared_queues.return_value = {"foo"}
+        dramatiq_broker.client.lindex.side_effect = redis.exceptions.ResponseError
+
+        collector = DramatiqMetricsCollector(worker_1, dramatiq_broker)
+        metrics = collector.collect()
+        assert len(metrics) == 1
+        assert metrics[0].value == approx(0, abs=1)
+        assert metrics[0].queue_name == "foo"
+        assert "Unable to get message from queue: foo" in caplog.messages
+
+    def test_collect(self, worker_1, dramatiq_broker):
+        now = time.time()
+        dramatiq_broker.get_declared_queues.return_value = {"foo", "bar"}
+        # lindex returns a message ID from the queue list
+        dramatiq_broker.client.lindex.return_value = b"abc123"
+        # hget returns the message data from the .msgs hash
+        dramatiq_broker.client.hget.return_value = bytes(
+            json.dumps({"message_timestamp": int((now - 60) * 1000)}),
+            "utf-8",
+        )
+
+        collector = DramatiqMetricsCollector(worker_1, dramatiq_broker)
+        metrics = collector.collect()
+        metrics = sorted(metrics, key=lambda m: m.queue_name)
+
+        assert len(metrics) == 2
+
+        assert metrics[0].measurement == "qt"
+        assert metrics[0].queue_name == "bar"
+        assert metrics[0].value == approx(60000, abs=100)
+
+        assert metrics[1].measurement == "qt"
+        assert metrics[1].queue_name == "foo"
+        assert metrics[1].value == approx(60000, abs=100)
+
+    def test_collect_missing_message_timestamp(self, worker_1, dramatiq_broker):
+        dramatiq_broker.get_declared_queues.return_value = {"foo"}
+        dramatiq_broker.client.lindex.return_value = b"abc123"
+        dramatiq_broker.client.hget.return_value = bytes(
+            json.dumps({"queue_name": "foo"}), "utf-8"
+        )
+
+        collector = DramatiqMetricsCollector(worker_1, dramatiq_broker)
+        metrics = collector.collect()
+        # When message_timestamp is missing, we report 0 latency (current time)
+        assert len(metrics) == 1
+        assert metrics[0].value == approx(0, abs=1)
+        assert metrics[0].queue_name == "foo"
+
+
 class TestRQMetricsCollector:
     def test_adapter_config(self, render_worker):
         render_worker["RQ"] = {
@@ -509,110 +629,3 @@ class TestRQMetricsCollector:
         assert metrics[1].measurement == "qt"
         assert metrics[1].queue_name == "foo"
         assert metrics[1].value == approx(60000, abs=100)
-
-
-class TestDramatiqMetricsCollector:
-    @fixture
-    def dramatiq_broker(self):
-        from dramatiq.brokers.redis import RedisBroker
-
-        redis = Mock()
-        broker = Mock(spec=RedisBroker)
-        broker.client = redis
-        return broker
-
-    def test_adapter_config(self, render_worker, dramatiq_broker):
-        dramatiq_broker.get_declared_queues.return_value = set()
-        render_worker["DRAMATIQ"] = {
-            "ENABLED": False,
-            "QUEUES": ["foo", "bar"],
-        }
-        collector = DramatiqMetricsCollector(render_worker, dramatiq_broker)
-        assert collector.adapter_config == {
-            "ENABLED": False,
-            "QUEUES": ["foo", "bar"],
-            "MAX_QUEUES": 20,
-        }
-
-    def test_incorrect_broker(self, worker_1):
-        broker = Mock(spec=[])  # No client attribute
-        with raises(NotImplementedError, match="only supports the Redis broker"):
-            DramatiqMetricsCollector(worker_1, broker)
-
-    def test_correct_broker(self, worker_1, dramatiq_broker):
-        dramatiq_broker.get_declared_queues.return_value = set()
-        assert DramatiqMetricsCollector(worker_1, dramatiq_broker) is not None
-
-    def test_queues_empty(self, heroku_worker_1, dramatiq_broker):
-        dramatiq_broker.get_declared_queues.return_value = set()
-        collector = DramatiqMetricsCollector(heroku_worker_1, dramatiq_broker)
-        assert collector.queues == set()
-
-    def test_queues(self, heroku_worker_1, dramatiq_broker):
-        dramatiq_broker.get_declared_queues.return_value = {
-            "default",
-            "high-priority",
-            "emails.notifications",
-        }
-        collector = DramatiqMetricsCollector(heroku_worker_1, dramatiq_broker)
-        assert collector.queues == {"default", "high-priority", "emails.notifications"}
-
-    def test_collect_empty_queue(self, worker_1, dramatiq_broker):
-        dramatiq_broker.get_declared_queues.return_value = {"foo"}
-        dramatiq_broker.client.lindex.return_value = None
-
-        collector = DramatiqMetricsCollector(worker_1, dramatiq_broker)
-        metrics: List[Metric] = collector.collect()
-        assert len(metrics) == 1
-        assert metrics[0].value == approx(0, abs=1)
-        assert metrics[0].queue_name == "foo"
-
-    def test_collect_response_error(self, worker_1, dramatiq_broker, caplog):
-        dramatiq_broker.get_declared_queues.return_value = {"foo"}
-        dramatiq_broker.client.lindex.side_effect = redis.exceptions.ResponseError
-
-        collector = DramatiqMetricsCollector(worker_1, dramatiq_broker)
-        metrics = collector.collect()
-        assert len(metrics) == 1
-        assert metrics[0].value == approx(0, abs=1)
-        assert metrics[0].queue_name == "foo"
-        assert "Unable to get message from queue: foo" in caplog.messages
-
-    def test_collect(self, worker_1, dramatiq_broker):
-        now = time.time()
-        dramatiq_broker.get_declared_queues.return_value = {"foo", "bar"}
-        # lindex returns a message ID from the queue list
-        dramatiq_broker.client.lindex.return_value = b"abc123"
-        # hget returns the message data from the .msgs hash
-        dramatiq_broker.client.hget.return_value = bytes(
-            json.dumps({"message_timestamp": int((now - 60) * 1000)}),
-            "utf-8",
-        )
-
-        collector = DramatiqMetricsCollector(worker_1, dramatiq_broker)
-        metrics = collector.collect()
-        metrics = sorted(metrics, key=lambda m: m.queue_name)
-
-        assert len(metrics) == 2
-
-        assert metrics[0].measurement == "qt"
-        assert metrics[0].queue_name == "bar"
-        assert metrics[0].value == approx(60000, abs=100)
-
-        assert metrics[1].measurement == "qt"
-        assert metrics[1].queue_name == "foo"
-        assert metrics[1].value == approx(60000, abs=100)
-
-    def test_collect_missing_message_timestamp(self, worker_1, dramatiq_broker):
-        dramatiq_broker.get_declared_queues.return_value = {"foo"}
-        dramatiq_broker.client.lindex.return_value = b"abc123"
-        dramatiq_broker.client.hget.return_value = bytes(
-            json.dumps({"queue_name": "foo"}), "utf-8"
-        )
-
-        collector = DramatiqMetricsCollector(worker_1, dramatiq_broker)
-        metrics = collector.collect()
-        # When message_timestamp is missing, we report 0 latency (current time)
-        assert len(metrics) == 1
-        assert metrics[0].value == approx(0, abs=1)
-        assert metrics[0].queue_name == "foo"
