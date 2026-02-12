@@ -13,6 +13,7 @@ It is recommended to install the specific web framework and/or background job li
 ## Supported job processors
 
 - [x] [Celery](#using-judoscale-with-celery-and-redis) (with Redis 6.0+ as the broker)
+- [x] [Dramatiq](#using-judoscale-with-dramatiq-and-redis) (with Redis as the broker)
 - [x] [RQ](#using-judoscale-with-rq)
 
 # Using Judoscale with Django
@@ -261,6 +262,116 @@ app.autodiscover_tasks()
 # Initialize the Judoscale integration
 judoscale_celery(app, extra_config=settings.JUDOSCALE)
 ```
+
+# Using Judoscale with Dramatiq and Redis
+
+Install Judoscale for Dramatiq with:
+
+```sh
+$ pip install 'judoscale[dramatiq-redis]'
+```
+
+> :warning: **NOTE:** The Judoscale Dramatiq integration currently only works with the [Redis broker](https://dramatiq.io/reference.html#dramatiq.brokers.redis.RedisBroker).
+
+Judoscale can automatically scale the number of Dramatiq workers based on the queue latency (the age of the oldest pending task in the queue).
+
+## Setting up the integration
+
+To use the Dramatiq integration, import `judoscale_dramatiq` and call it with the Dramatiq broker instance. `judoscale_dramatiq` should be called after you have configured the broker.
+
+```py
+import dramatiq
+from dramatiq.brokers.redis import RedisBroker
+from judoscale.dramatiq import judoscale_dramatiq
+
+broker = RedisBroker(url="redis://localhost:6379/0")
+dramatiq.set_broker(broker)
+
+judoscale_dramatiq(broker)
+```
+
+This sets up Judoscale to periodically calculate and report queue latency for each Dramatiq queue.
+
+If you need to change the Judoscale integration configuration, you can pass a dictionary of Judoscale configuration options to `judoscale_dramatiq` to override the default Judoscale config variables:
+
+```py
+judoscale_dramatiq(broker, extra_config={"LOG_LEVEL": "DEBUG"})
+```
+
+An example configuration dictionary accepted by `extra_config`:
+
+```py
+{
+    "LOG_LEVEL": "INFO",
+
+    # In addition to global configuration options for the Judoscale
+    # integration above, you can also specify the following configuration
+    # options for the Dramatiq integration.
+    "DRAMATIQ": {
+        # Enable (default) or disable the Dramatiq integration
+        "ENABLED": True,
+
+        # Report metrics on up to MAX_QUEUES queues.
+        # The list of discovered queues are sorted by the length
+        # of the queue name (shortest first) and metrics are
+        # reported for the first MAX_QUEUES queues.
+        # Defaults to 20.
+        "MAX_QUEUES": 20,
+
+        # Specify a list of known queues to report metrics for.
+        # MAX_QUEUES is still honoured.
+        # Defaults to empty list (report metrics for discovered queues).
+        "QUEUES": [],
+    }
+}
+```
+
+> :warning: **NOTE:** `TRACK_BUSY_JOBS` is not yet supported for Dramatiq. Dramatiq does not provide a built-in way to query currently-executing tasks.
+
+### Judoscale with Dramatiq and Django
+
+It's usually recommended using [`django-dramatiq`](https://github.com/Bogdanp/django_dramatiq) to integrate Dramatiq with Django. It configures the broker via Django settings and provides `manage.py rundramatiq` to run workers with full Django setup.
+
+Configure the broker and Judoscale in your `settings.py`:
+
+```py
+INSTALLED_APPS = [
+    "judoscale.django",
+    "django_dramatiq",
+    # ... other apps
+]
+
+DRAMATIQ_BROKER = {
+    "BROKER": "dramatiq.brokers.redis.RedisBroker",
+    "OPTIONS": {"url": "redis://localhost:6379/0"},
+}
+
+JUDOSCALE = {
+    "DRAMATIQ": {
+        "ENABLED": True,
+    },
+}
+```
+
+Then initialize the Judoscale Dramatiq integration in an `AppConfig.ready()` method so it runs at startup for both web and worker processes:
+
+```py
+# myapp/apps.py
+from django.apps import AppConfig
+
+class MyAppConfig(AppConfig):
+    name = "myapp"
+
+    def ready(self):
+        import dramatiq
+        from django.conf import settings
+        from judoscale.dramatiq import judoscale_dramatiq
+
+        broker = dramatiq.get_broker()
+        judoscale_dramatiq(broker, extra_config=settings.JUDOSCALE)
+```
+
+> :warning: **NOTE:** Run your workers with `manage.py rundramatiq` (provided by `django-dramatiq`) instead of the plain `dramatiq` CLI. This ensures Django is fully initialized and `AppConfig.ready()` is called.
 
 # Using Judoscale with RQ
 
