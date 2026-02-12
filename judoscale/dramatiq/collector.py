@@ -44,16 +44,22 @@ class DramatiqMetricsCollector(JobMetricsCollector):
         """
         Get the message_timestamp of the oldest message in the queue.
 
-        Dramatiq stores messages as JSON in Redis lists. The oldest message
-        is at the end of the list (RPUSH on enqueue, LPOP on dequeue).
+        Dramatiq stores message IDs in a list at `dramatiq:{queue}` and
+        message data in a hash at `dramatiq:{queue}.msgs`. The oldest
+        message ID is at the end of the list (RPUSH on enqueue, LPOP on
+        dequeue).
         """
         try:
-            redis_key = f"dramatiq:{queue}"
-            if payload := self.redis.lindex(redis_key, -1):
-                message = json.loads(payload)
-                # Dramatiq's message_timestamp is in milliseconds
-                if message_ts := message.get("message_timestamp"):
-                    return message_ts / 1000.0
+            queue_key = f"dramatiq:{queue}"
+            msgs_key = f"dramatiq:{queue}.msgs"
+            if message_id := self.redis.lindex(queue_key, -1):
+                if isinstance(message_id, bytes):
+                    message_id = message_id.decode()
+                if payload := self.redis.hget(msgs_key, message_id):
+                    message = json.loads(payload)
+                    # Dramatiq's message_timestamp is in milliseconds
+                    if message_ts := message.get("message_timestamp"):
+                        return message_ts / 1000.0
         except Exception as e:
             logger.warning(f"Unable to get message from queue: {queue}", exc_info=e)
         return None

@@ -581,8 +581,10 @@ class TestDramatiqMetricsCollector:
     def test_collect(self, worker_1, dramatiq_broker):
         now = time.time()
         dramatiq_broker.get_declared_queues.return_value = {"foo", "bar"}
-        # message_timestamp is in milliseconds
-        dramatiq_broker.client.lindex.return_value = bytes(
+        # lindex returns a message ID from the queue list
+        dramatiq_broker.client.lindex.return_value = b"abc123"
+        # hget returns the message data from the .msgs hash
+        dramatiq_broker.client.hget.return_value = bytes(
             json.dumps({"message_timestamp": int((now - 60) * 1000)}),
             "utf-8",
         )
@@ -603,7 +605,8 @@ class TestDramatiqMetricsCollector:
 
     def test_collect_missing_message_timestamp(self, worker_1, dramatiq_broker):
         dramatiq_broker.get_declared_queues.return_value = {"foo"}
-        dramatiq_broker.client.lindex.return_value = bytes(
+        dramatiq_broker.client.lindex.return_value = b"abc123"
+        dramatiq_broker.client.hget.return_value = bytes(
             json.dumps({"queue_name": "foo"}), "utf-8"
         )
 
