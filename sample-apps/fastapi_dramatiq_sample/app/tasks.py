@@ -23,3 +23,14 @@ def add_low(x, y):
 def add_high(x, y):
     time.sleep(random.randint(3, 5))
     _ = x + y
+
+
+@dramatiq.actor(queue_name="low")
+def add_delayed(x, y):
+    time.sleep(random.randint(3, 5))
+    _ = x + y
+
+
+@dramatiq.actor(queue_name="low", max_retries=0)
+def always_fails():
+    raise RuntimeError("This task always fails")

@@ -1,7 +1,7 @@
 import random
 
 import app.settings as settings
-from app.tasks import add_high, add_low
+from app.tasks import add_delayed, add_high, add_low, always_fails
 from fastapi import FastAPI
 from fastapi.logger import logger
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -37,6 +37,12 @@ def create_app():
                 "<form action='/batch_task' method='POST'>"
                 "<input type='submit' value='Add 10 tasks'>"
                 "</form>"
+                "<form action='/delayed_task' method='POST'>"
+                "<input type='submit' value='Add delayed task (30s)'>"
+                "</form>"
+                "<form action='/failing_task' method='POST'>"
+                "<input type='submit' value='Add failing task (goes to dead queue)'>"
+                "</form>"
             )
         else:
             return HTMLResponse(
@@ -52,6 +58,16 @@ def create_app():
     async def batch_task():
         for i in range(10):
             publish_task(i)
+        return RedirectResponse(url="/", status_code=303)
+
+    @app.post("/delayed_task")
+    async def delayed_task():
+        add_delayed.send_with_options(args=(1, 2), delay=30000)
+        return RedirectResponse(url="/", status_code=303)
+
+    @app.post("/failing_task")
+    async def failing_task():
+        always_fails.send()
         return RedirectResponse(url="/", status_code=303)
 
     return app
