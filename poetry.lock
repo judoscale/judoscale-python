@@ -352,26 +352,25 @@ bcrypt = ["bcrypt"]
 
 [[package]]
 name = "dramatiq"
-version = "1.18.0"
+version = "2.0.1"
 description = "Background Processing for Python 3."
 optional = true
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 files = [
-    {file = "dramatiq-1.18.0-py3-none-any.whl", hash = "sha256:d360f608aa3cd06f5db714bfcd23825dc7098bacfee52aca536b0bb0faae3c69"},
-    {file = "dramatiq-1.18.0.tar.gz", hash = "sha256:5ea436b6e50dae64d4de04f1eb519ad239a6b1ba6315ba1dce1c0c4c1ebedfaf"},
+    {file = "dramatiq-2.0.1-py3-none-any.whl", hash = "sha256:0cdfe5fdd1028adf65c6f3b2f0c5e6909053d6e41cf6556ff4def991d2419c89"},
+    {file = "dramatiq-2.0.1.tar.gz", hash = "sha256:3caa0587057eee67bd3a0e6d439d78d6cf88b300b5185dad1f4044a0c5f57fc2"},
 ]
 
 [package.dependencies]
-prometheus-client = ">=0.2"
-redis = {version = ">=2.0,<7.0", optional = true, markers = "extra == \"redis\""}
+redis = {version = ">=4.0,<7.0", optional = true, markers = "extra == \"redis\""}
 
 [package.extras]
-all = ["gevent (>=1.1)", "pika (>=1.0,<2.0)", "pylibmc (>=1.5,<2.0)", "redis (>=2.0,<7.0)", "watchdog (>=4.0)", "watchdog_gevent (>=0.2)"]
-dev = ["alabaster", "bumpversion", "flake8", "flake8-bugbear", "flake8-quotes", "gevent (>=1.1)", "hiredis", "isort", "mypy", "pika (>=1.0,<2.0)", "pylibmc (>=1.5,<2.0)", "pytest", "pytest-benchmark[histogram]", "pytest-cov", "redis (>=2.0,<7.0)", "sphinx", "sphinxcontrib-napoleon", "tox", "twine", "watchdog (>=4.0)", "watchdog_gevent (>=0.2)", "wheel"]
+all = ["gevent (>=1.1)", "pika (>=1.0,<2.0)", "prometheus-client (>=0.2)", "pylibmc (>=1.5,<2.0)", "redis (>=4.0,<7.0)", "watchdog (>=4.0)", "watchdog_gevent (>=0.2)"]
 gevent = ["gevent (>=1.1)"]
 memcached = ["pylibmc (>=1.5,<2.0)"]
+prometheus = ["prometheus-client (>=0.2)"]
 rabbitmq = ["pika (>=1.0,<2.0)"]
-redis = ["redis (>=2.0,<7.0)"]
+redis = ["redis (>=4.0,<7.0)"]
 watch = ["watchdog (>=4.0)", "watchdog_gevent (>=0.2)"]
 
 [[package]]
@@ -677,22 +676,6 @@ dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
-name = "prometheus-client"
-version = "0.24.1"
-description = "Python client for the Prometheus monitoring system."
-optional = true
-python-versions = ">=3.9"
-files = [
-    {file = "prometheus_client-0.24.1-py3-none-any.whl", hash = "sha256:150db128af71a5c2482b36e588fc8a6b95e498750da4b17065947c16070f4055"},
-    {file = "prometheus_client-0.24.1.tar.gz", hash = "sha256:7e0ced7fbbd40f7b84962d5d2ab6f17ef88a72504dcf7c0b40737b43b2a461f9"},
-]
-
-[package.extras]
-aiohttp = ["aiohttp"]
-django = ["django"]
-twisted = ["twisted"]
-
-[[package]]
 name = "prompt-toolkit"
 version = "3.0.52"
 description = "Library for building powerful interactive command lines in Python"
@@ -974,4 +957,4 @@ rq = ["rq"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "a53be2ded574def47668f081b6f7651e77b8204ecd54d016586d9d08e3dc7c02"
+content-hash = "2167b0f5bdd2c03051bb009c555d1a5f8e300a18833bd0c9d325a1318851b26f"
