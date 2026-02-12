@@ -1,3 +1,0 @@
-#!/bin/bash
-
-JUDOSCALE_LOG_LEVEL=debug heroku local --procfile Procfile.heroku
