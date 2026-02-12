@@ -30,7 +30,6 @@ class DramatiqMetricsCollector(JobMetricsCollector):
 
         self.redis = broker.client
         logger.debug(f"Redis is at {self.redis.connection_pool}")
-        logger.debug(f"Found initial queues: {list(self.queues)}")
 
     @property
     def adapter_config(self):
