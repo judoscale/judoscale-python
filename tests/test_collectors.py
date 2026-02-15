@@ -405,6 +405,43 @@ class TestCeleryMetricsCollector:
         assert metrics[3].queue_name == "foo"
         assert metrics[3].value == approx(60000, abs=100)
 
+    def test_collect_metadata(self, worker_1, celery):
+        now = time.time()
+        celery.connection_for_read().channel().client.scan_iter.return_value = [b"foo"]
+        celery.connection_for_read().channel().client.lindex.return_value = bytes(
+            json.dumps(
+                {
+                    "id": "123abc",
+                    "headers": {
+                        "eta": None,
+                        "retries": 0,
+                        "id": "123abc",
+                        "task": "my.task",
+                    },
+                    "properties": {"published_at": now - 60},
+                }
+            ),
+            "utf-8",
+        )
+
+        collector = CeleryMetricsCollector(worker_1, celery)
+        metrics = collector.collect()
+        metrics = sorted(metrics, key=lambda m: m.queue_name)
+
+        assert len(metrics) == 1
+
+        assert metrics[0].measurement == "qt"
+        assert metrics[0].queue_name == "foo"
+        assert metrics[0].value == approx(60000, abs=100)
+        assert metrics[0].report_metadata == {
+            "id": "123abc",
+            "task": "my.task",
+            "eta": None,
+            "retries": 0,
+            "published_at": now - 60,
+            "timestamp": now - 60,
+        }
+
 
 class TestRQMetricsCollector:
     def test_adapter_config(self, render_worker):
