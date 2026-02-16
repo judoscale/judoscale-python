@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "judoscale"
-version = "1.12.0"
+version = "1.13.0"
 description = "Official Python package for the Judoscale autoscaler"
 authors = [
     "Adam McCrea <adam@adamlogic.com>",

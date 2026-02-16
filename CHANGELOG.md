@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.0](https://github.com/judoscale/judoscale-python/compare/v1.12.0...v1.13.0) (2026-02-16)
+
+
+### Features
+
+* Add support for Python Dramatiq background task / job library ([#127](https://github.com/judoscale/judoscale-python/issues/127)) ([4d36e72](https://github.com/judoscale/judoscale-python/commit/4d36e727ecad0f767ef6ef192877a494d3e1779c))
+
 ## [1.12.0](https://github.com/judoscale/judoscale-python/compare/v1.11.0...v1.12.0) (2026-02-09)
 
 
