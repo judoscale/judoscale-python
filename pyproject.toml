@@ -24,6 +24,7 @@ requests = "<3.0.0"
 django = { version = ">=2.1.0,<7.0.0", optional = true }
 flask = { version = ">=1.1.0,<4.0.0", optional = true }
 celery = { version = ">=4.4.0,<6.0.0", extras = ["redis"], optional = true }
+dramatiq = { version = ">=1.13.0,<3.0.0", extras = ["redis"], optional = true }
 rq = { version = ">=1.0.0,<3.0.0", optional = true }
 
 [tool.poetry.group.dev.dependencies]
@@ -37,6 +38,7 @@ django = ["django"]
 flask = ["flask"]
 asgi = []
 celery-redis = ["celery"]
+dramatiq-redis = ["dramatiq"]
 rq = ["rq"]
 
 [tool.isort]

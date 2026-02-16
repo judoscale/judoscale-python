@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "judoscale-fastapi-dramatiq-sample"
+version = "0.1.0"
+description = "A sample app for testing judoscale with FastAPI and Dramatiq."
+authors = []
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+FastAPI = "^0.125.0"
+dramatiq = {extras = ["redis"], version = ">=1.13.0,<3.0.0"}
+judoscale = { path = "../../", extras=["dramatiq-redis", "fastapi"], develop = true }
+uvicorn = {extras = ["standard"], version = "^0.31.1"}
+python-multipart = "^0.0.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

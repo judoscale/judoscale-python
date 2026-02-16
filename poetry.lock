@@ -351,6 +351,29 @@ argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
+name = "dramatiq"
+version = "2.0.1"
+description = "Background Processing for Python 3."
+optional = true
+python-versions = ">=3.10"
+files = [
+    {file = "dramatiq-2.0.1-py3-none-any.whl", hash = "sha256:0cdfe5fdd1028adf65c6f3b2f0c5e6909053d6e41cf6556ff4def991d2419c89"},
+    {file = "dramatiq-2.0.1.tar.gz", hash = "sha256:3caa0587057eee67bd3a0e6d439d78d6cf88b300b5185dad1f4044a0c5f57fc2"},
+]
+
+[package.dependencies]
+redis = {version = ">=4.0,<7.0", optional = true, markers = "extra == \"redis\""}
+
+[package.extras]
+all = ["gevent (>=1.1)", "pika (>=1.0,<2.0)", "prometheus-client (>=0.2)", "pylibmc (>=1.5,<2.0)", "redis (>=4.0,<7.0)", "watchdog (>=4.0)", "watchdog_gevent (>=0.2)"]
+gevent = ["gevent (>=1.1)"]
+memcached = ["pylibmc (>=1.5,<2.0)"]
+prometheus = ["prometheus-client (>=0.2)"]
+rabbitmq = ["pika (>=1.0,<2.0)"]
+redis = ["redis (>=4.0,<7.0)"]
+watch = ["watchdog (>=4.0)", "watchdog_gevent (>=0.2)"]
+
+[[package]]
 name = "exceptiongroup"
 version = "1.3.0"
 description = "Backport of PEP 654 (exception groups)"
@@ -927,10 +950,11 @@ watchdog = ["watchdog (>=2.3)"]
 asgi = []
 celery-redis = ["celery"]
 django = ["django"]
+dramatiq-redis = ["dramatiq"]
 flask = ["flask"]
 rq = ["rq"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "12d8d441e5a7c63acef165ef2f6623d8f45d2013076543436a31114048236610"
+content-hash = "2167b0f5bdd2c03051bb009c555d1a5f8e300a18833bd0c9d325a1318851b26f"
