@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.1](https://github.com/judoscale/judoscale-python/compare/v1.13.0...v1.13.1) (2026-02-26)
+
+
+### Bug Fixes
+
+* Retry transient API errors with exponential backoff ([#129](https://github.com/judoscale/judoscale-python/issues/129)) ([80a1b05](https://github.com/judoscale/judoscale-python/commit/80a1b05d5f38ea16547f4ad98b19ec7d3da58a58))
+
 ## [1.13.0](https://github.com/judoscale/judoscale-python/compare/v1.12.0...v1.13.0) (2026-02-16)
 
 
