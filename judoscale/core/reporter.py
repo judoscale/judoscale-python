@@ -106,20 +106,39 @@ class Reporter:
             metrics.extend(collector.collect())
         return metrics
 
+    TRANSIENT_ERRORS = (
+        requests.ConnectionError,
+        requests.Timeout,
+    )
+
+    MAX_RETRIES = 3
+
     def _report_metrics(self) -> None:
         report = self._build_report(self.all_metrics)
         url = f"{self.config['API_BASE_URL']}/v3/reports"
-        try:
-            metrics_length = len(report["metrics"])
-            pid = report["pid"]
-            logger.debug(
-                f"Posting {metrics_length} metrics from {pid} "
-                f"to Judoscale adapter API {url}"
-            )
-            response = requests.post(url, timeout=5, json=report)
-            response.raise_for_status()
-        except requests.RequestException as e:
-            logger.warning("Adapter API request failed - {}".format(e))
+        metrics_length = len(report["metrics"])
+        pid = report["pid"]
+
+        for attempt in range(1, self.MAX_RETRIES + 1):
+            try:
+                logger.debug(
+                    f"Posting {metrics_length} metrics from {pid} "
+                    f"to Judoscale adapter API {url}"
+                )
+                response = requests.post(url, timeout=5, json=report)
+                response.raise_for_status()
+                return
+            except self.TRANSIENT_ERRORS:
+                if attempt < self.MAX_RETRIES:
+                    time.sleep(0.25 * (2 ** (attempt - 1)))
+                else:
+                    logger.warning(
+                        f"Could not connect to {url} "
+                        f"after {self.MAX_RETRIES} attempts"
+                    )
+            except requests.RequestException as e:
+                logger.warning("Adapter API request failed - {}".format(e))
+                return
 
     def _build_report(self, metrics: List[Metric]):
         return {

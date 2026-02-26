@@ -1,6 +1,9 @@
 import logging
+import time
 from datetime import datetime
+from unittest.mock import patch, MagicMock
 
+import requests
 from pytest import fixture
 
 from judoscale.core.adapter import Adapter, AdapterInfo
@@ -104,3 +107,28 @@ class TestReporter:
         for record in caplog.records:
             assert record.levelname == "INFO"
             assert "Reporter not started: in a build process" in record.message
+
+    @patch.object(time, "sleep")
+    @patch.object(requests, "post")
+    def test_retries_transient_errors(
+        self, mock_post, mock_sleep, reporter
+    ):
+        mock_post.side_effect = [
+            requests.ConnectionError("Connection refused"),
+            MagicMock(status_code=200),
+        ]
+
+        reporter._report_metrics()
+
+        assert mock_post.call_count == 2
+
+    @patch.object(time, "sleep")
+    @patch.object(requests, "post")
+    def test_does_not_retry_non_transient_errors(
+        self, mock_post, mock_sleep, reporter
+    ):
+        mock_post.side_effect = requests.HTTPError("500 Server Error")
+
+        reporter._report_metrics()
+
+        assert mock_post.call_count == 1
