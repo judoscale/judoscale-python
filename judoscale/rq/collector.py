@@ -26,7 +26,6 @@ class RQMetricsCollector(JobMetricsCollector):
         self.config["RQ"] = {**DEFAULTS, **self.config.get("RQ", {})}
         self.redis: Redis = redis
         logger.debug(f"Redis is at {self.redis.connection_pool}")
-        logger.debug(f"Found initial queues: {list(self.queues)}")
 
     @property
     def adapter_config(self):
