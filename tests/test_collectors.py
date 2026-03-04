@@ -180,6 +180,9 @@ class TestCeleryMetricsCollector:
             b"user_queue",
         ]
         collector = CeleryMetricsCollector(heroku_worker_1, celery)
+        assert collector.queues == set()
+
+        collector.collect()  # scans for queues on first collect
         assert collector.queues == {"user_queue"}
 
     def test_collect_empty_queue(self, worker_1, celery):

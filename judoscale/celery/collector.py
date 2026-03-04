@@ -70,21 +70,9 @@ class CeleryMetricsCollector(JobMetricsCollector):
             self.inspect = broker.control.inspect(connection=connection)
 
         self._celery_queues: Set[str] = set()
+        self._queues_scanned: bool = False
         self.task_sent_handler = TaskSentHandler(self, connection)
         logger.debug(f"Redis is at {self.redis.connection_pool}")
-
-        system_queues = {"unacked", "unacked_index"}
-        for q in self.redis.scan_iter(_type="list"):
-            queue_name = q.decode() if isinstance(q, bytes) else q
-            if (
-                queue_name in system_queues
-                or queue_name.startswith("_kombu")
-                or queue_name.endswith("celery.pidbox")
-            ):
-                continue
-            self._celery_queues.add(queue_name)
-
-        logger.debug(f"Found initial queues: {list(self._celery_queues)}")
         self.task_sent_handler.start()
 
     @property
@@ -99,6 +87,19 @@ class CeleryMetricsCollector(JobMetricsCollector):
     @property
     def _queues(self) -> List[str]:
         return list(self._celery_queues)
+
+    def _scan_queues(self) -> None:
+        system_queues = {"unacked", "unacked_index"}
+        for q in self.redis.scan_iter(_type="list"):
+            queue_name = q.decode() if isinstance(q, bytes) else q
+            if (
+                queue_name in system_queues
+                or queue_name.startswith("_kombu")
+                or queue_name.endswith("celery.pidbox")
+            ):
+                continue
+            self._celery_queues.add(queue_name)
+        self._queues_scanned = True
 
     def oldest_task_and_timestamp(
         self, queue: str
@@ -138,6 +139,9 @@ class CeleryMetricsCollector(JobMetricsCollector):
         metrics = []
         if not self.should_collect:
             return metrics
+
+        if not self._queues_scanned:
+            self._scan_queues()
 
         if self.adapter_config["TRACK_BUSY_JOBS"]:
             busy_counts = defaultdict(lambda: 0)
