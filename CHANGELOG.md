@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.2](https://github.com/judoscale/judoscale-python/compare/v1.13.1...v1.13.2) (2026-03-05)
+
+
+### Bug Fixes
+
+* Prevent scanning for worker queues on init ([#131](https://github.com/judoscale/judoscale-python/issues/131)) ([7840a62](https://github.com/judoscale/judoscale-python/commit/7840a62bf5d6582c0a13cf595123f5d03aac8908))
+
 ## [1.13.1](https://github.com/judoscale/judoscale-python/compare/v1.13.0...v1.13.1) (2026-02-26)
 
 
