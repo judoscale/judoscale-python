@@ -26,7 +26,6 @@ class RQMetricsCollector(JobMetricsCollector):
         self.config["RQ"] = {**DEFAULTS, **self.config.get("RQ", {})}
         self.redis: Redis = redis
         logger.debug(f"Redis is at {self.redis.connection_pool}")
-        logger.debug(f"Found initial queues: {list(self.queues)}")
 
     @property
     def adapter_config(self):
@@ -52,8 +51,9 @@ class RQMetricsCollector(JobMetricsCollector):
         if not self.should_collect:
             return metrics
 
-        logger.debug(f"Collecting metrics for queues {list(self.queues)}")
-        queues = [Queue(name=q, connection=self.redis) for q in self.queues]
+        queue_names = self.queues
+        logger.debug(f"Collecting metrics for queues {list(queue_names)}")
+        queues = [Queue(name=q, connection=self.redis) for q in queue_names]
 
         for queue in queues:
             if self.adapter_config["TRACK_BUSY_JOBS"]:
