@@ -89,7 +89,15 @@ class Reporter:
             # Instead, we now wait for the first interval to pass before
             # reporting metrics.
             time.sleep(self.config["REPORT_INTERVAL_SECONDS"])
-            self._report_metrics()
+
+            # Catch absolutely anything so the reporter thread survives
+            # transient/unexpected errors and keeps trying on the next
+            # interval. Without this, a single bad cycle silently
+            # disables all metric reporting until the process restarts.
+            try:
+                self._report_metrics()
+            except Exception as e:
+                logger.exception(f"Reporter cycle failed, will retry: {e}")
 
             if self._stopevent.is_set():
                 break
@@ -100,10 +108,19 @@ class Reporter:
     def all_metrics(self) -> List[Metric]:
         """
         Return a list of all metrics collected by all collectors.
+
+        A failing collector is logged and skipped so that one collector's
+        error doesn't suppress metrics from the others.
         """
         metrics = []
         for collector in self.collectors:
-            metrics.extend(collector.collect())
+            try:
+                metrics.extend(collector.collect())
+            except Exception as e:
+                logger.exception(
+                    f"Collector {type(collector).__name__} failed to "
+                    f"collect metrics, skipping this cycle: {e}"
+                )
         return metrics
 
     TRANSIENT_ERRORS = (
