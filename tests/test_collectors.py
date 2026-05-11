@@ -20,6 +20,7 @@ from judoscale.rq.collector import RQMetricsCollector
 @fixture
 def celery():
     redis = Mock()
+
     # Real redis-py returns a different shape per INFO section; emulate that
     # so the collector's `is_supported_redis_version` check and its broker
     # stats snapshot both find what they expect.
@@ -404,6 +405,49 @@ class TestCeleryMetricsCollector:
 
         collector.collect()
         assert collector.report_metadata == {}
+
+    def test_warns_when_broker_near_connection_limit(
+        self, worker_1, celery, caplog
+    ):
+        import logging
+
+        caplog.set_level(logging.WARNING, logger="judoscale")
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = []
+
+        # 9 free slots == below the warn threshold of 10.
+        def _info(section=None):
+            if section == "clients":
+                return {"connected_clients": 31, "maxclients": 40}
+            return {"redis_version": "6.2.7"}
+
+        redis_client.info.side_effect = _info
+
+        collector = CeleryMetricsCollector(worker_1, celery)
+        collector.collect()
+
+        assert any(
+            "Broker is near its connection limit" in record.message
+            and "31/40" in record.message
+            for record in caplog.records
+        )
+
+    def test_does_not_warn_when_broker_has_headroom(
+        self, worker_1, celery, caplog
+    ):
+        import logging
+
+        caplog.set_level(logging.WARNING, logger="judoscale")
+        celery.connection_for_read().channel().client.scan_iter.return_value = []
+
+        # Default fixture: connected_clients=3, maxclients=40 (37 free).
+        collector = CeleryMetricsCollector(worker_1, celery)
+        collector.collect()
+
+        assert not any(
+            "Broker is near its connection limit" in record.message
+            for record in caplog.records
+        )
 
     def test_collect_with_busy_jobs_and_user_defined_queues(
         self, worker_1, celery, monkeypatch
