@@ -132,3 +132,60 @@ class TestReporter:
         reporter._report_metrics()
 
         assert mock_post.call_count == 1
+
+    def test_all_metrics_continues_when_one_collector_raises(
+        self, reporter, caplog
+    ):
+        caplog.set_level(logging.ERROR, logger="judoscale")
+
+        failing_collector = WebMetricsCollector(reporter.config)
+        failing_collector.collect = MagicMock(side_effect=RuntimeError("boom"))
+        reporter.add_adapter(
+            Adapter(
+                identifier="failing",
+                adapter_info=AdapterInfo(runtime_version="0.0.0"),
+                metrics_collector=failing_collector,
+            )
+        )
+
+        healthy_collector = WebMetricsCollector(reporter.config)
+        healthy_collector.add(Metric(measurement="qt", timestamp=0, value=0))
+        reporter.add_adapter(
+            Adapter(
+                identifier="healthy",
+                adapter_info=AdapterInfo(runtime_version="0.0.0"),
+                metrics_collector=healthy_collector,
+            )
+        )
+
+        metrics = reporter.all_metrics
+
+        assert len(metrics) == 1
+        assert any(
+            "failed to collect metrics" in record.message
+            for record in caplog.records
+        )
+
+    @patch.object(time, "sleep")
+    def test_run_loop_survives_report_metrics_exception(
+        self, mock_sleep, reporter, caplog
+    ):
+        caplog.set_level(logging.ERROR, logger="judoscale")
+
+        call_count = {"n": 0}
+
+        def fail_first_then_stop():
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                raise RuntimeError("kaboom")
+            reporter._stopevent.set()
+
+        reporter._report_metrics = MagicMock(side_effect=fail_first_then_stop)
+        reporter.start()
+        reporter._thread.join(timeout=2)
+
+        assert call_count["n"] >= 2
+        assert any(
+            "Reporter cycle failed" in record.message
+            for record in caplog.records
+        )
