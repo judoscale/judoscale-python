@@ -20,7 +20,15 @@ from judoscale.rq.collector import RQMetricsCollector
 @fixture
 def celery():
     redis = Mock()
-    redis.configure_mock(**{"info.return_value": {"redis_version": "6.2.7"}})
+    # Real redis-py returns a different shape per INFO section; emulate that
+    # so the collector's `is_supported_redis_version` check and its broker
+    # stats snapshot both find what they expect.
+    def _info(section=None):
+        if section == "clients":
+            return {"connected_clients": 3, "maxclients": 40}
+        return {"redis_version": "6.2.7"}
+
+    redis.info.side_effect = _info
     celery = Mock()
     connection = Mock(transport=Mock(driver_name="redis"))
     connection.configure_mock(**{"channel.return_value": Mock(client=redis)})
@@ -157,9 +165,11 @@ class TestCeleryMetricsCollector:
         assert CeleryMetricsCollector(worker_1, celery) is not None
 
     def test_incorrect_redis_server_version(self, worker_1, celery):
-        celery.connection_for_read().channel().client.info.return_value = {
-            "redis_version": "5.0.14"
-        }
+        # Override the fixture's section-aware INFO so the version check
+        # sees an unsupported version regardless of call arguments.
+        celery.connection_for_read().channel().client.info.side_effect = (
+            lambda *args, **kwargs: {"redis_version": "5.0.14"}
+        )
         with raises(RuntimeError, match="Unsupported Redis server version"):
             CeleryMetricsCollector(worker_1, celery)
 
@@ -357,6 +367,43 @@ class TestCeleryMetricsCollector:
         assert metrics[1].measurement == "qt"
         assert metrics[1].queue_name == "foo"
         assert metrics[1].value == approx(60000, abs=100)
+
+    def test_report_metadata_empty_before_collect(self, worker_1, celery):
+        celery.connection_for_read().channel().client.scan_iter.return_value = []
+        collector = CeleryMetricsCollector(worker_1, celery)
+        assert collector.report_metadata == {}
+
+    def test_report_metadata_populated_after_collect(self, worker_1, celery):
+        celery.connection_for_read().channel().client.scan_iter.return_value = []
+        collector = CeleryMetricsCollector(worker_1, celery)
+        collector.collect()
+        assert collector.report_metadata == {
+            "broker": {"connected_clients": 3, "maxclients": 40}
+        }
+
+    def test_report_metadata_empty_when_info_raises(self, worker_1, celery):
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = []
+
+        # Constructor needs the version check to succeed; only break INFO
+        # *after* the collector is built, on the broker-stats refresh call.
+        collector = CeleryMetricsCollector(worker_1, celery)
+        redis_client.info.side_effect = RuntimeError("connection reset")
+
+        collector.collect()
+        assert collector.report_metadata == {}
+
+    def test_report_metadata_empty_when_info_missing_keys(self, worker_1, celery):
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = []
+
+        collector = CeleryMetricsCollector(worker_1, celery)
+        # Some managed Redis providers may strip keys from INFO clients;
+        # in that case we report no broker block rather than half a one.
+        redis_client.info.side_effect = lambda section=None: {}
+
+        collector.collect()
+        assert collector.report_metadata == {}
 
     def test_collect_with_busy_jobs_and_user_defined_queues(
         self, worker_1, celery, monkeypatch

@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 from collections import defaultdict
 from threading import Thread
-from typing import List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 from celery import Celery
 from kombu import Connection
@@ -71,6 +71,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
 
         self._celery_queues: Set[str] = set()
         self._queues_scanned: bool = False
+        self._broker_stats: Dict[str, int] = {}
         self.task_sent_handler = TaskSentHandler(self, connection)
         logger.debug(f"Redis is at {self.redis.connection_pool}")
         self.task_sent_handler.start()
@@ -83,6 +84,37 @@ class CeleryMetricsCollector(JobMetricsCollector):
     @property
     def adapter_config(self):
         return self.config["CELERY"]
+
+    @property
+    def report_metadata(self) -> dict:
+        # Only emit the broker block when we have fresh stats from the most
+        # recent collect() cycle; suppress it entirely on cycles where the
+        # INFO call failed so the report doesn't carry stale numbers.
+        if not self._broker_stats:
+            return {}
+        return {"broker": dict(self._broker_stats)}
+
+    def _refresh_broker_stats(self) -> None:
+        """
+        Snapshot `connected_clients` and `maxclients` from the broker Redis
+        via `INFO clients` for inclusion in the next report.
+        """
+        try:
+            info = self.redis.info("clients")
+        except Exception as e:
+            logger.debug(f"Unable to refresh broker stats: {e}")
+            self._broker_stats = {}
+            return
+
+        stats: Dict[str, int] = {}
+        for key in ("connected_clients", "maxclients"):
+            value = info.get(key) if isinstance(info, dict) else None
+            if value is not None:
+                try:
+                    stats[key] = int(value)
+                except (TypeError, ValueError):
+                    continue
+        self._broker_stats = stats
 
     @property
     def _queues(self) -> List[str]:
@@ -139,6 +171,8 @@ class CeleryMetricsCollector(JobMetricsCollector):
         metrics = []
         if not self.should_collect:
             return metrics
+
+        self._refresh_broker_stats()
 
         if not self._queues_scanned:
             self._scan_queues()

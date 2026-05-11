@@ -25,4 +25,10 @@ class Adapter:
 
     @property
     def as_tuple(self):
-        return (self.identifier, asdict(self.adapter_info))
+        info = asdict(self.adapter_info)
+        if self.metrics_collector is not None:
+            # Let the collector contribute adapter-scoped fields (broker
+            # stats, etc.) computed during its most recent collect() cycle.
+            extra = getattr(self.metrics_collector, "report_metadata", None) or {}
+            info.update(extra)
+        return (self.identifier, info)

@@ -133,6 +133,52 @@ class TestReporter:
 
         assert mock_post.call_count == 1
 
+    def test_build_report_includes_collector_report_metadata(self, reporter):
+        # Subclass so we can swap the property without fighting the descriptor.
+        class _CollectorWithExtras(WebMetricsCollector):
+            @property
+            def report_metadata(self):
+                return {"broker": {"connected_clients": 31, "maxclients": 40}}
+
+        collector = _CollectorWithExtras(reporter.config)
+        reporter.add_adapter(
+            Adapter(
+                identifier="judoscale-celery",
+                adapter_info=AdapterInfo(runtime_version="5.6.3"),
+                metrics_collector=collector,
+            )
+        )
+
+        report = reporter._build_report([])
+
+        celery_entry = report["adapters"]["judoscale-celery"]
+        assert celery_entry["runtime_version"] == "5.6.3"
+        assert celery_entry["broker"] == {
+            "connected_clients": 31,
+            "maxclients": 40,
+        }
+
+    def test_build_report_omits_empty_collector_report_metadata(self, reporter):
+        # Default `report_metadata` is an empty dict; the adapter entry
+        # should look identical to the case where there's no collector.
+        collector = WebMetricsCollector(reporter.config)
+        reporter.add_adapter(
+            Adapter(
+                identifier="judoscale-celery",
+                adapter_info=AdapterInfo(runtime_version="5.6.3"),
+                metrics_collector=collector,
+            )
+        )
+
+        report = reporter._build_report([])
+
+        celery_entry = report["adapters"]["judoscale-celery"]
+        assert "broker" not in celery_entry
+        assert celery_entry == {
+            "runtime_version": "5.6.3",
+            "adapter_version": celery_entry["adapter_version"],
+        }
+
     def test_all_metrics_continues_when_one_collector_raises(
         self, reporter, caplog
     ):

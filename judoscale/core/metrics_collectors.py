@@ -13,6 +13,9 @@ class Collector(Protocol):
     @property
     def should_collect(self) -> bool: ...
 
+    @property
+    def report_metadata(self) -> dict: ...
+
 
 class MetricsCollector:
     def __init__(self, config: Config):
@@ -21,6 +24,16 @@ class MetricsCollector:
     @property
     def should_collect(self) -> bool:
         return self.config.is_enabled
+
+    @property
+    def report_metadata(self) -> dict:
+        """
+        Adapter-level fields to include in the next outbound report,
+        alongside the standard `AdapterInfo` payload. Subclasses can override
+        to surface broker stats, queue diagnostics, or anything else that's
+        adapter-scoped rather than per-metric.
+        """
+        return {}
 
 
 class WebMetricsCollector(MetricsCollector):
