@@ -112,9 +112,13 @@ class CeleryMetricsCollector(JobMetricsCollector):
             self._broker_stats = {}
             return
 
+        if not isinstance(info, dict):
+            self._broker_stats = {}
+            return
+
         stats: Dict[str, int] = {}
         for key in ("connected_clients", "maxclients"):
-            value = info.get(key) if isinstance(info, dict) else None
+            value = info.get(key)
             if value is not None:
                 try:
                     stats[key] = int(value)
