@@ -27,12 +27,7 @@ class MetricsCollector:
 
     @property
     def report_metadata(self) -> dict:
-        """
-        Adapter-level fields to include in the next outbound report,
-        alongside the standard `AdapterInfo` payload. Subclasses can override
-        to surface broker stats, queue diagnostics, or anything else that's
-        adapter-scoped rather than per-metric.
-        """
+        """Fields to merge into the report's top-level `metadata` block."""
         return {}
 
 

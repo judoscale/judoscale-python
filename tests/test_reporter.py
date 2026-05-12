@@ -35,10 +35,11 @@ class TestReporter:
         report = reporter._build_report([metric])
 
         assert sorted(list(report.keys())) == sorted(
-            ["adapters", "config", "container", "pid", "metrics"]
+            ["adapters", "config", "container", "pid", "metrics", "metadata"]
         )
         assert len(report["metrics"]) == 1
         assert report["metrics"][0] == (1355314320, 123, "test", None)
+        assert report["metadata"] == {}
 
     def test_no_explicit_adapter(self, reporter):
         assert len(reporter.adapters) == 1
@@ -153,14 +154,12 @@ class TestReporter:
 
         celery_entry = report["adapters"]["judoscale-celery"]
         assert celery_entry["runtime_version"] == "5.6.3"
-        assert celery_entry["broker"] == {
-            "connected_clients": 31,
-            "maxclients": 40,
+
+        assert report["metadata"] == {
+            "broker": {"connected_clients": 31, "maxclients": 40}
         }
 
     def test_build_report_omits_empty_collector_report_metadata(self, reporter):
-        # Default `report_metadata` is an empty dict; the adapter entry
-        # should look identical to the case where there's no collector.
         collector = WebMetricsCollector(reporter.config)
         reporter.add_adapter(
             Adapter(
@@ -173,11 +172,11 @@ class TestReporter:
         report = reporter._build_report([])
 
         celery_entry = report["adapters"]["judoscale-celery"]
-        assert "broker" not in celery_entry
         assert celery_entry == {
             "runtime_version": "5.6.3",
             "adapter_version": celery_entry["adapter_version"],
         }
+        assert report["metadata"] == {}
 
     def test_all_metrics_continues_when_one_collector_raises(
         self, reporter, caplog

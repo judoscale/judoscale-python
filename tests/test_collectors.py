@@ -369,14 +369,11 @@ class TestCeleryMetricsCollector:
         assert metrics[1].queue_name == "foo"
         assert metrics[1].value == approx(60000, abs=100)
 
-    def test_report_metadata_empty_before_collect(self, worker_1, celery):
+    def test_report_metadata_populates_after_collect(self, worker_1, celery):
         celery.connection_for_read().channel().client.scan_iter.return_value = []
         collector = CeleryMetricsCollector(worker_1, celery)
         assert collector.report_metadata == {}
 
-    def test_report_metadata_populated_after_collect(self, worker_1, celery):
-        celery.connection_for_read().channel().client.scan_iter.return_value = []
-        collector = CeleryMetricsCollector(worker_1, celery)
         collector.collect()
         assert collector.report_metadata == {
             "broker": {"connected_clients": 3, "maxclients": 40}
