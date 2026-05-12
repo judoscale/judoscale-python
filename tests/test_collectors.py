@@ -369,7 +369,12 @@ class TestCeleryMetricsCollector:
         assert metrics[1].queue_name == "foo"
         assert metrics[1].value == approx(60000, abs=100)
 
-    def test_report_metadata_populates_after_collect(self, worker_1, celery):
+    def test_report_metadata_populates_after_collect(
+        self, worker_1, celery, caplog
+    ):
+        import logging
+
+        caplog.set_level(logging.WARNING, logger="judoscale")
         celery.connection_for_read().channel().client.scan_iter.return_value = []
         collector = CeleryMetricsCollector(worker_1, celery)
         assert collector.report_metadata == {}
@@ -378,6 +383,12 @@ class TestCeleryMetricsCollector:
         assert collector.report_metadata == {
             "broker": {"connected_clients": 3, "maxclients": 40}
         }
+        # Default fixture leaves 37 free connection slots, well above the
+        # warn threshold, so no broker warning should be emitted.
+        assert not any(
+            "Broker is near its connection limit" in record.message
+            for record in caplog.records
+        )
 
     def test_report_metadata_empty_when_info_raises(self, worker_1, celery):
         redis_client = celery.connection_for_read().channel().client
@@ -426,23 +437,6 @@ class TestCeleryMetricsCollector:
         assert any(
             "Broker is near its connection limit" in record.message
             and "31/40" in record.message
-            for record in caplog.records
-        )
-
-    def test_does_not_warn_when_broker_has_headroom(
-        self, worker_1, celery, caplog
-    ):
-        import logging
-
-        caplog.set_level(logging.WARNING, logger="judoscale")
-        celery.connection_for_read().channel().client.scan_iter.return_value = []
-
-        # Default fixture: connected_clients=3, maxclients=40 (37 free).
-        collector = CeleryMetricsCollector(worker_1, celery)
-        collector.collect()
-
-        assert not any(
-            "Broker is near its connection limit" in record.message
             for record in caplog.records
         )
 
