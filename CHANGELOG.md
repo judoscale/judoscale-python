@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.13.3](https://github.com/judoscale/judoscale-python/compare/v1.13.2...v1.13.3) (2026-05-13)
+
+
+### Bug Fixes
+
+* Include broker connection stats in adapter report payload ([#134](https://github.com/judoscale/judoscale-python/issues/134)) ([2b7afdf](https://github.com/judoscale/judoscale-python/commit/2b7afdfb1b240a1468d97001d315278fd449abe4))
+* Keep reporter thread alive when a collector raises ([#133](https://github.com/judoscale/judoscale-python/issues/133)) ([ece7ea1](https://github.com/judoscale/judoscale-python/commit/ece7ea1bbe8ec5cedbe64407c3bffe3aebbb4fee))
+
 ## [1.13.2](https://github.com/judoscale/judoscale-python/compare/v1.13.1...v1.13.2) (2026-03-05)
 
 
