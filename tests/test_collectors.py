@@ -374,7 +374,7 @@ class TestCeleryMetricsCollector:
     ):
         import logging
 
-        caplog.set_level(logging.WARNING, logger="judoscale")
+        caplog.set_level(logging.INFO, logger="judoscale")
         celery.connection_for_read().channel().client.scan_iter.return_value = []
         collector = CeleryMetricsCollector(worker_1, celery)
         assert collector.report_metadata == {}
@@ -384,7 +384,7 @@ class TestCeleryMetricsCollector:
             "celery-broker": {"connected_clients": 3, "maxclients": 40}
         }
         # Default fixture leaves 37 free connection slots, well above the
-        # warn threshold, so no broker warning should be emitted.
+        # info threshold, so no broker log message should be emitted.
         assert not any(
             "Broker is near its connection limit" in record.message
             for record in caplog.records
@@ -414,19 +414,19 @@ class TestCeleryMetricsCollector:
         collector.collect()
         assert collector.report_metadata == {}
 
-    def test_warns_when_broker_near_connection_limit(
+    def test_logs_when_broker_near_connection_limit(
         self, worker_1, celery, caplog
     ):
         import logging
 
-        caplog.set_level(logging.WARNING, logger="judoscale")
+        caplog.set_level(logging.INFO, logger="judoscale")
         redis_client = celery.connection_for_read().channel().client
         redis_client.scan_iter.return_value = []
 
-        # 9 free slots == below the warn threshold of 10.
+        # 15 free slots == below the info threshold of 20.
         def _info(section=None):
             if section == "clients":
-                return {"connected_clients": 31, "maxclients": 40}
+                return {"connected_clients": 25, "maxclients": 40}
             return {"redis_version": "6.2.7"}
 
         redis_client.info.side_effect = _info
@@ -436,7 +436,7 @@ class TestCeleryMetricsCollector:
 
         assert any(
             "Broker is near its connection limit" in record.message
-            and "31/40" in record.message
+            and "25/40" in record.message
             for record in caplog.records
         )
 

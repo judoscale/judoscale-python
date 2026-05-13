@@ -21,11 +21,11 @@ DEFAULTS = {
     "TRACK_BUSY_JOBS": False,
 }
 
-# Warn when the broker has fewer than this many free connection slots.
-# Crossing into single digits is a strong predictor of pidbox failures
+# Log when the broker has fewer than this many free connection slots.
+# Running low on headroom is a strong predictor of pidbox failures
 # (e.g. the SSLEOFError seen on TLS Redis when new connections are
 # rejected mid-handshake under cap exhaustion).
-BROKER_CONNECTIONS_WARN_THRESHOLD = 10
+BROKER_CONNECTIONS_INFO_THRESHOLD = 20
 
 
 class TaskSentHandler(Thread):
@@ -128,8 +128,8 @@ class CeleryMetricsCollector(JobMetricsCollector):
 
         if "connected_clients" in stats and "maxclients" in stats:
             remaining = stats["maxclients"] - stats["connected_clients"]
-            if remaining < BROKER_CONNECTIONS_WARN_THRESHOLD:
-                logger.warning(
+            if remaining < BROKER_CONNECTIONS_INFO_THRESHOLD:
+                logger.info(
                     f"Broker is near its connection limit: "
                     f"{stats['connected_clients']}/{stats['maxclients']} "
                     f"connections in use ({remaining} remaining). "
