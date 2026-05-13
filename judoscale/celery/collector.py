@@ -98,7 +98,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
         # INFO call failed so the report doesn't carry stale numbers.
         if not self._broker_stats:
             return {}
-        return {"broker": dict(self._broker_stats)}
+        return {"celery-broker": dict(self._broker_stats)}
 
     def _refresh_broker_stats(self) -> None:
         """

@@ -381,7 +381,7 @@ class TestCeleryMetricsCollector:
 
         collector.collect()
         assert collector.report_metadata == {
-            "broker": {"connected_clients": 3, "maxclients": 40}
+            "celery-broker": {"connected_clients": 3, "maxclients": 40}
         }
         # Default fixture leaves 37 free connection slots, well above the
         # warn threshold, so no broker warning should be emitted.

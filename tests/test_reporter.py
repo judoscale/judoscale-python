@@ -139,7 +139,7 @@ class TestReporter:
         class _CollectorWithExtras(WebMetricsCollector):
             @property
             def report_metadata(self):
-                return {"broker": {"connected_clients": 31, "maxclients": 40}}
+                return {"celery-broker": {"connected_clients": 31, "maxclients": 40}}
 
         collector = _CollectorWithExtras(reporter.config)
         reporter.add_adapter(
@@ -156,7 +156,7 @@ class TestReporter:
         assert celery_entry["runtime_version"] == "5.6.3"
 
         assert report["metadata"] == {
-            "broker": {"connected_clients": 31, "maxclients": 40}
+            "celery-broker": {"connected_clients": 31, "maxclients": 40}
         }
 
     def test_build_report_omits_empty_collector_report_metadata(self, reporter):
