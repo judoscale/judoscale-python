@@ -164,7 +164,16 @@ class Reporter:
             "config": self.config.for_report,
             "adapters": dict(adapter.as_tuple for adapter in self.adapters),
             "metrics": [metric.as_tuple for metric in metrics],
+            "metadata": self._collect_report_metadata(),
         }
+
+    def _collect_report_metadata(self) -> dict:
+        """Merge `report_metadata` from all collectors into a flat dict."""
+        metadata = {}
+        for collector in self.collectors:
+            extra = getattr(collector, "report_metadata", None) or {}
+            metadata.update(extra)
+        return metadata
 
 
 reporter = Reporter(config=config)

@@ -35,10 +35,11 @@ class TestReporter:
         report = reporter._build_report([metric])
 
         assert sorted(list(report.keys())) == sorted(
-            ["adapters", "config", "container", "pid", "metrics"]
+            ["adapters", "config", "container", "pid", "metrics", "metadata"]
         )
         assert len(report["metrics"]) == 1
         assert report["metrics"][0] == (1355314320, 123, "test", None)
+        assert report["metadata"] == {}
 
     def test_no_explicit_adapter(self, reporter):
         assert len(reporter.adapters) == 1
@@ -132,6 +133,50 @@ class TestReporter:
         reporter._report_metrics()
 
         assert mock_post.call_count == 1
+
+    def test_build_report_includes_collector_report_metadata(self, reporter):
+        # Subclass so we can swap the property without fighting the descriptor.
+        class _CollectorWithExtras(WebMetricsCollector):
+            @property
+            def report_metadata(self):
+                return {"celery-broker": {"connected_clients": 31, "maxclients": 40}}
+
+        collector = _CollectorWithExtras(reporter.config)
+        reporter.add_adapter(
+            Adapter(
+                identifier="judoscale-celery",
+                adapter_info=AdapterInfo(runtime_version="5.6.3"),
+                metrics_collector=collector,
+            )
+        )
+
+        report = reporter._build_report([])
+
+        celery_entry = report["adapters"]["judoscale-celery"]
+        assert celery_entry["runtime_version"] == "5.6.3"
+
+        assert report["metadata"] == {
+            "celery-broker": {"connected_clients": 31, "maxclients": 40}
+        }
+
+    def test_build_report_omits_empty_collector_report_metadata(self, reporter):
+        collector = WebMetricsCollector(reporter.config)
+        reporter.add_adapter(
+            Adapter(
+                identifier="judoscale-celery",
+                adapter_info=AdapterInfo(runtime_version="5.6.3"),
+                metrics_collector=collector,
+            )
+        )
+
+        report = reporter._build_report([])
+
+        celery_entry = report["adapters"]["judoscale-celery"]
+        assert celery_entry == {
+            "runtime_version": "5.6.3",
+            "adapter_version": celery_entry["adapter_version"],
+        }
+        assert report["metadata"] == {}
 
     def test_all_metrics_continues_when_one_collector_raises(
         self, reporter, caplog

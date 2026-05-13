@@ -13,6 +13,9 @@ class Collector(Protocol):
     @property
     def should_collect(self) -> bool: ...
 
+    @property
+    def report_metadata(self) -> dict: ...
+
 
 class MetricsCollector:
     def __init__(self, config: Config):
@@ -21,6 +24,11 @@ class MetricsCollector:
     @property
     def should_collect(self) -> bool:
         return self.config.is_enabled
+
+    @property
+    def report_metadata(self) -> dict:
+        """Fields to merge into the report's top-level `metadata` block."""
+        return {}
 
 
 class WebMetricsCollector(MetricsCollector):
