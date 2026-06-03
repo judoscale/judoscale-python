@@ -102,6 +102,10 @@ class TestJobMetricsCollector:
         monkeypatch.setattr(JobMetricsCollector, "adapter_config", {"ENABLED": True})
         assert not JobMetricsCollector(heroku_worker_2).should_collect
 
+    def test_should_not_collect_scalingo_worker_2(self, scalingo_worker_2, monkeypatch):
+        monkeypatch.setattr(JobMetricsCollector, "adapter_config", {"ENABLED": True})
+        assert not JobMetricsCollector(scalingo_worker_2).should_collect
+
     def test_limit_max_queues_under_limit(self, web_1, monkeypatch):
         monkeypatch.setattr(JobMetricsCollector, "adapter_config", {"MAX_QUEUES": 2})
         collector = JobMetricsCollector(web_1)

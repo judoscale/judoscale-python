@@ -82,6 +82,18 @@ class TestConfig:
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
+    def test_on_scalingo(self):
+        fake_env = {
+            "CONTAINER": "web-1",
+            "JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890",
+            "LOG_LEVEL": "WARN",
+        }
+        config = Config.initialize(fake_env)
+
+        assert config["RUNTIME_CONTAINER"] == "web-1"
+        assert config["LOG_LEVEL"] == "WARN"
+        assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
+
     def test_on_custom(self):
         fake_env = {
             "JUDOSCALE_CONTAINER": "my-custom-container",
@@ -198,9 +210,30 @@ class TestConfig:
 
 
 class TestRuntimeContainer:
-    def test_is_redundant_instance(self):
-        container = RuntimeContainer("web.2")
-        assert container.is_redundant_instance
+    @pytest.mark.parametrize(
+        "container_id",
+        ["web.1", "worker.1", "custom_name.1", "web-1", "worker-1", "tcp-1"],
+    )
+    def test_is_not_redundant_instance(self, container_id):
+        assert not RuntimeContainer(container_id).is_redundant_instance
+
+    @pytest.mark.parametrize(
+        "container_id",
+        ["web.2", "worker.8", "custom_name.15", "web-2", "worker-8", "tcp-2"],
+    )
+    def test_is_redundant_instance(self, container_id):
+        assert RuntimeContainer(container_id).is_redundant_instance
+
+    @pytest.mark.parametrize(
+        "container_id",
+        [
+            "5497f74465-m5wwr",
+            "a8880ee042bc4db3ba878dce65b769b6-2750272591",
+            "abcdef-2750272591",
+        ],
+    )
+    def test_opaque_container_ids_are_not_redundant(self, container_id):
+        assert not RuntimeContainer(container_id).is_redundant_instance
 
     def test_is_release_instance(self):
         container = RuntimeContainer("release.1")
@@ -209,10 +242,6 @@ class TestRuntimeContainer:
     def test_is_release_instance_2(self):
         container = RuntimeContainer("release.2")
         assert container.is_release_instance
-
-    def test_is_not_redundant_instance(self):
-        container = RuntimeContainer("web.1")
-        assert not container.is_redundant_instance
 
     def test_string_representation(self):
         container = RuntimeContainer("web.1")

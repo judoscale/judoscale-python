@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from collections import UserDict
 from typing import Mapping
 
@@ -9,10 +10,15 @@ DEFAULTS = {"REPORT_INTERVAL_SECONDS": 10, "LOG_LEVEL": "WARN"}
 
 
 class RuntimeContainer(str):
+    # Job metrics are collected from a single container per process type when we
+    # can identify the ordinal instance (Heroku "web.2", Scalingo "web-2").
+    # Opaque IDs (Render, ECS, Railway, etc.) are always non-redundant.
+    ORDINAL_CONTAINER = re.compile(r"\A[a-z_]+[.-](\d{1,3})\Z")
+
     @property
     def is_redundant_instance(self):
-        instance_number = self.split(".")[-1]
-        return instance_number.isdigit() and int(instance_number) > 1
+        match = self.ORDINAL_CONTAINER.match(self)
+        return bool(match) and int(match.group(1)) > 1
 
     @property
     def is_release_instance(self):
@@ -56,6 +62,9 @@ class Config(UserDict):
             container = env["FLY_MACHINE_ID"]
         elif env.get("RAILWAY_REPLICA_ID"):
             container = env["RAILWAY_REPLICA_ID"]
+        elif env.get("CONTAINER"):
+            # Scalingo exposes the container type and index (e.g. "web-1").
+            container = env["CONTAINER"]
         else:
             container = ""
 
