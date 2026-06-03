@@ -19,30 +19,33 @@ class TestConfig:
 
     def test_on_render(self):
         fake_env = {
-            "RENDER_SERVICE_ID": "srv-123",
-            "RENDER_INSTANCE_ID": "srv-123-abc-456",
+            "RENDER_SERVICE_ID": "srv-cretl9aj1k6c73a9b6lg",
+            "RENDER_INSTANCE_ID": "srv-cretl9aj1k6c73a9b6lg-5c686f7df6-kb6kj",
             "RENDER_SERVICE_TYPE": "web",
             "JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890",
             "LOG_LEVEL": "WARN",
         }
         config = Config.initialize(fake_env)
 
-        assert config["RUNTIME_CONTAINER"] == "abc-456"
+        assert config["RUNTIME_CONTAINER"] == "5c686f7df6-kb6kj"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
     def test_on_render_legacy(self):
         fake_env = {
-            "RENDER_SERVICE_ID": "srv-123",
-            "RENDER_INSTANCE_ID": "srv-123-abc-456",
+            "RENDER_SERVICE_ID": "srv-cretl9aj1k6c73a9b6lg",
+            "RENDER_INSTANCE_ID": "srv-cretl9aj1k6c73a9b6lg-5c686f7df6-kb6kj",
             "RENDER_SERVICE_TYPE": "web",
             "LOG_LEVEL": "WARN",
         }
         config = Config.initialize(fake_env)
 
-        assert config["RUNTIME_CONTAINER"] == "abc-456"
+        assert config["RUNTIME_CONTAINER"] == "5c686f7df6-kb6kj"
         assert config["LOG_LEVEL"] == "WARN"
-        assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/srv-123"
+        assert (
+            config["API_BASE_URL"]
+            == "https://adapter.judoscale.com/api/srv-cretl9aj1k6c73a9b6lg"
+        )
 
     def test_on_ecs(self):
         fake_env = {
@@ -230,6 +233,8 @@ class TestRuntimeContainer:
             "5497f74465-m5wwr",
             "a8880ee042bc4db3ba878dce65b769b6-2750272591",
             "abcdef-2750272591",
+            "5c686f7df6-kb6kj",  # realistic Render container id
+            "5c686f7df6-2dptk",  # Render id with a digit-leading suffix
         ],
     )
     def test_opaque_container_ids_are_not_redundant(self, container_id):

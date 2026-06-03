@@ -40,15 +40,19 @@ def heroku_worker_2(monkeypatch):
 
 @fixture
 def render_web(monkeypatch):
-    monkeypatch.setenv("RENDER_SERVICE_ID", "srv-123")
-    monkeypatch.setenv("RENDER_INSTANCE_ID", "srv-123-abc-def")
+    monkeypatch.setenv("RENDER_SERVICE_ID", "srv-cretl9aj1k6c73a9b6lg")
+    monkeypatch.setenv(
+        "RENDER_INSTANCE_ID", "srv-cretl9aj1k6c73a9b6lg-5c686f7df6-kb6kj"
+    )
     return Config.initialize()
 
 
 @fixture
 def render_worker(monkeypatch):
-    monkeypatch.setenv("RENDER_SERVICE_ID", "srv-123")
-    monkeypatch.setenv("RENDER_INSTANCE_ID", "srv-123-abc-def")
+    monkeypatch.setenv("RENDER_SERVICE_ID", "srv-cretl9aj1k6c73a9b6lg")
+    monkeypatch.setenv(
+        "RENDER_INSTANCE_ID", "srv-cretl9aj1k6c73a9b6lg-5c686f7df6-2dptk"
+    )
     return Config.initialize()
 
 
