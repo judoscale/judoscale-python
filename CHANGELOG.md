@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.4](https://github.com/judoscale/judoscale-python/compare/v1.13.3...v1.13.4) (2026-06-03)
+
+
+### Bug Fixes
+
+* Read Scalingo container identity from CONTAINER env var ([#136](https://github.com/judoscale/judoscale-python/issues/136)) ([7ed2975](https://github.com/judoscale/judoscale-python/commit/7ed2975ade397dc6d940faf7c9a1ff6e3ac812c8))
+
 ## [1.13.3](https://github.com/judoscale/judoscale-python/compare/v1.13.2...v1.13.3) (2026-05-13)
 
 
