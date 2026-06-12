@@ -8,9 +8,9 @@ class Platform:
 
     The container/instance id is just one property of the platform — behavior
     that only applies to certain platforms (whether an instance is a redundant
-    member of a formation, a release/build instance, or a one-off task) lives on
-    the platform subclasses that actually have those concepts, instead of being
-    re-derived from the shape of the container string.
+    member of a formation or an ephemeral process) lives on the platform
+    subclasses that actually have those concepts, instead of being re-derived
+    from the shape of the container string.
     """
 
     def __init__(self, container):
@@ -24,15 +24,9 @@ class Platform:
         return False
 
     @property
-    def is_release_instance(self) -> bool:
-        """Only Heroku has a release/build phase, so by default no instance is a
-        release instance."""
-        return False
-
-    @property
-    def is_one_off_instance(self) -> bool:
-        """Most platforms do not expose one-off task containers. Platforms that
-        have those concepts override this."""
+    def is_ephemeral_instance(self) -> bool:
+        """Most platforms do not expose release or one-off task containers.
+        Platforms that have those concepts override this."""
         return False
 
     @property
@@ -77,14 +71,12 @@ class Heroku(Platform):
         return int(match.group(1)) > 1 if match else False
 
     @property
-    def is_release_instance(self) -> bool:
-        # Heroku release-phase dynos are named "release.1234".
-        return self.container.lower().startswith("release")
-
-    @property
-    def is_one_off_instance(self) -> bool:
-        # Heroku one-off dynos are named "run.1234".
-        return self.container.startswith("run.")
+    def is_ephemeral_instance(self) -> bool:
+        # Heroku release phase and one-off dynos are named
+        # "release.1234" and "run.1234".
+        is_release = self.container.lower().startswith("release.")
+        is_one_off = self.container.startswith("run.")
+        return is_release or is_one_off
 
 
 class Scalingo(Platform):
@@ -97,7 +89,7 @@ class Scalingo(Platform):
         return int(match.group(1)) > 1 if match else False
 
     @property
-    def is_one_off_instance(self) -> bool:
+    def is_ephemeral_instance(self) -> bool:
         # Scalingo one-off containers are named "one-off-1234".
         return self.container.startswith("one-off-")
 

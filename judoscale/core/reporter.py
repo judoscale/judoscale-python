@@ -52,12 +52,8 @@ class Reporter:
             logger.info("Reporter not started: API_BASE_URL not set")
             return
 
-        if self.config["PLATFORM"].is_release_instance:
-            logger.info("Reporter not started: in a build process")
-            return
-
-        if self.config["PLATFORM"].is_one_off_instance:
-            logger.info("Reporter not started: in a one-off container")
+        if self.config["PLATFORM"].is_ephemeral_instance:
+            logger.info("Reporter not started: in an ephemeral container")
             return
 
         logger.info(f"Starting reporter for process {self.pid}")
