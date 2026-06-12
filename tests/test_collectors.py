@@ -373,9 +373,7 @@ class TestCeleryMetricsCollector:
         assert metrics[1].queue_name == "foo"
         assert metrics[1].value == approx(60000, abs=100)
 
-    def test_report_metadata_populates_after_collect(
-        self, worker_1, celery, caplog
-    ):
+    def test_report_metadata_populates_after_collect(self, worker_1, celery, caplog):
         import logging
 
         caplog.set_level(logging.INFO, logger="judoscale")
@@ -418,9 +416,7 @@ class TestCeleryMetricsCollector:
         collector.collect()
         assert collector.report_metadata == {}
 
-    def test_logs_when_broker_near_connection_limit(
-        self, worker_1, celery, caplog
-    ):
+    def test_logs_when_broker_near_connection_limit(self, worker_1, celery, caplog):
         import logging
 
         caplog.set_level(logging.INFO, logger="judoscale")
