@@ -52,7 +52,7 @@ class Reporter:
             logger.info("Reporter not started: API_BASE_URL not set")
             return
 
-        if self.config["RUNTIME_CONTAINER"].is_release_instance:
+        if self.config["PLATFORM"].is_release_instance:
             logger.info("Reporter not started: in a build process")
             return
 
@@ -159,7 +159,7 @@ class Reporter:
 
     def _build_report(self, metrics: List[Metric]):
         return {
-            "container": str(self.config["RUNTIME_CONTAINER"]),
+            "container": self.config["PLATFORM"].container,
             "pid": self.pid,
             "config": self.config.for_report,
             "adapters": dict(adapter.as_tuple for adapter in self.adapters),

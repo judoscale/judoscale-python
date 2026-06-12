@@ -1,38 +1,19 @@
 import logging
 import os
-import re
 from collections import UserDict
 from typing import Mapping
 
 from judoscale.core.logger import logger
+from judoscale.core.platform import Platform
 
 DEFAULTS = {"REPORT_INTERVAL_SECONDS": 10, "LOG_LEVEL": "WARN"}
 
 
-class RuntimeContainer(str):
-    # Job metrics are collected from a single container per process type when we
-    # can identify the ordinal instance (Heroku "web.2", Scalingo "web-2").
-    # Opaque IDs (Render, ECS, Railway, etc.) are always non-redundant.
-    ORDINAL_CONTAINER = re.compile(r"\A[a-z_]+[.-](\d{1,3})\Z")
-
-    @property
-    def is_redundant_instance(self):
-        match = self.ORDINAL_CONTAINER.match(self)
-        return bool(match) and int(match.group(1)) > 1
-
-    @property
-    def is_release_instance(self):
-        # NOTE: this is currently Heroku-specific. We may need to update this
-        # for other platforms in the future and possibly move it to the Config
-        # module.
-        return self.lower().startswith("release")
-
-
 class Config(UserDict):
-    def __init__(self, runtime_container: RuntimeContainer, env: Mapping):
+    def __init__(self, platform: Platform, env: Mapping):
         initialdata = dict(
             DEFAULTS,
-            RUNTIME_CONTAINER=runtime_container,
+            PLATFORM=platform,
             API_BASE_URL=env.get("JUDOSCALE_URL"),
         )
 
@@ -44,37 +25,17 @@ class Config(UserDict):
             "JUDOSCALE_LOG_LEVEL", env.get("LOG_LEVEL", initialdata["LOG_LEVEL"])
         )
 
+        # Legacy Render services not using JUDOSCALE_URL derive the API url from
+        # the platform.
+        if not initialdata["API_BASE_URL"]:
+            initialdata["API_BASE_URL"] = platform.default_api_base_url
+
         super().__init__(initialdata)
         self._prepare_logging()
 
     @classmethod
     def initialize(cls, env: Mapping = os.environ):
-        if env.get("JUDOSCALE_CONTAINER"):
-            container = env["JUDOSCALE_CONTAINER"]
-        elif env.get("DYNO"):
-            container = env["DYNO"]
-        elif env.get("RENDER_INSTANCE_ID"):
-            service_id = env.get("RENDER_SERVICE_ID")
-            container = env["RENDER_INSTANCE_ID"].replace(f"{service_id}-", "")
-        elif env.get("ECS_CONTAINER_METADATA_URI"):
-            container = env["ECS_CONTAINER_METADATA_URI"].split("/")[-1]
-        elif env.get("FLY_MACHINE_ID"):
-            container = env["FLY_MACHINE_ID"]
-        elif env.get("RAILWAY_REPLICA_ID"):
-            container = env["RAILWAY_REPLICA_ID"]
-        elif env.get("CONTAINER"):
-            # Scalingo exposes the container type and index (e.g. "web-1").
-            container = env["CONTAINER"]
-        else:
-            container = ""
-
-        config = cls(RuntimeContainer(container), env)
-
-        # Render legacy support: fall back to constructing URL from service ID
-        if not config["API_BASE_URL"] and env.get("RENDER_SERVICE_ID"):
-            config["API_BASE_URL"] = f"https://adapter.judoscale.com/api/{env['RENDER_SERVICE_ID']}"
-
-        return config
+        return cls(Platform.detect(env), env)
 
     @property
     def is_enabled(self) -> bool:

@@ -1,6 +1,17 @@
 import pytest
 
-from judoscale.core.config import Config, RuntimeContainer
+from judoscale.core.config import Config
+from judoscale.core.platform import (
+    Custom,
+    Ecs,
+    Fly,
+    Heroku,
+    Platform,
+    Railway,
+    Render,
+    Scalingo,
+    Unknown,
+)
 from judoscale.django.redis import RedisHelper
 
 
@@ -13,7 +24,7 @@ class TestConfig:
         }
         config = Config.initialize(fake_env)
 
-        assert config["RUNTIME_CONTAINER"] == "web.1"
+        assert config["PLATFORM"].container == "web.1"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
@@ -27,7 +38,7 @@ class TestConfig:
         }
         config = Config.initialize(fake_env)
 
-        assert config["RUNTIME_CONTAINER"] == "5c686f7df6-kb6kj"
+        assert config["PLATFORM"].container == "5c686f7df6-kb6kj"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
@@ -40,12 +51,13 @@ class TestConfig:
         }
         config = Config.initialize(fake_env)
 
-        assert config["RUNTIME_CONTAINER"] == "5c686f7df6-kb6kj"
+        assert config["PLATFORM"].container == "5c686f7df6-kb6kj"
         assert config["LOG_LEVEL"] == "WARN"
         assert (
             config["API_BASE_URL"]
             == "https://adapter.judoscale.com/api/srv-cretl9aj1k6c73a9b6lg"
         )
+        assert config.is_enabled
 
     def test_on_ecs(self):
         fake_env = {
@@ -55,7 +67,7 @@ class TestConfig:
         }
         config = Config.initialize(fake_env)
 
-        assert config["RUNTIME_CONTAINER"] == "a8880ee042bc4db3ba878dce65b769b6-2750272591"
+        assert config["PLATFORM"].container == "a8880ee042bc4db3ba878dce65b769b6-2750272591"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
@@ -68,7 +80,7 @@ class TestConfig:
         }
         config = Config.initialize(fake_env)
 
-        assert config["RUNTIME_CONTAINER"] == "683d924b322418"
+        assert config["PLATFORM"].container == "683d924b322418"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
@@ -81,7 +93,7 @@ class TestConfig:
         }
         config = Config.initialize(fake_env)
 
-        assert config["RUNTIME_CONTAINER"] == "f9c88b6e-0e96-46f2-9884-ece3bf53d009"
+        assert config["PLATFORM"].container == "f9c88b6e-0e96-46f2-9884-ece3bf53d009"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
@@ -93,7 +105,7 @@ class TestConfig:
         }
         config = Config.initialize(fake_env)
 
-        assert config["RUNTIME_CONTAINER"] == "web-1"
+        assert config["PLATFORM"].container == "web-1"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
@@ -104,7 +116,7 @@ class TestConfig:
         }
         config = Config.initialize(fake_env)
 
-        assert config["RUNTIME_CONTAINER"] == "my-custom-container"
+        assert config["PLATFORM"].container == "my-custom-container"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
@@ -116,13 +128,13 @@ class TestConfig:
         }
         config = Config.initialize(fake_env)
 
-        assert config["RUNTIME_CONTAINER"] == "my-custom-container"
+        assert config["PLATFORM"].container == "my-custom-container"
 
     def test_on_unknown(self):
         fake_env = {"JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890"}
         config = Config.initialize(fake_env)
 
-        assert config["RUNTIME_CONTAINER"] == ""
+        assert config["PLATFORM"].container == ""
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
@@ -135,15 +147,15 @@ class TestConfig:
         }
         config = Config.initialize(fake_env)
 
-        assert config["RUNTIME_CONTAINER"] == "web.1"
+        assert config["PLATFORM"].container == "web.1"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://api.example.com"
 
     def test_is_enabled(self):
-        config = Config(RuntimeContainer(""), {})
+        config = Config(Unknown(""), {})
         assert not config.is_enabled
 
-        config = Config(RuntimeContainer(""), {"JUDOSCALE_URL": "https://some-url.com"})
+        config = Config(Unknown(""), {"JUDOSCALE_URL": "https://some-url.com"})
         assert config.is_enabled
 
     def test_for_report(self):
@@ -174,7 +186,7 @@ class TestConfig:
         }
         config = Config.initialize(fake_env)
         assert config["API_BASE_URL"] == "https://api.example.com"
-        assert config["RUNTIME_CONTAINER"] == "worker.1"
+        assert config["PLATFORM"].container == "worker.1"
         assert config["LOG_LEVEL"] == "WARN"
         assert config["REPORT_INTERVAL_SECONDS"] == 10
 
@@ -212,45 +224,83 @@ class TestConfig:
         assert config["REPORT_INTERVAL_SECONDS"] == 20
 
 
-class TestRuntimeContainer:
-    @pytest.mark.parametrize(
-        "container_id",
-        ["web.1", "worker.1", "custom_name.1", "web-1", "worker-1", "tcp-1"],
-    )
-    def test_is_not_redundant_instance(self, container_id):
-        assert not RuntimeContainer(container_id).is_redundant_instance
+class TestPlatform:
+    def test_detects_the_platform_from_env_with_custom_winning(self):
+        # An explicit JUDOSCALE_CONTAINER always wins over platform vars.
+        assert isinstance(
+            Platform.detect({"JUDOSCALE_CONTAINER": "x", "DYNO": "web.1"}), Custom
+        )
+        assert isinstance(Platform.detect({"DYNO": "web.1"}), Heroku)
+        assert isinstance(
+            Platform.detect(
+                {"RENDER_INSTANCE_ID": "srv-x-abc", "RENDER_SERVICE_ID": "srv-x"}
+            ),
+            Render,
+        )
+        assert isinstance(
+            Platform.detect(
+                {"ECS_CONTAINER_METADATA_URI": "http://169.254.170.2/v3/abc"}
+            ),
+            Ecs,
+        )
+        assert isinstance(Platform.detect({"FLY_MACHINE_ID": "683d924b322418"}), Fly)
+        assert isinstance(Platform.detect({"RAILWAY_REPLICA_ID": "f9c88b6e"}), Railway)
+        assert isinstance(Platform.detect({"CONTAINER": "web-1"}), Scalingo)
+        assert isinstance(Platform.detect({}), Unknown)
 
-    @pytest.mark.parametrize(
-        "container_id",
-        ["web.2", "worker.8", "custom_name.15", "web-2", "worker-8", "tcp-2"],
-    )
-    def test_is_redundant_instance(self, container_id):
-        assert RuntimeContainer(container_id).is_redundant_instance
+    def test_treats_only_ordinals_beyond_the_first_as_redundant(self):
+        assert not Heroku("web.1").is_redundant_instance
+        assert not Heroku("custom_name.1").is_redundant_instance
+        assert Heroku("web.2").is_redundant_instance
+        assert Heroku("custom_name.15").is_redundant_instance
+        assert not Scalingo("web-1").is_redundant_instance
+        assert not Scalingo("tcp-1").is_redundant_instance
+        assert Scalingo("web-2").is_redundant_instance
+        assert Scalingo("tcp-2").is_redundant_instance
+        # No 3-digit cap — formations with 1000+ instances are still redundant.
+        assert Heroku("web.1000").is_redundant_instance
+        assert Scalingo("worker-1024").is_redundant_instance
 
-    @pytest.mark.parametrize(
-        "container_id",
-        [
-            "5497f74465-m5wwr",
-            "a8880ee042bc4db3ba878dce65b769b6-2750272591",
-            "abcdef-2750272591",
-            "5c686f7df6-kb6kj",  # realistic Render container id
-            "5c686f7df6-2dptk",  # Render id with a digit-leading suffix
-        ],
-    )
-    def test_opaque_container_ids_are_not_redundant(self, container_id):
-        assert not RuntimeContainer(container_id).is_redundant_instance
+    def test_never_treats_opaque_id_platforms_as_redundant(self):
+        assert not Render(
+            "5497f74465-m5wwr", service_id="srv-x"
+        ).is_redundant_instance
+        # Realistic Render container id with a digit-leading suffix.
+        assert not Render(
+            "srv-x-5c686f7df6-2dptk", service_id="srv-x"
+        ).is_redundant_instance
+        assert not Ecs(
+            "a8880ee042bc4db3ba878dce65b769b6-2750272591"
+        ).is_redundant_instance
+        assert not Fly("683d924b322418").is_redundant_instance
+        assert not Railway(
+            "f9c88b6e-0e96-46f2-9884-ece3bf53d009"
+        ).is_redundant_instance
+        assert not Custom("abcdef-2750272591").is_redundant_instance
+        assert not Unknown("").is_redundant_instance
 
-    def test_is_release_instance(self):
-        container = RuntimeContainer("release.1")
-        assert container.is_release_instance
+    def test_only_heroku_release_dynos_are_release_instances(self):
+        assert Heroku("release.1").is_release_instance
+        assert Heroku("release.2").is_release_instance
+        assert not Heroku("web.1").is_release_instance
+        assert not Scalingo("web-1").is_release_instance
+        assert not Unknown("").is_release_instance
 
-    def test_is_release_instance_2(self):
-        container = RuntimeContainer("release.2")
-        assert container.is_release_instance
+    def test_strips_the_service_id_prefix_from_the_render_instance_id(self):
+        assert (
+            Render("srv-x-5497f74465-m5wwr", service_id="srv-x").container
+            == "5497f74465-m5wwr"
+        )
 
-    def test_string_representation(self):
-        container = RuntimeContainer("web.1")
-        assert str(container) == "web.1"
+    def test_lets_legacy_render_services_derive_the_api_url_from_the_service_id(self):
+        assert (
+            Render("abc", service_id="srv-x").default_api_base_url
+            == "https://adapter.judoscale.com/api/srv-x"
+        )
+        assert Heroku("web.1").default_api_base_url is None
+
+    def test_container_is_stringified(self):
+        assert Heroku("web.1").container == "web.1"
 
 
 class TestRedisHelper:

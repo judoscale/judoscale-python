@@ -40,6 +40,7 @@ def heroku_worker_2(monkeypatch):
 
 @fixture
 def render_web(monkeypatch):
+    monkeypatch.setenv("JUDOSCALE_URL", "https://api.example.com")
     monkeypatch.setenv("RENDER_SERVICE_ID", "srv-cretl9aj1k6c73a9b6lg")
     monkeypatch.setenv(
         "RENDER_INSTANCE_ID", "srv-cretl9aj1k6c73a9b6lg-5c686f7df6-kb6kj"
@@ -49,6 +50,7 @@ def render_web(monkeypatch):
 
 @fixture
 def render_worker(monkeypatch):
+    monkeypatch.setenv("JUDOSCALE_URL", "https://api.example.com")
     monkeypatch.setenv("RENDER_SERVICE_ID", "srv-cretl9aj1k6c73a9b6lg")
     monkeypatch.setenv(
         "RENDER_INSTANCE_ID", "srv-cretl9aj1k6c73a9b6lg-5c686f7df6-2dptk"
