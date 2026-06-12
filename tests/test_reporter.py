@@ -27,6 +27,13 @@ def reporter_in_release(heroku_release_1):
     reporter.stop()
 
 
+@fixture(params=["heroku_run_1234", "scalingo_one_off_1234"])
+def reporter_in_one_off(request):
+    reporter = Reporter(request.getfixturevalue(request.param))
+    yield reporter
+    reporter.stop()
+
+
 class TestReporter:
     def test_build_report(self, reporter):
         dt = datetime.fromisoformat("2012-12-12T12:12:00+00:00")
@@ -108,6 +115,19 @@ class TestReporter:
         for record in caplog.records:
             assert record.levelname == "INFO"
             assert "Reporter not started: in a build process" in record.message
+
+    def test_start_in_one_off_container(self, reporter_in_one_off, caplog):
+        caplog.set_level(logging.INFO, logger="judoscale")
+
+        assert reporter_in_one_off.config.is_enabled
+        reporter_in_one_off.ensure_running()
+        assert not reporter_in_one_off.is_running
+
+        assert any(
+            record.levelname == "INFO"
+            and "Reporter not started: in a one-off container" in record.message
+            for record in caplog.records
+        )
 
     @patch.object(time, "sleep")
     @patch.object(requests, "post")

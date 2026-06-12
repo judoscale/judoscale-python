@@ -286,6 +286,13 @@ class TestPlatform:
         assert not Scalingo("web-1").is_release_instance
         assert not Unknown("").is_release_instance
 
+    def test_treats_heroku_and_scalingo_one_off_containers_as_one_off(self):
+        assert Heroku("run.1234").is_one_off_instance
+        assert Scalingo("one-off-1234").is_one_off_instance
+        assert not Heroku("web.1").is_one_off_instance
+        assert not Scalingo("web-1").is_one_off_instance
+        assert not Unknown("").is_one_off_instance
+
     def test_strips_the_service_id_prefix_from_the_render_instance_id(self):
         assert (
             Render("srv-x-5497f74465-m5wwr", service_id="srv-x").container

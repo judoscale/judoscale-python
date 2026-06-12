@@ -56,6 +56,10 @@ class Reporter:
             logger.info("Reporter not started: in a build process")
             return
 
+        if self.config["PLATFORM"].is_one_off_instance:
+            logger.info("Reporter not started: in a one-off container")
+            return
+
         logger.info(f"Starting reporter for process {self.pid}")
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()

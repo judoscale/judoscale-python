@@ -11,6 +11,13 @@ def heroku_release_1(monkeypatch):
 
 
 @fixture
+def heroku_run_1234(monkeypatch):
+    monkeypatch.setenv("JUDOSCALE_URL", "https://api.example.com")
+    monkeypatch.setenv("DYNO", "run.1234")
+    return Config.initialize()
+
+
+@fixture
 def heroku_web_1(monkeypatch):
     monkeypatch.setenv("JUDOSCALE_URL", "https://api.example.com")
     monkeypatch.setenv("DYNO", "web.1")
@@ -83,6 +90,13 @@ def scalingo_worker_1(monkeypatch):
 def scalingo_worker_2(monkeypatch):
     monkeypatch.setenv("JUDOSCALE_URL", "https://api.example.com")
     monkeypatch.setenv("CONTAINER", "worker-2")
+    return Config.initialize()
+
+
+@fixture
+def scalingo_one_off_1234(monkeypatch):
+    monkeypatch.setenv("JUDOSCALE_URL", "https://api.example.com")
+    monkeypatch.setenv("CONTAINER", "one-off-1234")
     return Config.initialize()
 
 
