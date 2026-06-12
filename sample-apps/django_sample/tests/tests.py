@@ -3,7 +3,8 @@ from unittest import TestCase
 
 from django.test import Client
 
-from judoscale.core.config import config, RuntimeContainer
+from judoscale.core.config import config
+from judoscale.core.platform import Heroku
 from judoscale.core.reporter import reporter
 from judoscale.core.utilization_tracker import utilization_tracker
 
@@ -14,7 +15,7 @@ client = Client()
 
 class TestApp(TestCase):
     def setUp(self):
-        config["RUNTIME_CONTAINER"] = RuntimeContainer("web.1")
+        config["PLATFORM"] = Heroku("web.1")
 
     def tearDown(self):
         # flush metrics to avoid them leaking to other tests

@@ -4,7 +4,8 @@ import unittest
 from app.main import create_app
 from fastapi.testclient import TestClient
 
-from judoscale.core.config import config, RuntimeContainer
+from judoscale.core.config import config
+from judoscale.core.platform import Heroku
 from judoscale.core.reporter import reporter
 from judoscale.core.utilization_tracker import utilization_tracker
 
@@ -16,7 +17,7 @@ client = TestClient(app)
 
 class BasicTests(unittest.TestCase):
     def setUp(self):
-        config["RUNTIME_CONTAINER"] = RuntimeContainer("web.1")
+        config["PLATFORM"] = Heroku("web.1")
 
     def tearDown(self):
         # flush metrics to avoid them leaking to other tests

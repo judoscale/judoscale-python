@@ -83,7 +83,7 @@ class JobMetricsCollector(MetricsCollector):
         return (
             super().should_collect
             and self.adapter_config["ENABLED"]
-            and not self.config["RUNTIME_CONTAINER"].is_redundant_instance
+            and not self.config["PLATFORM"].is_redundant_instance
         )
 
     def limit_max_queues(self, queues: List[str]) -> Set[str]:
