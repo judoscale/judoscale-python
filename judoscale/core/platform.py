@@ -74,8 +74,9 @@ class Heroku(Platform):
     def is_ephemeral_instance(self) -> bool:
         # Heroku release phase and one-off dynos are named
         # "release.1234" and "run.1234".
-        is_release = self.container.lower().startswith("release.")
-        is_one_off = self.container.startswith("run.")
+        container = self.container.lower()
+        is_release = container.startswith("release.")
+        is_one_off = container.startswith("run.")
         return is_release or is_one_off
 
 

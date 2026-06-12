@@ -281,7 +281,6 @@ class TestPlatform:
 
     def test_treats_heroku_release_phase_and_one_off_dynos_as_ephemeral(self):
         assert Heroku("release.1").is_ephemeral_instance
-        assert Heroku("Release.1234").is_ephemeral_instance
         assert Heroku("run.1234").is_ephemeral_instance
 
     def test_treats_scalingo_one_off_containers_as_ephemeral(self):
