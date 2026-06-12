@@ -8,7 +8,7 @@ class Platform:
 
     The container/instance id is just one property of the platform — behavior
     that only applies to certain platforms (whether an instance is a redundant
-    member of a formation, or a release/build instance) lives on the platform
+    member of a formation or an ephemeral process) lives on the platform
     subclasses that actually have those concepts, instead of being re-derived
     from the shape of the container string.
     """
@@ -24,9 +24,9 @@ class Platform:
         return False
 
     @property
-    def is_release_instance(self) -> bool:
-        """Only Heroku has a release/build phase, so by default no instance is a
-        release instance."""
+    def is_ephemeral_instance(self) -> bool:
+        """Most platforms do not expose release or one-off task containers.
+        Platforms that have those concepts override this."""
         return False
 
     @property
@@ -71,9 +71,13 @@ class Heroku(Platform):
         return int(match.group(1)) > 1 if match else False
 
     @property
-    def is_release_instance(self) -> bool:
-        # Heroku release-phase dynos are named "release.1234".
-        return self.container.lower().startswith("release")
+    def is_ephemeral_instance(self) -> bool:
+        # Heroku release phase and one-off dynos are named
+        # "release.1234" and "run.1234".
+        container = self.container.lower()
+        is_release = container.startswith("release.")
+        is_one_off = container.startswith("run.")
+        return is_release or is_one_off
 
 
 class Scalingo(Platform):
@@ -84,6 +88,11 @@ class Scalingo(Platform):
     def is_redundant_instance(self) -> bool:
         match = self._ORDINAL.fullmatch(self.container)
         return int(match.group(1)) > 1 if match else False
+
+    @property
+    def is_ephemeral_instance(self) -> bool:
+        # Scalingo one-off containers are named "one-off-1234".
+        return self.container.startswith("one-off-")
 
 
 class Render(Platform):
