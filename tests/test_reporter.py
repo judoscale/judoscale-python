@@ -113,7 +113,9 @@ class TestReporter:
 
     @patch.object(time, "sleep")
     @patch.object(requests, "post")
-    def test_retries_transient_errors(self, mock_post, mock_sleep, reporter):
+    def test_retries_transient_errors(
+        self, mock_post, mock_sleep, reporter
+    ):
         mock_post.side_effect = [
             requests.ConnectionError("Connection refused"),
             MagicMock(status_code=200),
@@ -125,7 +127,9 @@ class TestReporter:
 
     @patch.object(time, "sleep")
     @patch.object(requests, "post")
-    def test_does_not_retry_non_transient_errors(self, mock_post, mock_sleep, reporter):
+    def test_does_not_retry_non_transient_errors(
+        self, mock_post, mock_sleep, reporter
+    ):
         mock_post.side_effect = requests.HTTPError("500 Server Error")
 
         reporter._report_metrics()
@@ -176,7 +180,9 @@ class TestReporter:
         }
         assert report["metadata"] == {}
 
-    def test_all_metrics_continues_when_one_collector_raises(self, reporter, caplog):
+    def test_all_metrics_continues_when_one_collector_raises(
+        self, reporter, caplog
+    ):
         caplog.set_level(logging.ERROR, logger="judoscale")
 
         failing_collector = WebMetricsCollector(reporter.config)
@@ -203,7 +209,8 @@ class TestReporter:
 
         assert len(metrics) == 1
         assert any(
-            "failed to collect metrics" in record.message for record in caplog.records
+            "failed to collect metrics" in record.message
+            for record in caplog.records
         )
 
     @patch.object(time, "sleep")
@@ -226,5 +233,6 @@ class TestReporter:
 
         assert call_count["n"] >= 2
         assert any(
-            "Reporter cycle failed" in record.message for record in caplog.records
+            "Reporter cycle failed" in record.message
+            for record in caplog.records
         )

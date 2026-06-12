@@ -16,7 +16,7 @@ def create_app() -> FastAPI:
     )
 
     @app.get("/")
-    async def index(sleep=None):
+    async def index(sleep = None):
         logger.warning("Hello, world")
 
         if sleep:

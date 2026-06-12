@@ -5,7 +5,6 @@ from judoscale.core.reporter import reporter
 
 previous_handler = signal.getsignal(signal.SIGTERM)
 
-
 def graceful_shutdown(signum, frame):
     reporter.stop()
     # If there was a previous handler and it's not SIG_DFL or SIG_IGN, call it
