@@ -20,9 +20,9 @@ def reporter(heroku_web_1):
     reporter.stop()
 
 
-@fixture
-def reporter_in_release(heroku_release_1):
-    reporter = Reporter(heroku_release_1)
+@fixture(params=["heroku_release_1", "heroku_run_1234", "scalingo_one_off_1234"])
+def reporter_in_ephemeral_instance(request):
+    reporter = Reporter(request.getfixturevalue(request.param))
     yield reporter
     reporter.stop()
 
@@ -98,16 +98,18 @@ class TestReporter:
         reporter.start()
         assert reporter.is_running
 
-    def test_start_in_release(self, reporter_in_release, caplog):
+    def test_start_in_ephemeral_instance(self, reporter_in_ephemeral_instance, caplog):
         caplog.set_level(logging.INFO, logger="judoscale")
 
-        assert reporter_in_release.config.is_enabled
-        reporter_in_release.ensure_running()
-        assert not reporter_in_release.is_running
+        assert reporter_in_ephemeral_instance.config.is_enabled
+        reporter_in_ephemeral_instance.ensure_running()
+        assert not reporter_in_ephemeral_instance.is_running
 
-        for record in caplog.records:
-            assert record.levelname == "INFO"
-            assert "Reporter not started: in a build process" in record.message
+        assert any(
+            record.levelname == "INFO"
+            and "Reporter not started: in an ephemeral container" in record.message
+            for record in caplog.records
+        )
 
     @patch.object(time, "sleep")
     @patch.object(requests, "post")

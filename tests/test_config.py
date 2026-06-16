@@ -279,12 +279,24 @@ class TestPlatform:
         assert not Custom("abcdef-2750272591").is_redundant_instance
         assert not Unknown("").is_redundant_instance
 
-    def test_only_heroku_release_dynos_are_release_instances(self):
-        assert Heroku("release.1").is_release_instance
-        assert Heroku("release.2").is_release_instance
-        assert not Heroku("web.1").is_release_instance
-        assert not Scalingo("web-1").is_release_instance
-        assert not Unknown("").is_release_instance
+    def test_treats_heroku_release_phase_and_one_off_dynos_as_ephemeral(self):
+        assert Heroku("release.1").is_ephemeral_instance
+        assert Heroku("run.1234").is_ephemeral_instance
+
+    def test_treats_scalingo_one_off_containers_as_ephemeral(self):
+        assert Scalingo("one-off-1234").is_ephemeral_instance
+
+    def test_does_not_treat_formation_containers_as_ephemeral(self):
+        assert not Heroku("web.1").is_ephemeral_instance
+        assert not Heroku("worker.2").is_ephemeral_instance
+        assert not Heroku("runner-1").is_ephemeral_instance
+        assert not Scalingo("web-1").is_ephemeral_instance
+        assert not Scalingo("worker-2").is_ephemeral_instance
+
+    def test_never_treats_opaque_id_platforms_as_ephemeral(self):
+        assert not Render("5497f74465-m5wwr", service_id="srv-x").is_ephemeral_instance
+        assert not Fly("683d924b322418").is_ephemeral_instance
+        assert not Unknown("").is_ephemeral_instance
 
     def test_strips_the_service_id_prefix_from_the_render_instance_id(self):
         assert (
