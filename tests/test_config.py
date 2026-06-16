@@ -67,7 +67,10 @@ class TestConfig:
         }
         config = Config.initialize(fake_env)
 
-        assert config["PLATFORM"].container == "a8880ee042bc4db3ba878dce65b769b6-2750272591"
+        assert (
+            config["PLATFORM"].container
+            == "a8880ee042bc4db3ba878dce65b769b6-2750272591"
+        )
         assert config["LOG_LEVEL"] == "WARN"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
@@ -262,9 +265,7 @@ class TestPlatform:
         assert Scalingo("worker-1024").is_redundant_instance
 
     def test_never_treats_opaque_id_platforms_as_redundant(self):
-        assert not Render(
-            "5497f74465-m5wwr", service_id="srv-x"
-        ).is_redundant_instance
+        assert not Render("5497f74465-m5wwr", service_id="srv-x").is_redundant_instance
         # Realistic Render container id with a digit-leading suffix.
         assert not Render(
             "srv-x-5c686f7df6-2dptk", service_id="srv-x"
@@ -273,9 +274,7 @@ class TestPlatform:
             "a8880ee042bc4db3ba878dce65b769b6-2750272591"
         ).is_redundant_instance
         assert not Fly("683d924b322418").is_redundant_instance
-        assert not Railway(
-            "f9c88b6e-0e96-46f2-9884-ece3bf53d009"
-        ).is_redundant_instance
+        assert not Railway("f9c88b6e-0e96-46f2-9884-ece3bf53d009").is_redundant_instance
         assert not Custom("abcdef-2750272591").is_redundant_instance
         assert not Unknown("").is_redundant_instance
 
