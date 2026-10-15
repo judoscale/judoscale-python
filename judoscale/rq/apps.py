@@ -17,11 +17,12 @@ class JudoscaleRQConfig(AppConfig, RedisHelper):
     verbose_name = "Judoscale (RQ)"
 
     def ready(self):
-        judoconfig.update(getattr(settings, "JUDOSCALE", {}))
+        judoscale_config = getattr(settings, "JUDOSCALE", {})
+        judoconfig.update(judoscale_config)
 
         if not judoconfig.is_enabled:
             logger.info("Not activated - No API URL provided")
             return
 
-        judoscale_rq(self.redis_connection(settings.JUDOSCALE.get("REDIS")))
+        judoscale_rq(self.redis_connection(judoscale_config.get("REDIS")))
         reporter.ensure_running()
