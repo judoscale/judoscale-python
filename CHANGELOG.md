@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.13.5](https://github.com/judoscale/judoscale-python/compare/v1.13.4...v1.13.5) (2026-10-15)
+
+
+### Bug Fixes
+
+* Allow judoscale.rq without settings.JUDOSCALE ([#143](https://github.com/judoscale/judoscale-python/issues/143)) ([bfa2be4](https://github.com/judoscale/judoscale-python/commit/bfa2be45c02593b720df1fc045dd0e0c8a71de6e))
+* Skip reporter in ephemeral containers ([#139](https://github.com/judoscale/judoscale-python/issues/139)) ([fb33242](https://github.com/judoscale/judoscale-python/commit/fb3324287c9f9be11885d6b190418abb42a6e46c))
+
 ## [1.13.4](https://github.com/judoscale/judoscale-python/compare/v1.13.3...v1.13.4) (2026-06-03)
 
 
