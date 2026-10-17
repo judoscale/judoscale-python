@@ -188,6 +188,13 @@ class CeleryMetricsCollector(JobMetricsCollector):
 
         return None
 
+    def _redis_list_length(self, queue: str) -> Optional[int]:
+        try:
+            return int(self.redis.llen(queue))
+        except Exception as e:
+            logger.warning(f"Unable to get queue depth for queue: {queue}", exc_info=e)
+            return None
+
     def collect(self) -> List[Metric]:
         metrics = []
         if not self.should_collect:
@@ -227,5 +234,8 @@ class CeleryMetricsCollector(JobMetricsCollector):
                 metrics.append(
                     Metric.for_queue(queue_name=queue, oldest_job_ts=time.time())
                 )
+
+            if (depth := self._redis_list_length(queue)) is not None:
+                metrics.append(Metric.for_queue_depth(queue_name=queue, depth=depth))
 
         return metrics
