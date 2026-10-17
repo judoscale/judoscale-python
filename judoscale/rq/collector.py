@@ -46,6 +46,15 @@ class RQMetricsCollector(JobMetricsCollector):
             logger.warning(f"Unable to get a task from queue: {queue.name}", exc_info=e)
         return None
 
+    def _queue_depth(self, queue: Queue) -> Optional[int]:
+        try:
+            return int(queue.count)
+        except Exception as e:
+            logger.warning(
+                f"Unable to get queue depth for queue: {queue.name}", exc_info=e
+            )
+            return None
+
     def collect(self) -> List[Metric]:
         metrics = []
         if not self.should_collect:
@@ -85,6 +94,11 @@ class RQMetricsCollector(JobMetricsCollector):
             else:
                 metrics.append(
                     Metric.for_queue(queue_name=queue.name, oldest_job_ts=time.time())
+                )
+
+            if (depth := self._queue_depth(queue)) is not None:
+                metrics.append(
+                    Metric.for_queue_depth(queue_name=queue.name, depth=depth)
                 )
 
         return metrics

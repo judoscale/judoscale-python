@@ -726,29 +726,43 @@ class TestRQMetricsCollector:
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
         redis.lrange.return_value = []
+        redis.llen.return_value = 0
 
         collector = RQMetricsCollector(worker_1, redis)
         metrics: List[Metric] = collector.collect()
-        assert len(metrics) == 1
-        assert metrics[0].value == approx(0, abs=1)
-        assert metrics[0].queue_name == "foo"
+        assert len(metrics) == 2
+        qt_metrics = [m for m in metrics if m.measurement == "qt"]
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qt_metrics) == 1
+        assert qt_metrics[0].value == approx(0, abs=1)
+        assert qt_metrics[0].queue_name == "foo"
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].measurement == "qd"
+        assert qd_metrics[0].queue_name == "foo"
+        assert qd_metrics[0].value == 0
 
     def test_collect_response_error(self, worker_1, caplog):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
         redis.lrange.side_effect = redis.exceptions.ResponseError
+        redis.llen.return_value = 0
 
         collector = RQMetricsCollector(worker_1, redis)
         metrics = collector.collect()
-        assert len(metrics) == 1
-        assert metrics[0].value == approx(0, abs=1)
-        assert metrics[0].queue_name == "foo"
+        qt_metrics = [m for m in metrics if m.measurement == "qt"]
+        assert len(qt_metrics) == 1
+        assert qt_metrics[0].value == approx(0, abs=1)
+        assert qt_metrics[0].queue_name == "foo"
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].value == 0
         assert "Unable to get a task from queue: foo" in caplog.messages
 
     def test_collect(self, worker_1):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
         redis.lrange.return_value = [b"123"]
+        redis.llen.return_value = 1
         redis.hgetall.return_value = {
             # Simulate a job that was enqueued 1 minute ago
             b"enqueued_at": rq_utils.utcformat(
@@ -763,15 +777,23 @@ class TestRQMetricsCollector:
 
         collector = RQMetricsCollector(worker_1, redis)
         metrics: List[Metric] = collector.collect()
-        assert len(metrics) == 1
-        assert metrics[0].value == approx(60000, abs=100)
-        assert metrics[0].queue_name == "foo"
+        assert len(metrics) == 2
+        qt_metrics = [m for m in metrics if m.measurement == "qt"]
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qt_metrics) == 1
+        assert qt_metrics[0].value == approx(60000, abs=100)
+        assert qt_metrics[0].queue_name == "foo"
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].measurement == "qd"
+        assert qd_metrics[0].queue_name == "foo"
+        assert qd_metrics[0].value == 1
 
     def test_collect_with_busy_job_tracking(self, worker_1, monkeypatch):
         monkeypatch.setattr("rq.registry.StartedJobRegistry.count", 1)
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
         redis.lrange.return_value = [b"123"]
+        redis.llen.return_value = 1
         redis.hgetall.return_value = {
             # Simulate a job that was enqueued 1 minute ago
             b"enqueued_at": rq_utils.utcformat(
@@ -788,7 +810,7 @@ class TestRQMetricsCollector:
         collector = RQMetricsCollector(worker_1, redis)
         metrics: List[Metric] = collector.collect()
 
-        assert len(metrics) == 2
+        assert len(metrics) == 3
 
         assert metrics[0].measurement == "busy"
         assert metrics[0].queue_name == "foo"
@@ -797,3 +819,28 @@ class TestRQMetricsCollector:
         assert metrics[1].measurement == "qt"
         assert metrics[1].queue_name == "foo"
         assert metrics[1].value == approx(60000, abs=100)
+
+        assert metrics[2].measurement == "qd"
+        assert metrics[2].queue_name == "foo"
+        assert metrics[2].value == 1
+
+    def test_collect_queue_depth_read_fails(self, worker_1, caplog):
+        redis = Mock()
+        redis.smembers.return_value = [b"rq:queue:foo"]
+        redis.lrange.return_value = [b"123"]
+        redis.llen.side_effect = redis.exceptions.ResponseError
+        redis.hgetall.return_value = {
+            b"enqueued_at": rq_utils.utcformat(
+                datetime.now(tz=timezone.utc).replace(tzinfo=None)
+                - timedelta(minutes=1)
+            ).encode(),
+            b"origin": b"foo",
+            b"data": b"",
+        }
+
+        collector = RQMetricsCollector(worker_1, redis)
+        metrics = collector.collect()
+
+        assert [m for m in metrics if m.measurement == "qt"]
+        assert [m for m in metrics if m.measurement == "qd"] == []
+        assert "Unable to get queue depth for queue: foo" in caplog.messages
