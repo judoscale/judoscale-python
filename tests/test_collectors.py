@@ -275,9 +275,7 @@ class TestCeleryMetricsCollector:
     def test_collect_no_properties(self, worker_1, celery):
         redis_client = celery.connection_for_read().channel().client
         redis_client.scan_iter.return_value = [b"foo"]
-        redis_client.lindex.return_value = bytes(
-            json.dumps({"id": "123abc"}), "utf-8"
-        )
+        redis_client.lindex.return_value = bytes(json.dumps({"id": "123abc"}), "utf-8")
         redis_client.llen.return_value = 1
 
         collector = CeleryMetricsCollector(worker_1, celery)
@@ -785,6 +783,25 @@ class TestRQMetricsCollector:
         assert qt_metrics[0].queue_name == "foo"
         assert len(qd_metrics) == 1
         assert qd_metrics[0].measurement == "qd"
+        assert qd_metrics[0].queue_name == "foo"
+        assert qd_metrics[0].value == 1
+
+    def test_collect_missing_enqueued_at(self, worker_1):
+        redis = Mock()
+        redis.smembers.return_value = [b"rq:queue:foo"]
+        redis.lrange.return_value = [b"123"]
+        redis.llen.return_value = 1
+        redis.hgetall.return_value = {
+            b"origin": b"foo",
+            b"data": b"",
+        }
+
+        collector = RQMetricsCollector(worker_1, redis)
+        metrics = collector.collect()
+
+        assert [m for m in metrics if m.measurement == "qt"] == []
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qd_metrics) == 1
         assert qd_metrics[0].queue_name == "foo"
         assert qd_metrics[0].value == 1
 
