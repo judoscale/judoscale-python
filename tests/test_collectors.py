@@ -201,88 +201,130 @@ class TestCeleryMetricsCollector:
         assert collector.queues == {"user_queue"}
 
     def test_collect_empty_queue(self, worker_1, celery):
-        celery.connection_for_read().channel().client.scan_iter.return_value = [b"foo"]
-        celery.connection_for_read().channel().client.lindex.return_value = None
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo"]
+        redis_client.lindex.return_value = None
+        redis_client.llen.return_value = 0
 
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics: List[Metric] = collector.collect()
-        assert len(metrics) == 1
-        assert metrics[0].value == approx(0, abs=1)
-        assert metrics[0].queue_name == "foo"
+        assert len(metrics) == 2
+        qt_metrics = [m for m in metrics if m.measurement == "qt"]
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qt_metrics) == 1
+        assert qt_metrics[0].value == approx(0, abs=1)
+        assert qt_metrics[0].queue_name == "foo"
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].measurement == "qd"
+        assert qd_metrics[0].queue_name == "foo"
+        assert qd_metrics[0].value == 0
 
     def test_collect_missing_published_at(self, worker_1, celery):
-        celery.connection_for_read().channel().client.scan_iter.return_value = [b"foo"]
-        celery.connection_for_read().channel().client.lindex.return_value = bytes(
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo"]
+        redis_client.lindex.return_value = bytes(
             json.dumps({"id": "123abc", "properties": {}}), "utf-8"
         )
-
-        collector = CeleryMetricsCollector(worker_1, celery)
-        assert len(collector.collect()) == 0
-
-    def test_collect_missing_published_at_and_id(self, worker_1, celery):
-        celery.connection_for_read().channel().client.scan_iter.return_value = [b"foo"]
-        celery.connection_for_read().channel().client.lindex.return_value = bytes(
-            json.dumps({"properties": {}}), "utf-8"
-        )
-
-        collector = CeleryMetricsCollector(worker_1, celery)
-        assert len(collector.collect()) == 0
-
-    def test_collect_response_error(self, worker_1, celery, caplog):
-        celery.connection_for_read().channel().client.scan_iter.return_value = [b"foo"]
-        celery.connection_for_read().channel().client.lindex.side_effect = (
-            redis.exceptions.ResponseError
-        )
+        redis_client.llen.return_value = 1
 
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics = collector.collect()
-        assert len(metrics) == 1
-        assert metrics[0].value == approx(0, abs=1)
-        assert metrics[0].queue_name == "foo"
+        assert [m for m in metrics if m.measurement == "qt"] == []
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].measurement == "qd"
+        assert qd_metrics[0].queue_name == "foo"
+        assert qd_metrics[0].value == 1
+
+    def test_collect_missing_published_at_and_id(self, worker_1, celery):
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo"]
+        redis_client.lindex.return_value = bytes(
+            json.dumps({"properties": {}}), "utf-8"
+        )
+        redis_client.llen.return_value = 1
+
+        collector = CeleryMetricsCollector(worker_1, celery)
+        metrics = collector.collect()
+        assert [m for m in metrics if m.measurement == "qt"] == []
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].measurement == "qd"
+        assert qd_metrics[0].queue_name == "foo"
+        assert qd_metrics[0].value == 1
+
+    def test_collect_response_error(self, worker_1, celery, caplog):
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo"]
+        redis_client.lindex.side_effect = redis.exceptions.ResponseError
+        redis_client.llen.return_value = 0
+
+        collector = CeleryMetricsCollector(worker_1, celery)
+        metrics = collector.collect()
+        qt_metrics = [m for m in metrics if m.measurement == "qt"]
+        assert len(qt_metrics) == 1
+        assert qt_metrics[0].value == approx(0, abs=1)
+        assert qt_metrics[0].queue_name == "foo"
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].measurement == "qd"
+        assert qd_metrics[0].queue_name == "foo"
+        assert qd_metrics[0].value == 0
         assert "Unable to get a task from queue: foo" in caplog.messages
 
     def test_collect_no_properties(self, worker_1, celery):
-        celery.connection_for_read().channel().client.scan_iter.return_value = [
-            b"foo",
-        ]
-        celery.connection_for_read().channel().client.lindex.return_value = bytes(
-            json.dumps({"id": "123abc"}), "utf-8"
-        )
-
-        collector = CeleryMetricsCollector(worker_1, celery)
-        assert len(collector.collect()) == 0
-
-    def test_collect(self, worker_1, celery):
-        now = time.time()
-        celery.connection_for_read().channel().client.scan_iter.return_value = [
-            b"foo",
-            b"bar",
-        ]
-        celery.connection_for_read().channel().client.lindex.return_value = bytes(
-            json.dumps({"id": "123abc", "properties": {"published_at": now - 60}}),
-            "utf-8",
-        )
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo"]
+        redis_client.lindex.return_value = bytes(json.dumps({"id": "123abc"}), "utf-8")
+        redis_client.llen.return_value = 1
 
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics = collector.collect()
-        metrics = sorted(metrics, key=lambda m: m.queue_name)
+        assert [m for m in metrics if m.measurement == "qt"] == []
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].measurement == "qd"
+        assert qd_metrics[0].queue_name == "foo"
+        assert qd_metrics[0].value == 1
 
-        assert len(metrics) == 2
+    def test_collect(self, worker_1, celery):
+        now = time.time()
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo", b"bar"]
+        redis_client.lindex.return_value = bytes(
+            json.dumps({"id": "123abc", "properties": {"published_at": now - 60}}),
+            "utf-8",
+        )
+        redis_client.llen.return_value = 1
 
-        assert metrics[0].measurement == "qt"
+        collector = CeleryMetricsCollector(worker_1, celery)
+        metrics = collector.collect()
+        metrics = sorted(metrics, key=lambda m: (m.queue_name, m.measurement))
+
+        assert len(metrics) == 4
+
+        assert metrics[0].measurement == "qd"
         assert metrics[0].queue_name == "bar"
-        assert metrics[0].value == approx(60000, abs=100)
+        assert metrics[0].value == 1
 
         assert metrics[1].measurement == "qt"
-        assert metrics[1].queue_name == "foo"
+        assert metrics[1].queue_name == "bar"
         assert metrics[1].value == approx(60000, abs=100)
+
+        assert metrics[2].measurement == "qd"
+        assert metrics[2].queue_name == "foo"
+        assert metrics[2].value == 1
+
+        assert metrics[3].measurement == "qt"
+        assert metrics[3].queue_name == "foo"
+        assert metrics[3].value == approx(60000, abs=100)
 
     def test_collect_with_future_eta(self, worker_1, celery):
         now = time.time()
-        celery.connection_for_read().channel().client.scan_iter.return_value = [
-            b"foo-eta",
-        ]
-        celery.connection_for_read().channel().client.lindex.side_effect = [
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo-eta"]
+        redis_client.llen.return_value = 2
+        redis_client.lindex.side_effect = [
             bytes(
                 json.dumps(
                     {
@@ -306,18 +348,24 @@ class TestCeleryMetricsCollector:
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics = collector.collect()
 
-        assert len(metrics) == 1
+        assert len(metrics) == 2
 
-        assert metrics[0].measurement == "qt"
-        assert metrics[0].queue_name == "foo-eta"
-        assert metrics[0].value == approx(30000, abs=100)
+        qt_metrics = [m for m in metrics if m.measurement == "qt"]
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qt_metrics) == 1
+        assert qt_metrics[0].queue_name == "foo-eta"
+        assert qt_metrics[0].value == approx(30000, abs=100)
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].measurement == "qd"
+        assert qd_metrics[0].queue_name == "foo-eta"
+        assert qd_metrics[0].value == 2
 
     def test_collect_with_past_eta(self, worker_1, celery):
         now = time.time()
-        celery.connection_for_read().channel().client.scan_iter.return_value = [
-            b"foo-eta",
-        ]
-        celery.connection_for_read().channel().client.lindex.side_effect = [
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo-eta"]
+        redis_client.llen.return_value = 1
+        redis_client.lindex.side_effect = [
             bytes(
                 json.dumps(
                     {
@@ -337,11 +385,16 @@ class TestCeleryMetricsCollector:
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics = collector.collect()
 
-        assert len(metrics) == 1
-
-        assert metrics[0].measurement == "qt"
-        assert metrics[0].queue_name == "foo-eta"
-        assert metrics[0].value == approx(30000, abs=100)
+        assert len(metrics) == 2
+        qt_metrics = [m for m in metrics if m.measurement == "qt"]
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qt_metrics) == 1
+        assert qt_metrics[0].queue_name == "foo-eta"
+        assert qt_metrics[0].value == approx(30000, abs=100)
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].measurement == "qd"
+        assert qd_metrics[0].queue_name == "foo-eta"
+        assert qd_metrics[0].value == 1
 
     def test_collect_with_busy_jobs(self, worker_1, celery, monkeypatch):
         now = time.time()
@@ -352,18 +405,18 @@ class TestCeleryMetricsCollector:
         }
 
         monkeypatch.setattr(celery.control, "inspect", lambda connection: inspect)
-        celery.connection_for_read().channel().client.scan_iter.return_value = [
-            b"foo",
-        ]
-        celery.connection_for_read().channel().client.lindex.return_value = bytes(
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo"]
+        redis_client.lindex.return_value = bytes(
             json.dumps({"properties": {"published_at": now - 60}}), "utf-8"
         )
+        redis_client.llen.return_value = 1
 
         worker_1["CELERY"] = {"TRACK_BUSY_JOBS": True}
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics = collector.collect()
 
-        assert len(metrics) == 2
+        assert len(metrics) == 3
 
         assert metrics[0].measurement == "busy"
         assert metrics[0].queue_name == "foo"
@@ -372,6 +425,10 @@ class TestCeleryMetricsCollector:
         assert metrics[1].measurement == "qt"
         assert metrics[1].queue_name == "foo"
         assert metrics[1].value == approx(60000, abs=100)
+
+        assert metrics[2].measurement == "qd"
+        assert metrics[2].queue_name == "foo"
+        assert metrics[2].value == 1
 
     def test_report_metadata_populates_after_collect(self, worker_1, celery, caplog):
         import logging
@@ -463,15 +520,15 @@ class TestCeleryMetricsCollector:
                 ),
             }[queue]
 
-        monkeypatch.setattr(
-            celery.connection_for_read().channel().client, "lindex", mock_lindex
-        )
+        redis_client = celery.connection_for_read().channel().client
+        monkeypatch.setattr(redis_client, "lindex", mock_lindex)
+        redis_client.llen.return_value = 1
 
         worker_1["CELERY"] = {"QUEUES": ["foo", "bar"], "TRACK_BUSY_JOBS": True}
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics = collector.collect()
 
-        assert len(metrics) == 4
+        assert len(metrics) == 6
         metrics = sorted(metrics, key=lambda m: m.queue_name)
         metrics = sorted(metrics, key=lambda m: m.measurement)
 
@@ -483,13 +540,37 @@ class TestCeleryMetricsCollector:
         assert metrics[1].queue_name == "foo"
         assert metrics[1].value == 1
 
-        assert metrics[2].measurement == "qt"
+        assert metrics[2].measurement == "qd"
         assert metrics[2].queue_name == "bar"
-        assert metrics[2].value == 0
+        assert metrics[2].value == 1
 
-        assert metrics[3].measurement == "qt"
+        assert metrics[3].measurement == "qd"
         assert metrics[3].queue_name == "foo"
-        assert metrics[3].value == approx(60000, abs=100)
+        assert metrics[3].value == 1
+
+        assert metrics[4].measurement == "qt"
+        assert metrics[4].queue_name == "bar"
+        assert metrics[4].value == 0
+
+        assert metrics[5].measurement == "qt"
+        assert metrics[5].queue_name == "foo"
+        assert metrics[5].value == approx(60000, abs=100)
+
+    def test_collect_queue_depth_read_fails(self, worker_1, celery, caplog):
+        now = time.time()
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo"]
+        redis_client.lindex.return_value = bytes(
+            json.dumps({"properties": {"published_at": now - 60}}), "utf-8"
+        )
+        redis_client.llen.side_effect = redis.exceptions.ResponseError
+
+        collector = CeleryMetricsCollector(worker_1, celery)
+        metrics = collector.collect()
+
+        assert [m for m in metrics if m.measurement == "qt"]
+        assert [m for m in metrics if m.measurement == "qd"] == []
+        assert "Unable to get queue depth for queue: foo" in caplog.messages
 
 
 class TestDramatiqMetricsCollector:
@@ -643,29 +724,43 @@ class TestRQMetricsCollector:
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
         redis.lrange.return_value = []
+        redis.llen.return_value = 0
 
         collector = RQMetricsCollector(worker_1, redis)
         metrics: List[Metric] = collector.collect()
-        assert len(metrics) == 1
-        assert metrics[0].value == approx(0, abs=1)
-        assert metrics[0].queue_name == "foo"
+        assert len(metrics) == 2
+        qt_metrics = [m for m in metrics if m.measurement == "qt"]
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qt_metrics) == 1
+        assert qt_metrics[0].value == approx(0, abs=1)
+        assert qt_metrics[0].queue_name == "foo"
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].measurement == "qd"
+        assert qd_metrics[0].queue_name == "foo"
+        assert qd_metrics[0].value == 0
 
     def test_collect_response_error(self, worker_1, caplog):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
         redis.lrange.side_effect = redis.exceptions.ResponseError
+        redis.llen.return_value = 0
 
         collector = RQMetricsCollector(worker_1, redis)
         metrics = collector.collect()
-        assert len(metrics) == 1
-        assert metrics[0].value == approx(0, abs=1)
-        assert metrics[0].queue_name == "foo"
+        qt_metrics = [m for m in metrics if m.measurement == "qt"]
+        assert len(qt_metrics) == 1
+        assert qt_metrics[0].value == approx(0, abs=1)
+        assert qt_metrics[0].queue_name == "foo"
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].value == 0
         assert "Unable to get a task from queue: foo" in caplog.messages
 
     def test_collect(self, worker_1):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
         redis.lrange.return_value = [b"123"]
+        redis.llen.return_value = 1
         redis.hgetall.return_value = {
             # Simulate a job that was enqueued 1 minute ago
             b"enqueued_at": rq_utils.utcformat(
@@ -680,15 +775,42 @@ class TestRQMetricsCollector:
 
         collector = RQMetricsCollector(worker_1, redis)
         metrics: List[Metric] = collector.collect()
-        assert len(metrics) == 1
-        assert metrics[0].value == approx(60000, abs=100)
-        assert metrics[0].queue_name == "foo"
+        assert len(metrics) == 2
+        qt_metrics = [m for m in metrics if m.measurement == "qt"]
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qt_metrics) == 1
+        assert qt_metrics[0].value == approx(60000, abs=100)
+        assert qt_metrics[0].queue_name == "foo"
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].measurement == "qd"
+        assert qd_metrics[0].queue_name == "foo"
+        assert qd_metrics[0].value == 1
+
+    def test_collect_missing_enqueued_at(self, worker_1):
+        redis = Mock()
+        redis.smembers.return_value = [b"rq:queue:foo"]
+        redis.lrange.return_value = [b"123"]
+        redis.llen.return_value = 1
+        redis.hgetall.return_value = {
+            b"origin": b"foo",
+            b"data": b"",
+        }
+
+        collector = RQMetricsCollector(worker_1, redis)
+        metrics = collector.collect()
+
+        assert [m for m in metrics if m.measurement == "qt"] == []
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].queue_name == "foo"
+        assert qd_metrics[0].value == 1
 
     def test_collect_with_busy_job_tracking(self, worker_1, monkeypatch):
         monkeypatch.setattr("rq.registry.StartedJobRegistry.count", 1)
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
         redis.lrange.return_value = [b"123"]
+        redis.llen.return_value = 1
         redis.hgetall.return_value = {
             # Simulate a job that was enqueued 1 minute ago
             b"enqueued_at": rq_utils.utcformat(
@@ -705,7 +827,7 @@ class TestRQMetricsCollector:
         collector = RQMetricsCollector(worker_1, redis)
         metrics: List[Metric] = collector.collect()
 
-        assert len(metrics) == 2
+        assert len(metrics) == 3
 
         assert metrics[0].measurement == "busy"
         assert metrics[0].queue_name == "foo"
@@ -714,3 +836,28 @@ class TestRQMetricsCollector:
         assert metrics[1].measurement == "qt"
         assert metrics[1].queue_name == "foo"
         assert metrics[1].value == approx(60000, abs=100)
+
+        assert metrics[2].measurement == "qd"
+        assert metrics[2].queue_name == "foo"
+        assert metrics[2].value == 1
+
+    def test_collect_queue_depth_read_fails(self, worker_1, caplog):
+        redis = Mock()
+        redis.smembers.return_value = [b"rq:queue:foo"]
+        redis.lrange.return_value = [b"123"]
+        redis.llen.side_effect = redis.exceptions.ResponseError
+        redis.hgetall.return_value = {
+            b"enqueued_at": rq_utils.utcformat(
+                datetime.now(tz=timezone.utc).replace(tzinfo=None)
+                - timedelta(minutes=1)
+            ).encode(),
+            b"origin": b"foo",
+            b"data": b"",
+        }
+
+        collector = RQMetricsCollector(worker_1, redis)
+        metrics = collector.collect()
+
+        assert [m for m in metrics if m.measurement == "qt"]
+        assert [m for m in metrics if m.measurement == "qd"] == []
+        assert "Unable to get queue depth for queue: foo" in caplog.messages

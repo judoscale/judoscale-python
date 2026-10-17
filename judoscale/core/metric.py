@@ -151,3 +151,24 @@ class Metric:
         )
         logger.debug(f"queue_name={queue_name}, busy_jobs={metric.value}")
         return metric
+
+    @classmethod
+    def for_queue_depth(cls, queue_name: str, depth: int) -> "Metric":
+        """
+        Log and return a Metric instance for the number of jobs waiting in a
+        queue's ready list.
+
+        queue_name:
+            The name of the queue.
+
+        depth:
+            The number of jobs in the queue's ready list.
+        """
+        metric = Metric(
+            measurement="qd",
+            queue_name=queue_name,
+            value=int(depth),
+            timestamp=time.time(),
+        )
+        logger.debug(f"queue_name={queue_name}, queue_depth={metric.value}")
+        return metric

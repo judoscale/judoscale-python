@@ -41,3 +41,18 @@ class TestMetricsForWeb:
 
     def test_garbage_value(self):
         assert Metric.for_web("t=abc") is None
+
+
+class TestMetricsForQueueDepth:
+    def test_for_queue_depth(self):
+        queue_name = "default"
+        depth = 3
+        before = round(time.time())
+        metric = Metric.for_queue_depth(queue_name, depth)
+        after = round(time.time())
+
+        ts, value, measurement, name = metric.as_tuple
+        assert before <= ts <= after
+        assert value == depth
+        assert measurement == "qd"
+        assert name == queue_name

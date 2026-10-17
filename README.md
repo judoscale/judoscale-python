@@ -187,6 +187,8 @@ judoscale_celery(celery_app)
 
 This sets up Judoscale to periodically calculate and report queue latency for each Celery queue.
 
+Each report also includes queue depth for every Celery queue. Depth is the number of messages in that queue's Redis list. Messages with a future ETA are included. There is no setting for depth.
+
 If you need to change the Judoscale integration configuration, you can pass a dictionary of Judoscale configuration options to `judoscale_celery` to override the default Judoscale config variables:
 
 ```py
@@ -396,6 +398,8 @@ judoscale_rq(redis)
 ```
 
 This sets up Judoscale to periodically calculate and report queue latency for each RQ queue.
+
+Each report also includes queue depth for every RQ queue. Depth is the number of waiting jobs. There is no setting for depth.
 
 If you need to change the Judoscale integration configuration, you can pass a dictionary of Judoscale configuration options to `judoscale_rq` to override the default Judoscale config variables:
 
