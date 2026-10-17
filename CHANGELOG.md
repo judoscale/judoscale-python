@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0](https://github.com/judoscale/judoscale-python/compare/v1.13.5...v1.14.0) (2026-10-17)
+
+
+### Features
+
+* report Celery and RQ queue depth ([#144](https://github.com/judoscale/judoscale-python/issues/144)) ([c90a9c8](https://github.com/judoscale/judoscale-python/commit/c90a9c88f283f69d0085224a340049d7f104c58f))
+
 ## [1.13.5](https://github.com/judoscale/judoscale-python/compare/v1.13.4...v1.13.5) (2026-10-15)
 
 
