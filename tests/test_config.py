@@ -5,6 +5,7 @@ from judoscale.core.platform import (
     Custom,
     Ecs,
     Fly,
+    Hatchbox,
     Heroku,
     Platform,
     Railway,
@@ -98,6 +99,29 @@ class TestConfig:
 
         assert config["PLATFORM"].container == "f9c88b6e-0e96-46f2-9884-ece3bf53d009"
         assert config["LOG_LEVEL"] == "WARN"
+        assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
+
+    def test_on_hatchbox(self):
+        fake_env = {
+            "HATCHBOX_SERVER_NAME": "autoscale-web-801dea",
+            "HATCHBOX_SERVER_ID": "11835",
+            "HATCHBOX_SERVER_ROLES": "web",
+            "JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890",
+        }
+        config = Config.initialize(fake_env)
+
+        assert config["PLATFORM"].container == "autoscale-web-801dea"
+        assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
+
+    def test_on_northflank(self):
+        fake_env = {
+            "NF_OBJECT_ID": "prod-web",
+            "HOSTNAME": "prod-web-6fbcbdb958-v2jv5",
+            "JUDOSCALE_URL": "https://adapter.judoscale.com/api/1234567890",
+        }
+        config = Config.initialize(fake_env)
+
+        assert config["PLATFORM"].container == "prod-web-6fbcbdb958-v2jv5"
         assert config["API_BASE_URL"] == "https://adapter.judoscale.com/api/1234567890"
 
     def test_on_scalingo(self):
@@ -233,6 +257,12 @@ class TestPlatform:
         assert isinstance(
             Platform.detect({"JUDOSCALE_CONTAINER": "x", "DYNO": "web.1"}), Custom
         )
+        assert isinstance(
+            Platform.detect(
+                {"JUDOSCALE_CONTAINER": "x", "HATCHBOX_SERVER_NAME": "web1"}
+            ),
+            Custom,
+        )
         assert isinstance(Platform.detect({"DYNO": "web.1"}), Heroku)
         assert isinstance(
             Platform.detect(
@@ -248,8 +278,21 @@ class TestPlatform:
         )
         assert isinstance(Platform.detect({"FLY_MACHINE_ID": "683d924b322418"}), Fly)
         assert isinstance(Platform.detect({"RAILWAY_REPLICA_ID": "f9c88b6e"}), Railway)
+        assert isinstance(Platform.detect({"HATCHBOX_SERVER_NAME": "web1"}), Hatchbox)
         assert isinstance(Platform.detect({"CONTAINER": "web-1"}), Scalingo)
         assert isinstance(Platform.detect({}), Unknown)
+
+    def test_uses_hostname_as_the_container_on_undetected_platforms(self):
+        assert (
+            Platform.detect({"HOSTNAME": "5c686f7df6-kb6kj"}).container
+            == "5c686f7df6-kb6kj"
+        )
+        assert Platform.detect({}).container == ""
+        # HOSTNAME is only a fallback: detected platforms keep their own instance id.
+        assert (
+            Platform.detect({"DYNO": "web.1", "HOSTNAME": "5c686f7df6-kb6kj"}).container
+            == "web.1"
+        )
 
     def test_treats_only_ordinals_beyond_the_first_as_redundant(self):
         assert not Heroku("web.1").is_redundant_instance
@@ -275,6 +318,9 @@ class TestPlatform:
         ).is_redundant_instance
         assert not Fly("683d924b322418").is_redundant_instance
         assert not Railway("f9c88b6e-0e96-46f2-9884-ece3bf53d009").is_redundant_instance
+        # Hatchbox server names can look like Scalingo ordinals, but each server
+        # is its own instance.
+        assert not Hatchbox("web-2").is_redundant_instance
         assert not Custom("abcdef-2750272591").is_redundant_instance
         assert not Unknown("").is_redundant_instance
 
@@ -295,6 +341,7 @@ class TestPlatform:
     def test_never_treats_opaque_id_platforms_as_ephemeral(self):
         assert not Render("5497f74465-m5wwr", service_id="srv-x").is_ephemeral_instance
         assert not Fly("683d924b322418").is_ephemeral_instance
+        assert not Hatchbox("one-off-1234").is_ephemeral_instance
         assert not Unknown("").is_ephemeral_instance
 
     def test_strips_the_service_id_prefix_from_the_render_instance_id(self):

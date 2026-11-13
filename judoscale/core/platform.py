@@ -19,8 +19,8 @@ class Platform:
     @property
     def is_redundant_instance(self) -> bool:
         """Most platforms expose opaque, non-ordinal instance ids (Render, ECS,
-        Fly, Railway, custom), so by default no instance is redundant. Platforms
-        that have a formation ordinal override this."""
+        Fly, Railway, Hatchbox, custom), so by default no instance is
+        redundant. Platforms that have a formation ordinal override this."""
         return False
 
     @property
@@ -52,11 +52,17 @@ class Platform:
             return Fly(env["FLY_MACHINE_ID"])
         elif env.get("RAILWAY_REPLICA_ID"):
             return Railway(env["RAILWAY_REPLICA_ID"])
+        elif env.get("HATCHBOX_SERVER_NAME"):
+            # Hatchbox passes each server's name (e.g. "web1") into its containers.
+            return Hatchbox(env["HATCHBOX_SERVER_NAME"])
         elif env.get("CONTAINER"):
             # Scalingo exposes the container type and index (e.g. "web-1").
             return Scalingo(env["CONTAINER"])
         else:
-            return Unknown("")
+            # Docker and Kubernetes set HOSTNAME to the container or pod name,
+            # which tells instances apart on platforms we don't otherwise detect.
+            # On Northflank it's the pod name shown as the container id in its UI.
+            return Unknown(env.get("HOSTNAME", ""))
 
 
 class Heroku(Platform):
@@ -122,6 +128,10 @@ class Fly(Platform):
 
 
 class Railway(Platform):
+    pass
+
+
+class Hatchbox(Platform):
     pass
 
 
