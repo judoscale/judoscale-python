@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/judoscale/judoscale-python/compare/v1.14.0...v1.15.0) (2026-11-13)
+
+
+### Features
+
+* report Hatchbox and Northflank instance names as the container ([#146](https://github.com/judoscale/judoscale-python/issues/146)) ([5cb115d](https://github.com/judoscale/judoscale-python/commit/5cb115d83f5011b13e17b37de44c168c2d50ffd6))
+
 ## [1.14.0](https://github.com/judoscale/judoscale-python/compare/v1.13.5...v1.14.0) (2026-10-17)
 
 
