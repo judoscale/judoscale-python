@@ -7,7 +7,6 @@ from judoscale.core.platform import (
     Fly,
     Hatchbox,
     Heroku,
-    Northflank,
     Platform,
     Railway,
     Render,
@@ -264,16 +263,6 @@ class TestPlatform:
             ),
             Custom,
         )
-        assert isinstance(
-            Platform.detect(
-                {
-                    "JUDOSCALE_CONTAINER": "x",
-                    "NF_OBJECT_ID": "prod-web",
-                    "HOSTNAME": "prod-web-6fbcbdb958-v2jv5",
-                }
-            ),
-            Custom,
-        )
         assert isinstance(Platform.detect({"DYNO": "web.1"}), Heroku)
         assert isinstance(
             Platform.detect(
@@ -290,16 +279,6 @@ class TestPlatform:
         assert isinstance(Platform.detect({"FLY_MACHINE_ID": "683d924b322418"}), Fly)
         assert isinstance(Platform.detect({"RAILWAY_REPLICA_ID": "f9c88b6e"}), Railway)
         assert isinstance(Platform.detect({"HATCHBOX_SERVER_NAME": "web1"}), Hatchbox)
-        assert isinstance(
-            Platform.detect(
-                {"NF_OBJECT_ID": "prod-web", "HOSTNAME": "prod-web-6fbcbdb958-v2jv5"}
-            ),
-            Northflank,
-        )
-        # HOSTNAME alone is set nearly everywhere, so it doesn't identify Northflank.
-        assert isinstance(
-            Platform.detect({"HOSTNAME": "prod-web-6fbcbdb958-v2jv5"}), Unknown
-        )
         assert isinstance(Platform.detect({"CONTAINER": "web-1"}), Scalingo)
         assert isinstance(Platform.detect({}), Unknown)
 
@@ -342,7 +321,6 @@ class TestPlatform:
         # Hatchbox server names can look like Scalingo ordinals, but each server
         # is its own instance.
         assert not Hatchbox("web-2").is_redundant_instance
-        assert not Northflank("prod-web-6fbcbdb958-v2jv5").is_redundant_instance
         assert not Custom("abcdef-2750272591").is_redundant_instance
         assert not Unknown("").is_redundant_instance
 
@@ -364,7 +342,6 @@ class TestPlatform:
         assert not Render("5497f74465-m5wwr", service_id="srv-x").is_ephemeral_instance
         assert not Fly("683d924b322418").is_ephemeral_instance
         assert not Hatchbox("one-off-1234").is_ephemeral_instance
-        assert not Northflank("prod-web-6fbcbdb958-v2jv5").is_ephemeral_instance
         assert not Unknown("").is_ephemeral_instance
 
     def test_strips_the_service_id_prefix_from_the_render_instance_id(self):
