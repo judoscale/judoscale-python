@@ -34,6 +34,9 @@ def celery():
     connection = Mock(transport=Mock(driver_name="redis"))
     connection.configure_mock(**{"channel.return_value": Mock(client=redis)})
     celery.configure_mock(**{"connection_for_read.return_value": connection})
+    # Busy job tracking is on by default; report no active tasks unless a
+    # test says otherwise.
+    celery.control.inspect.return_value.active.return_value = {}
     return celery
 
 
@@ -157,7 +160,7 @@ class TestCeleryMetricsCollector:
             "ENABLED": False,
             "QUEUES": ["foo", "bar"],
             "MAX_QUEUES": 20,
-            "TRACK_BUSY_JOBS": False,
+            "TRACK_BUSY_JOBS": True,
         }
 
     def test_incorrect_driver(self, worker_1, celery):
@@ -208,7 +211,7 @@ class TestCeleryMetricsCollector:
 
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics: List[Metric] = collector.collect()
-        assert len(metrics) == 2
+        assert len(metrics) == 3
         qt_metrics = [m for m in metrics if m.measurement == "qt"]
         qd_metrics = [m for m in metrics if m.measurement == "qd"]
         assert len(qt_metrics) == 1
@@ -301,23 +304,32 @@ class TestCeleryMetricsCollector:
         metrics = collector.collect()
         metrics = sorted(metrics, key=lambda m: (m.queue_name, m.measurement))
 
-        assert len(metrics) == 4
+        assert len(metrics) == 6
 
-        assert metrics[0].measurement == "qd"
+        # Busy job tracking is on by default.
+        assert metrics[0].measurement == "busy"
         assert metrics[0].queue_name == "bar"
-        assert metrics[0].value == 1
+        assert metrics[0].value == 0
 
-        assert metrics[1].measurement == "qt"
+        assert metrics[1].measurement == "qd"
         assert metrics[1].queue_name == "bar"
-        assert metrics[1].value == approx(60000, abs=100)
+        assert metrics[1].value == 1
 
-        assert metrics[2].measurement == "qd"
-        assert metrics[2].queue_name == "foo"
-        assert metrics[2].value == 1
+        assert metrics[2].measurement == "qt"
+        assert metrics[2].queue_name == "bar"
+        assert metrics[2].value == approx(60000, abs=100)
 
-        assert metrics[3].measurement == "qt"
+        assert metrics[3].measurement == "busy"
         assert metrics[3].queue_name == "foo"
-        assert metrics[3].value == approx(60000, abs=100)
+        assert metrics[3].value == 0
+
+        assert metrics[4].measurement == "qd"
+        assert metrics[4].queue_name == "foo"
+        assert metrics[4].value == 1
+
+        assert metrics[5].measurement == "qt"
+        assert metrics[5].queue_name == "foo"
+        assert metrics[5].value == approx(60000, abs=100)
 
     def test_collect_with_future_eta(self, worker_1, celery):
         now = time.time()
@@ -348,7 +360,7 @@ class TestCeleryMetricsCollector:
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics = collector.collect()
 
-        assert len(metrics) == 2
+        assert len(metrics) == 3
 
         qt_metrics = [m for m in metrics if m.measurement == "qt"]
         qd_metrics = [m for m in metrics if m.measurement == "qd"]
@@ -385,7 +397,7 @@ class TestCeleryMetricsCollector:
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics = collector.collect()
 
-        assert len(metrics) == 2
+        assert len(metrics) == 3
         qt_metrics = [m for m in metrics if m.measurement == "qt"]
         qd_metrics = [m for m in metrics if m.measurement == "qd"]
         assert len(qt_metrics) == 1
@@ -429,6 +441,23 @@ class TestCeleryMetricsCollector:
         assert metrics[2].measurement == "qd"
         assert metrics[2].queue_name == "foo"
         assert metrics[2].value == 1
+
+    def test_collect_when_busy_jobs_fail(self, worker_1, celery, caplog):
+        now = time.time()
+        celery.control.inspect.return_value.active.side_effect = OSError("EOF")
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo"]
+        redis_client.lindex.return_value = bytes(
+            json.dumps({"properties": {"published_at": now - 60}}), "utf-8"
+        )
+        redis_client.llen.return_value = 1
+
+        collector = CeleryMetricsCollector(worker_1, celery)
+        metrics = collector.collect()
+
+        # Queue time and depth are still reported; busy is skipped, not zeroed.
+        assert sorted(m.measurement for m in metrics) == ["qd", "qt"]
+        assert "Unable to get busy jobs from Celery workers" in caplog.messages
 
     def test_report_metadata_populates_after_collect(self, worker_1, celery, caplog):
         import logging
@@ -704,7 +733,7 @@ class TestRQMetricsCollector:
             "ENABLED": False,
             "QUEUES": ["foo", "bar"],
             "MAX_QUEUES": 20,
-            "TRACK_BUSY_JOBS": False,
+            "TRACK_BUSY_JOBS": True,
         }
 
     def test_no_queues(self, worker_1):
@@ -805,10 +834,10 @@ class TestRQMetricsCollector:
         assert qd_metrics[0].queue_name == "foo"
         assert qd_metrics[0].value == 1
 
-    def test_collect_with_busy_job_tracking(self, worker_1, monkeypatch):
-        monkeypatch.setattr("rq.registry.StartedJobRegistry.count", 1)
+    def test_collect_with_busy_job_tracking(self, worker_1):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
+        redis.zcount.return_value = 1
         redis.lrange.return_value = [b"123"]
         redis.llen.return_value = 1
         redis.hgetall.return_value = {
@@ -823,7 +852,6 @@ class TestRQMetricsCollector:
             b"data": b"",
         }
 
-        worker_1["RQ"] = {"TRACK_BUSY_JOBS": True}
         collector = RQMetricsCollector(worker_1, redis)
         metrics: List[Metric] = collector.collect()
 
@@ -832,6 +860,14 @@ class TestRQMetricsCollector:
         assert metrics[0].measurement == "busy"
         assert metrics[0].queue_name == "foo"
         assert metrics[0].value == 1
+
+        # Counts only unexpired jobs, without RQ's registry cleanup writes.
+        key, min_score, max_score = redis.zcount.call_args.args
+        assert key == "rq:wip:foo"
+        assert float(min_score.lstrip("(")) == approx(time.time(), abs=5)
+        assert max_score == "+inf"
+        redis.zremrangebyscore.assert_not_called()
+        redis.zrangebyscore.assert_not_called()
 
         assert metrics[1].measurement == "qt"
         assert metrics[1].queue_name == "foo"

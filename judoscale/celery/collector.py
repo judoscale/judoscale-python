@@ -18,7 +18,7 @@ DEFAULTS = {
     "ENABLED": True,
     "MAX_QUEUES": 20,
     "QUEUES": [],
-    "TRACK_BUSY_JOBS": False,
+    "TRACK_BUSY_JOBS": True,
 }
 
 # Log when the broker has fewer than this many free connection slots.
@@ -195,6 +195,27 @@ class CeleryMetricsCollector(JobMetricsCollector):
             logger.warning(f"Unable to get queue depth for queue: {queue}", exc_info=e)
             return None
 
+    def _busy_metrics(self) -> List[Metric]:
+        # `inspect().active()` broadcasts to every worker over the broker, so
+        # it can fail where plain Redis reads don't (e.g. when the broker is
+        # out of connections). Skip busy metrics for this cycle rather than
+        # losing queue time and depth too.
+        try:
+            workers_tasks = self.inspect.active()
+        except Exception as e:
+            logger.warning("Unable to get busy jobs from Celery workers", exc_info=e)
+            return []
+
+        busy_counts = defaultdict(lambda: 0)
+        for active_tasks in (workers_tasks or {}).values():
+            for task in active_tasks:
+                busy_counts[task["delivery_info"]["routing_key"]] += 1
+
+        return [
+            Metric.for_busy_queue(queue_name=queue, busy_jobs=busy_counts[queue])
+            for queue in self.queues
+        ]
+
     def collect(self) -> List[Metric]:
         metrics = []
         if not self.should_collect:
@@ -206,15 +227,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
             self._scan_queues()
 
         if self.adapter_config["TRACK_BUSY_JOBS"]:
-            busy_counts = defaultdict(lambda: 0)
-            if workers_tasks := self.inspect.active():
-                for active_tasks in workers_tasks.values():
-                    for task in active_tasks:
-                        busy_counts[task["delivery_info"]["routing_key"]] += 1
-
-            for queue in self.queues:
-                count = busy_counts[queue]
-                metrics.append(Metric.for_busy_queue(queue_name=queue, busy_jobs=count))
+            metrics.extend(self._busy_metrics())
 
         logger.debug(f"Collecting metrics for queues {list(self.queues)}")
         for queue in self.queues:

@@ -15,7 +15,7 @@ DEFAULTS = {
     "ENABLED": True,
     "MAX_QUEUES": 20,
     "QUEUES": [],
-    "TRACK_BUSY_JOBS": False,
+    "TRACK_BUSY_JOBS": True,
 }
 
 
@@ -55,6 +55,19 @@ class RQMetricsCollector(JobMetricsCollector):
             )
             return None
 
+    def _busy_jobs(self, queue: Queue) -> Optional[int]:
+        # `StartedJobRegistry.count` runs `cleanup()` first, which writes to
+        # Redis (moving abandoned jobs to the failed registry). Count only the
+        # unexpired entries instead, which gives the same number read-only.
+        try:
+            key = queue.started_job_registry.key
+            return int(self.redis.zcount(key, f"({time.time()}", "+inf"))
+        except Exception as e:
+            logger.warning(
+                f"Unable to get busy jobs for queue: {queue.name}", exc_info=e
+            )
+            return None
+
     def collect(self) -> List[Metric]:
         metrics = []
         if not self.should_collect:
@@ -65,12 +78,12 @@ class RQMetricsCollector(JobMetricsCollector):
         queues = [Queue(name=q, connection=self.redis) for q in queue_names]
 
         for queue in queues:
-            if self.adapter_config["TRACK_BUSY_JOBS"]:
+            if (
+                self.adapter_config["TRACK_BUSY_JOBS"]
+                and (busy_jobs := self._busy_jobs(queue)) is not None
+            ):
                 metrics.append(
-                    Metric.for_busy_queue(
-                        queue_name=queue.name,
-                        busy_jobs=queue.started_job_registry.count,
-                    )
+                    Metric.for_busy_queue(queue_name=queue.name, busy_jobs=busy_jobs)
                 )
 
             if job := self.oldest_job(queue):
