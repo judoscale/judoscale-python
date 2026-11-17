@@ -1,4 +1,6 @@
 import logging
+import subprocess
+import sys
 import time
 from datetime import datetime
 from unittest.mock import patch, MagicMock
@@ -228,3 +230,24 @@ class TestReporter:
         assert any(
             "Reporter cycle failed" in record.message for record in caplog.records
         )
+
+
+def test_importing_core_outside_main_thread():
+    # Run in a fresh interpreter, since judoscale.core is already imported here.
+    code = (
+        "import threading\n"
+        "errors = []\n"
+        "def target():\n"
+        "    try:\n"
+        "        import judoscale.core\n"
+        "    except Exception as e:\n"
+        "        errors.append(e)\n"
+        "t = threading.Thread(target=target)\n"
+        "t.start()\n"
+        "t.join()\n"
+        "assert not errors, errors\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True
+    )
+    assert result.returncode == 0, result.stderr
