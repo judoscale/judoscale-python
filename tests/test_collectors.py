@@ -37,6 +37,8 @@ def celery():
     # Busy job tracking is on by default; report no active tasks unless a
     # test says otherwise.
     celery.control.inspect.return_value.active.return_value = {}
+    celery.conf.control_exchange = "celery"
+    redis.smembers.return_value = set()
     return celery
 
 
@@ -416,7 +418,7 @@ class TestCeleryMetricsCollector:
             "some_worker": [{"name": "a_task", "delivery_info": {"routing_key": "foo"}}]
         }
 
-        monkeypatch.setattr(celery.control, "inspect", lambda connection: inspect)
+        monkeypatch.setattr(celery.control, "inspect", lambda **kwargs: inspect)
         redis_client = celery.connection_for_read().channel().client
         redis_client.scan_iter.return_value = [b"foo"]
         redis_client.lindex.return_value = bytes(
@@ -458,6 +460,63 @@ class TestCeleryMetricsCollector:
         # Queue time and depth are still reported; busy is skipped, not zeroed.
         assert sorted(m.measurement for m in metrics) == ["qd", "qt"]
         assert "Unable to get busy jobs from Celery workers" in caplog.messages
+
+    def test_busy_jobs_asks_only_bound_workers(self, worker_1, celery):
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo"]
+        redis_client.lindex.return_value = None
+        redis_client.llen.return_value = 0
+        # kombu's record of each worker's control queue: routing key, pattern
+        # and queue. The reply exchange's queues must not count as workers.
+        redis_client.smembers.side_effect = lambda key: {
+            "_kombu.binding.celery.pidbox": {
+                b"\x06\x16\x06\x16w2@host.celery.pidbox",
+                b"\x06\x16\x06\x16w1@host.celery.pidbox",
+            }
+        }.get(key, set())
+
+        collector = CeleryMetricsCollector(worker_1, celery)
+        collector.collect()
+
+        # Naming the workers makes the inspect call return once both reply
+        # instead of waiting out its timeout.
+        assert celery.control.inspect.call_args.kwargs["destination"] == [
+            "w1@host",
+            "w2@host",
+        ]
+
+    def test_busy_jobs_skips_workers_that_keep_missing_replies(
+        self, worker_1, celery, caplog
+    ):
+        import logging
+
+        caplog.set_level(logging.INFO, logger="judoscale")
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo"]
+        redis_client.lindex.return_value = None
+        redis_client.llen.return_value = 0
+        redis_client.smembers.return_value = {
+            b"\x06\x16\x06\x16alive@host.celery.pidbox",
+            b"\x06\x16\x06\x16dead@host.celery.pidbox",
+        }
+        # Only "alive" ever replies, as when "dead" was killed and left its
+        # binding behind.
+        celery.control.inspect.return_value.active.return_value = {
+            "alive@host": [{"delivery_info": {"routing_key": "foo"}}]
+        }
+
+        collector = CeleryMetricsCollector(worker_1, celery)
+        destinations, busy = [], []
+        for _ in range(7):
+            metrics = collector.collect()
+            destinations.append(celery.control.inspect.call_args.kwargs["destination"])
+            busy.append([m.value for m in metrics if m.measurement == "busy"])
+
+        both, alive = ["alive@host", "dead@host"], ["alive@host"]
+        # Asked 3 times, then skipped, then asked again on the 6th collection.
+        assert destinations == [both, both, both, alive, alive, both, alive]
+        assert busy == [[1]] * 7
+        assert any("dead@host missed 3" in m for m in caplog.messages)
 
     def test_report_metadata_populates_after_collect(self, worker_1, celery, caplog):
         import logging
@@ -536,7 +595,7 @@ class TestCeleryMetricsCollector:
             "some_worker": [{"name": "a_task", "delivery_info": {"routing_key": "foo"}}]
         }
 
-        monkeypatch.setattr(celery.control, "inspect", lambda connection: inspect)
+        monkeypatch.setattr(celery.control, "inspect", lambda **kwargs: inspect)
         celery.connection_for_read().channel().client.scan_iter.return_value = [
             b"foo",
         ]
