@@ -34,10 +34,10 @@ def celery():
     connection = Mock(transport=Mock(driver_name="redis"))
     connection.configure_mock(**{"channel.return_value": Mock(client=redis)})
     celery.configure_mock(**{"connection_for_read.return_value": connection})
-    # Busy job tracking is on by default; report no active tasks unless a
-    # test says otherwise.
-    celery.control.inspect.return_value.active.return_value = {}
-    celery.conf.control_exchange = "celery"
+    # Busy job tracking is on by default. No worker replies to the inspect
+    # call unless a test says otherwise, so no busy metrics are reported.
+    celery.control.inspect.return_value.active.return_value = None
+    celery.control.mailbox.exchange.name = "celery.pidbox"
     redis.smembers.return_value = set()
     return celery
 
@@ -213,7 +213,7 @@ class TestCeleryMetricsCollector:
 
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics: List[Metric] = collector.collect()
-        assert len(metrics) == 3
+        assert len(metrics) == 2
         qt_metrics = [m for m in metrics if m.measurement == "qt"]
         qd_metrics = [m for m in metrics if m.measurement == "qd"]
         assert len(qt_metrics) == 1
@@ -306,32 +306,23 @@ class TestCeleryMetricsCollector:
         metrics = collector.collect()
         metrics = sorted(metrics, key=lambda m: (m.queue_name, m.measurement))
 
-        assert len(metrics) == 6
+        assert len(metrics) == 4
 
-        # Busy job tracking is on by default.
-        assert metrics[0].measurement == "busy"
+        assert metrics[0].measurement == "qd"
         assert metrics[0].queue_name == "bar"
-        assert metrics[0].value == 0
+        assert metrics[0].value == 1
 
-        assert metrics[1].measurement == "qd"
+        assert metrics[1].measurement == "qt"
         assert metrics[1].queue_name == "bar"
-        assert metrics[1].value == 1
+        assert metrics[1].value == approx(60000, abs=100)
 
-        assert metrics[2].measurement == "qt"
-        assert metrics[2].queue_name == "bar"
-        assert metrics[2].value == approx(60000, abs=100)
+        assert metrics[2].measurement == "qd"
+        assert metrics[2].queue_name == "foo"
+        assert metrics[2].value == 1
 
-        assert metrics[3].measurement == "busy"
+        assert metrics[3].measurement == "qt"
         assert metrics[3].queue_name == "foo"
-        assert metrics[3].value == 0
-
-        assert metrics[4].measurement == "qd"
-        assert metrics[4].queue_name == "foo"
-        assert metrics[4].value == 1
-
-        assert metrics[5].measurement == "qt"
-        assert metrics[5].queue_name == "foo"
-        assert metrics[5].value == approx(60000, abs=100)
+        assert metrics[3].value == approx(60000, abs=100)
 
     def test_collect_with_future_eta(self, worker_1, celery):
         now = time.time()
@@ -362,7 +353,7 @@ class TestCeleryMetricsCollector:
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics = collector.collect()
 
-        assert len(metrics) == 3
+        assert len(metrics) == 2
 
         qt_metrics = [m for m in metrics if m.measurement == "qt"]
         qd_metrics = [m for m in metrics if m.measurement == "qd"]
@@ -399,7 +390,7 @@ class TestCeleryMetricsCollector:
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics = collector.collect()
 
-        assert len(metrics) == 3
+        assert len(metrics) == 2
         qt_metrics = [m for m in metrics if m.measurement == "qt"]
         qd_metrics = [m for m in metrics if m.measurement == "qd"]
         assert len(qt_metrics) == 1
@@ -466,12 +457,14 @@ class TestCeleryMetricsCollector:
         redis_client.scan_iter.return_value = [b"foo"]
         redis_client.lindex.return_value = None
         redis_client.llen.return_value = 0
-        # kombu's record of each worker's control queue: routing key, pattern
-        # and queue. The reply exchange's queues must not count as workers.
+        # kombu's record of each queue bound to the control exchange: routing
+        # key, pattern and queue. Only `<name>.celery.pidbox` queues are
+        # workers; anything else bound there must be ignored.
         redis_client.smembers.side_effect = lambda key: {
             "_kombu.binding.celery.pidbox": {
                 b"\x06\x16\x06\x16w2@host.celery.pidbox",
                 b"\x06\x16\x06\x16w1@host.celery.pidbox",
+                b"\x06\x16\x06\x16somethingelse",
             }
         }.get(key, set())
 
@@ -485,38 +478,23 @@ class TestCeleryMetricsCollector:
             "w2@host",
         ]
 
-    def test_busy_jobs_skips_workers_that_keep_missing_replies(
-        self, worker_1, celery, caplog
-    ):
-        import logging
-
-        caplog.set_level(logging.INFO, logger="judoscale")
+    def test_busy_jobs_zero_only_when_workers_reply(self, worker_1, celery):
         redis_client = celery.connection_for_read().channel().client
         redis_client.scan_iter.return_value = [b"foo"]
         redis_client.lindex.return_value = None
         redis_client.llen.return_value = 0
-        redis_client.smembers.return_value = {
-            b"\x06\x16\x06\x16alive@host.celery.pidbox",
-            b"\x06\x16\x06\x16dead@host.celery.pidbox",
-        }
-        # Only "alive" ever replies, as when "dead" was killed and left its
-        # binding behind.
-        celery.control.inspect.return_value.active.return_value = {
-            "alive@host": [{"delivery_info": {"routing_key": "foo"}}]
-        }
+        active = celery.control.inspect.return_value.active
 
+        # An idle worker replies with no tasks: busy is known to be 0.
+        active.return_value = {"w1@host": []}
         collector = CeleryMetricsCollector(worker_1, celery)
-        destinations, busy = [], []
-        for _ in range(7):
-            metrics = collector.collect()
-            destinations.append(celery.control.inspect.call_args.kwargs["destination"])
-            busy.append([m.value for m in metrics if m.measurement == "busy"])
+        busy = [m for m in collector.collect() if m.measurement == "busy"]
+        assert [(m.queue_name, m.value) for m in busy] == [("foo", 0)]
 
-        both, alive = ["alive@host", "dead@host"], ["alive@host"]
-        # Asked 3 times, then skipped, then asked again on the 6th collection.
-        assert destinations == [both, both, both, alive, alive, both, alive]
-        assert busy == [[1]] * 7
-        assert any("dead@host missed 3" in m for m in caplog.messages)
+        # No worker replies (remote control disabled, or all blocked): busy is
+        # unknown, so it is left out rather than reported as 0.
+        active.return_value = None
+        assert [m for m in collector.collect() if m.measurement == "busy"] == []
 
     def test_report_metadata_populates_after_collect(self, worker_1, celery, caplog):
         import logging

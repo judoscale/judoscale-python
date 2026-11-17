@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from celery import Celery
 from kombu import Connection
+from kombu.transport.redis import Channel as RedisChannel
 from redis import Redis
 
 from judoscale.core.config import Config
@@ -26,17 +27,6 @@ DEFAULTS = {
 # (e.g. the SSLEOFError seen on TLS Redis when new connections are
 # rejected mid-handshake under cap exhaustion).
 BROKER_CONNECTIONS_INFO_THRESHOLD = 20
-
-# Stop asking a worker for its active tasks after it misses this many replies
-# in a row (e.g. it was killed and left its mailbox binding behind), so every
-# collection doesn't wait out the inspect timeout for it.
-MAX_MISSED_REPLIES = 3
-# Ask skipped workers again every this many collections, in case they were
-# only slow to reply.
-RETRY_SKIPPED_EVERY = 6
-
-# kombu's Redis transport separates the fields of an exchange binding with this.
-KOMBU_BINDING_SEP = "\x06\x16"
 
 
 class TaskSentHandler(Thread):
@@ -84,8 +74,6 @@ class CeleryMetricsCollector(JobMetricsCollector):
             )
 
         self._connection = connection
-        self._missed_replies: Dict[str, int] = {}
-        self._busy_collections = 0
 
         self._celery_queues: Set[str] = set()
         self._queues_scanned: bool = False
@@ -210,14 +198,14 @@ class CeleryMetricsCollector(JobMetricsCollector):
     def _worker_names(self) -> List[str]:
         """
         Names of the workers listening for control commands. Each worker binds
-        a `<name>.celery.pidbox` queue to the control exchange, which kombu's
+        a `<name>.<exchange>` queue to the control exchange, which kombu's
         Redis transport records in one set.
         """
-        exchange = f"{self.broker.conf.control_exchange}.pidbox"
+        exchange = self.broker.control.mailbox.exchange.name
         names = set()
         for member in self.redis.smembers(f"_kombu.binding.{exchange}"):
             member = member.decode() if isinstance(member, bytes) else member
-            queue = member.split(KOMBU_BINDING_SEP)[-1]
+            queue = member.split(RedisChannel.sep)[-1]
             if queue.endswith(f".{exchange}"):
                 names.add(queue[: -len(exchange) - 1])
         return sorted(names)
@@ -230,38 +218,20 @@ class CeleryMetricsCollector(JobMetricsCollector):
         try:
             # Naming the workers lets the inspect call return as soon as they
             # have all replied, instead of always waiting out its timeout.
-            names = self._worker_names()
-            self._missed_replies = {n: self._missed_replies.get(n, 0) for n in names}
-            self._busy_collections += 1
-            retry_skipped = self._busy_collections % RETRY_SKIPPED_EVERY == 0
-            destination = [
-                n
-                for n in names
-                if retry_skipped or self._missed_replies[n] < MAX_MISSED_REPLIES
-            ]
-            if names and not destination:
-                # Every known worker is being skipped, so none is running jobs
-                # we can see; don't fall back to a broadcast.
-                workers_tasks = {}
-            else:
-                inspect = self.broker.control.inspect(
-                    connection=self._connection, destination=destination or None
-                )
-                workers_tasks = inspect.active() or {}
+            inspect = self.broker.control.inspect(
+                connection=self._connection,
+                destination=self._worker_names() or None,
+            )
+            workers_tasks = inspect.active()
         except Exception as e:
             logger.warning("Unable to get busy jobs from Celery workers", exc_info=e)
             return []
 
-        for name in destination:
-            if name in workers_tasks:
-                self._missed_replies[name] = 0
-            else:
-                self._missed_replies[name] += 1
-                if self._missed_replies[name] == MAX_MISSED_REPLIES:
-                    logger.info(
-                        f"Celery worker {name} missed {MAX_MISSED_REPLIES} "
-                        "busy job requests in a row; skipping it for now"
-                    )
+        # No worker replied (e.g. remote control is disabled, or every worker
+        # is blocked), so busy jobs are unknown: report nothing rather than 0.
+        if not workers_tasks:
+            logger.debug("No Celery workers replied with their active tasks")
+            return []
 
         busy_counts = defaultdict(lambda: 0)
         for active_tasks in workers_tasks.values():
