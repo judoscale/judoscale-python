@@ -939,3 +939,21 @@ class TestRQMetricsCollector:
         assert [m for m in metrics if m.measurement == "qt"]
         assert [m for m in metrics if m.measurement == "qd"] == []
         assert "Unable to get queue depth for queue: foo" in caplog.messages
+
+    def test_collect_busy_jobs_read_fails(self, worker_1, caplog):
+        redis = Mock()
+        redis.smembers.return_value = [b"rq:queue:foo"]
+        redis.zcount.side_effect = redis.exceptions.ResponseError
+        redis.lrange.return_value = []
+        redis.llen.return_value = 3
+
+        collector = RQMetricsCollector(worker_1, redis)
+        metrics = collector.collect()
+
+        # An unknown busy count is omitted rather than reported as 0.
+        assert [m for m in metrics if m.measurement == "busy"] == []
+        assert [m for m in metrics if m.measurement == "qt"]
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].value == 3
+        assert "Unable to get busy jobs for queue: foo" in caplog.messages
