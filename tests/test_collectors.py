@@ -789,12 +789,13 @@ class TestRQMetricsCollector:
     def test_collect_empty_queue(self, worker_1):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
+        redis.zcount.return_value = 0
         redis.lrange.return_value = []
         redis.llen.return_value = 0
 
         collector = RQMetricsCollector(worker_1, redis)
         metrics: List[Metric] = collector.collect()
-        assert len(metrics) == 2
+        assert len(metrics) == 3
         qt_metrics = [m for m in metrics if m.measurement == "qt"]
         qd_metrics = [m for m in metrics if m.measurement == "qd"]
         assert len(qt_metrics) == 1
@@ -808,6 +809,7 @@ class TestRQMetricsCollector:
     def test_collect_response_error(self, worker_1, caplog):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
+        redis.zcount.return_value = 0
         redis.lrange.side_effect = redis.exceptions.ResponseError
         redis.llen.return_value = 0
 
@@ -825,6 +827,7 @@ class TestRQMetricsCollector:
     def test_collect(self, worker_1):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
+        redis.zcount.return_value = 0
         redis.lrange.return_value = [b"123"]
         redis.llen.return_value = 1
         redis.hgetall.return_value = {
@@ -841,7 +844,7 @@ class TestRQMetricsCollector:
 
         collector = RQMetricsCollector(worker_1, redis)
         metrics: List[Metric] = collector.collect()
-        assert len(metrics) == 2
+        assert len(metrics) == 3
         qt_metrics = [m for m in metrics if m.measurement == "qt"]
         qd_metrics = [m for m in metrics if m.measurement == "qd"]
         assert len(qt_metrics) == 1
@@ -855,6 +858,7 @@ class TestRQMetricsCollector:
     def test_collect_missing_enqueued_at(self, worker_1):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
+        redis.zcount.return_value = 0
         redis.lrange.return_value = [b"123"]
         redis.llen.return_value = 1
         redis.hgetall.return_value = {
@@ -917,6 +921,7 @@ class TestRQMetricsCollector:
     def test_collect_queue_depth_read_fails(self, worker_1, caplog):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
+        redis.zcount.return_value = 0
         redis.lrange.return_value = [b"123"]
         redis.llen.side_effect = redis.exceptions.ResponseError
         redis.hgetall.return_value = {
@@ -934,3 +939,21 @@ class TestRQMetricsCollector:
         assert [m for m in metrics if m.measurement == "qt"]
         assert [m for m in metrics if m.measurement == "qd"] == []
         assert "Unable to get queue depth for queue: foo" in caplog.messages
+
+    def test_collect_busy_jobs_read_fails(self, worker_1, caplog):
+        redis = Mock()
+        redis.smembers.return_value = [b"rq:queue:foo"]
+        redis.zcount.side_effect = redis.exceptions.ResponseError
+        redis.lrange.return_value = []
+        redis.llen.return_value = 3
+
+        collector = RQMetricsCollector(worker_1, redis)
+        metrics = collector.collect()
+
+        # An unknown busy count is omitted rather than reported as 0.
+        assert [m for m in metrics if m.measurement == "busy"] == []
+        assert [m for m in metrics if m.measurement == "qt"]
+        qd_metrics = [m for m in metrics if m.measurement == "qd"]
+        assert len(qd_metrics) == 1
+        assert qd_metrics[0].value == 3
+        assert "Unable to get busy jobs for queue: foo" in caplog.messages
