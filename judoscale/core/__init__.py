@@ -1,5 +1,6 @@
 import signal
 import sys
+import threading
 
 from judoscale.core.reporter import reporter
 
@@ -19,4 +20,8 @@ def graceful_shutdown(signum, frame):
         sys.exit(0)
 
 
-signal.signal(signal.SIGTERM, graceful_shutdown)
+# Python only allows installing signal handlers from the main thread, and
+# this module can be first imported from another thread (e.g. Django's
+# runserver checks middleware in a background thread).
+if threading.current_thread() is threading.main_thread():
+    signal.signal(signal.SIGTERM, graceful_shutdown)
