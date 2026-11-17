@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from celery import Celery
 from kombu import Connection
+from kombu.transport.redis import Channel as RedisChannel
 from redis import Redis
 
 from judoscale.core.config import Config
@@ -18,7 +19,7 @@ DEFAULTS = {
     "ENABLED": True,
     "MAX_QUEUES": 20,
     "QUEUES": [],
-    "TRACK_BUSY_JOBS": False,
+    "TRACK_BUSY_JOBS": True,
 }
 
 # Log when the broker has fewer than this many free connection slots.
@@ -72,8 +73,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
                 "Unsupported Redis server version. Minimum Redis version is 6.0."
             )
 
-        if self.adapter_config["TRACK_BUSY_JOBS"]:
-            self.inspect = broker.control.inspect(connection=connection)
+        self._connection = connection
 
         self._celery_queues: Set[str] = set()
         self._queues_scanned: bool = False
@@ -195,6 +195,54 @@ class CeleryMetricsCollector(JobMetricsCollector):
             logger.warning(f"Unable to get queue depth for queue: {queue}", exc_info=e)
             return None
 
+    def _worker_names(self) -> List[str]:
+        """
+        Names of the workers listening for control commands. Each worker binds
+        a `<name>.<exchange>` queue to the control exchange, which kombu's
+        Redis transport records in one set.
+        """
+        exchange = self.broker.control.mailbox.exchange.name
+        names = set()
+        for member in self.redis.smembers(f"_kombu.binding.{exchange}"):
+            member = member.decode() if isinstance(member, bytes) else member
+            queue = member.split(RedisChannel.sep)[-1]
+            if queue.endswith(f".{exchange}"):
+                names.add(queue[: -len(exchange) - 1])
+        return sorted(names)
+
+    def _busy_metrics(self) -> List[Metric]:
+        # `inspect().active()` broadcasts to every worker over the broker, so
+        # it can fail where plain Redis reads don't (e.g. when the broker is
+        # out of connections). Skip busy metrics for this cycle rather than
+        # losing queue time and depth too.
+        try:
+            # Naming the workers lets the inspect call return as soon as they
+            # have all replied, instead of always waiting out its timeout.
+            inspect = self.broker.control.inspect(
+                connection=self._connection,
+                destination=self._worker_names() or None,
+            )
+            workers_tasks = inspect.active()
+        except Exception as e:
+            logger.warning("Unable to get busy jobs from Celery workers", exc_info=e)
+            return []
+
+        # No worker replied (e.g. remote control is disabled, or every worker
+        # is blocked), so busy jobs are unknown: report nothing rather than 0.
+        if not workers_tasks:
+            logger.debug("No Celery workers replied with their active tasks")
+            return []
+
+        busy_counts = defaultdict(lambda: 0)
+        for active_tasks in workers_tasks.values():
+            for task in active_tasks:
+                busy_counts[task["delivery_info"]["routing_key"]] += 1
+
+        return [
+            Metric.for_busy_queue(queue_name=queue, busy_jobs=busy_counts[queue])
+            for queue in self.queues
+        ]
+
     def collect(self) -> List[Metric]:
         metrics = []
         if not self.should_collect:
@@ -206,15 +254,7 @@ class CeleryMetricsCollector(JobMetricsCollector):
             self._scan_queues()
 
         if self.adapter_config["TRACK_BUSY_JOBS"]:
-            busy_counts = defaultdict(lambda: 0)
-            if workers_tasks := self.inspect.active():
-                for active_tasks in workers_tasks.values():
-                    for task in active_tasks:
-                        busy_counts[task["delivery_info"]["routing_key"]] += 1
-
-            for queue in self.queues:
-                count = busy_counts[queue]
-                metrics.append(Metric.for_busy_queue(queue_name=queue, busy_jobs=count))
+            metrics.extend(self._busy_metrics())
 
         logger.debug(f"Collecting metrics for queues {list(self.queues)}")
         for queue in self.queues:

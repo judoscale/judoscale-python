@@ -34,6 +34,11 @@ def celery():
     connection = Mock(transport=Mock(driver_name="redis"))
     connection.configure_mock(**{"channel.return_value": Mock(client=redis)})
     celery.configure_mock(**{"connection_for_read.return_value": connection})
+    # Busy job tracking is on by default. No worker replies to the inspect
+    # call unless a test says otherwise, so no busy metrics are reported.
+    celery.control.inspect.return_value.active.return_value = None
+    celery.control.mailbox.exchange.name = "celery.pidbox"
+    redis.smembers.return_value = set()
     return celery
 
 
@@ -157,7 +162,7 @@ class TestCeleryMetricsCollector:
             "ENABLED": False,
             "QUEUES": ["foo", "bar"],
             "MAX_QUEUES": 20,
-            "TRACK_BUSY_JOBS": False,
+            "TRACK_BUSY_JOBS": True,
         }
 
     def test_incorrect_driver(self, worker_1, celery):
@@ -404,7 +409,7 @@ class TestCeleryMetricsCollector:
             "some_worker": [{"name": "a_task", "delivery_info": {"routing_key": "foo"}}]
         }
 
-        monkeypatch.setattr(celery.control, "inspect", lambda connection: inspect)
+        monkeypatch.setattr(celery.control, "inspect", lambda **kwargs: inspect)
         redis_client = celery.connection_for_read().channel().client
         redis_client.scan_iter.return_value = [b"foo"]
         redis_client.lindex.return_value = bytes(
@@ -429,6 +434,67 @@ class TestCeleryMetricsCollector:
         assert metrics[2].measurement == "qd"
         assert metrics[2].queue_name == "foo"
         assert metrics[2].value == 1
+
+    def test_collect_when_busy_jobs_fail(self, worker_1, celery, caplog):
+        now = time.time()
+        celery.control.inspect.return_value.active.side_effect = OSError("EOF")
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo"]
+        redis_client.lindex.return_value = bytes(
+            json.dumps({"properties": {"published_at": now - 60}}), "utf-8"
+        )
+        redis_client.llen.return_value = 1
+
+        collector = CeleryMetricsCollector(worker_1, celery)
+        metrics = collector.collect()
+
+        # Queue time and depth are still reported; busy is skipped, not zeroed.
+        assert sorted(m.measurement for m in metrics) == ["qd", "qt"]
+        assert "Unable to get busy jobs from Celery workers" in caplog.messages
+
+    def test_busy_jobs_asks_only_bound_workers(self, worker_1, celery):
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo"]
+        redis_client.lindex.return_value = None
+        redis_client.llen.return_value = 0
+        # kombu's record of each queue bound to the control exchange: routing
+        # key, pattern and queue. Only `<name>.celery.pidbox` queues are
+        # workers; anything else bound there must be ignored.
+        redis_client.smembers.side_effect = lambda key: {
+            "_kombu.binding.celery.pidbox": {
+                b"\x06\x16\x06\x16w2@host.celery.pidbox",
+                b"\x06\x16\x06\x16w1@host.celery.pidbox",
+                b"\x06\x16\x06\x16somethingelse",
+            }
+        }.get(key, set())
+
+        collector = CeleryMetricsCollector(worker_1, celery)
+        collector.collect()
+
+        # Naming the workers makes the inspect call return once both reply
+        # instead of waiting out its timeout.
+        assert celery.control.inspect.call_args.kwargs["destination"] == [
+            "w1@host",
+            "w2@host",
+        ]
+
+    def test_busy_jobs_zero_only_when_workers_reply(self, worker_1, celery):
+        redis_client = celery.connection_for_read().channel().client
+        redis_client.scan_iter.return_value = [b"foo"]
+        redis_client.lindex.return_value = None
+        redis_client.llen.return_value = 0
+        active = celery.control.inspect.return_value.active
+
+        # An idle worker replies with no tasks: busy is known to be 0.
+        active.return_value = {"w1@host": []}
+        collector = CeleryMetricsCollector(worker_1, celery)
+        busy = [m for m in collector.collect() if m.measurement == "busy"]
+        assert [(m.queue_name, m.value) for m in busy] == [("foo", 0)]
+
+        # No worker replies (remote control disabled, or all blocked): busy is
+        # unknown, so it is left out rather than reported as 0.
+        active.return_value = None
+        assert [m for m in collector.collect() if m.measurement == "busy"] == []
 
     def test_report_metadata_populates_after_collect(self, worker_1, celery, caplog):
         import logging
@@ -507,7 +573,7 @@ class TestCeleryMetricsCollector:
             "some_worker": [{"name": "a_task", "delivery_info": {"routing_key": "foo"}}]
         }
 
-        monkeypatch.setattr(celery.control, "inspect", lambda connection: inspect)
+        monkeypatch.setattr(celery.control, "inspect", lambda **kwargs: inspect)
         celery.connection_for_read().channel().client.scan_iter.return_value = [
             b"foo",
         ]
@@ -704,7 +770,7 @@ class TestRQMetricsCollector:
             "ENABLED": False,
             "QUEUES": ["foo", "bar"],
             "MAX_QUEUES": 20,
-            "TRACK_BUSY_JOBS": False,
+            "TRACK_BUSY_JOBS": True,
         }
 
     def test_no_queues(self, worker_1):
@@ -805,10 +871,10 @@ class TestRQMetricsCollector:
         assert qd_metrics[0].queue_name == "foo"
         assert qd_metrics[0].value == 1
 
-    def test_collect_with_busy_job_tracking(self, worker_1, monkeypatch):
-        monkeypatch.setattr("rq.registry.StartedJobRegistry.count", 1)
+    def test_collect_with_busy_job_tracking(self, worker_1):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
+        redis.zcount.return_value = 1
         redis.lrange.return_value = [b"123"]
         redis.llen.return_value = 1
         redis.hgetall.return_value = {
@@ -823,7 +889,6 @@ class TestRQMetricsCollector:
             b"data": b"",
         }
 
-        worker_1["RQ"] = {"TRACK_BUSY_JOBS": True}
         collector = RQMetricsCollector(worker_1, redis)
         metrics: List[Metric] = collector.collect()
 
@@ -832,6 +897,14 @@ class TestRQMetricsCollector:
         assert metrics[0].measurement == "busy"
         assert metrics[0].queue_name == "foo"
         assert metrics[0].value == 1
+
+        # Counts only unexpired jobs, without RQ's registry cleanup writes.
+        key, min_score, max_score = redis.zcount.call_args.args
+        assert key == "rq:wip:foo"
+        assert float(min_score.lstrip("(")) == approx(time.time(), abs=5)
+        assert max_score == "+inf"
+        redis.zremrangebyscore.assert_not_called()
+        redis.zrangebyscore.assert_not_called()
 
         assert metrics[1].measurement == "qt"
         assert metrics[1].queue_name == "foo"
