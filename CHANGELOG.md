@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.16.0](https://github.com/judoscale/judoscale-python/compare/v1.15.0...v1.16.0) (2026-11-17)
+
+
+### Features
+
+* report busy jobs by default for RQ and Celery ([#148](https://github.com/judoscale/judoscale-python/issues/148)) ([5330168](https://github.com/judoscale/judoscale-python/commit/5330168688d020c787862df45c24076cae712f45))
+
+
+### Bug Fixes
+
+* Only install the SIGTERM handler from the main thread ([#152](https://github.com/judoscale/judoscale-python/issues/152)) ([66ac575](https://github.com/judoscale/judoscale-python/commit/66ac575df578704c9a65a24fb0786f36669c5226))
+
 ## [1.15.0](https://github.com/judoscale/judoscale-python/compare/v1.14.0...v1.15.0) (2026-11-13)
 
 
