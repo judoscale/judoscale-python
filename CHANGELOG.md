@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0](https://github.com/judoscale/judoscale-python/compare/v1.16.0...v1.17.0) (2026-11-18)
+
+
+### Features
+
+* report how long the longest-running job in each queue has been running ([#153](https://github.com/judoscale/judoscale-python/issues/153)) ([aa1a767](https://github.com/judoscale/judoscale-python/commit/aa1a7670738a35069929ac43387300d1aa439590))
+
 ## [1.16.0](https://github.com/judoscale/judoscale-python/compare/v1.15.0...v1.16.0) (2026-11-17)
 
 
