@@ -1,10 +1,11 @@
 import time
 from datetime import timezone
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from redis import Redis
 from rq import Queue
 from rq.job import Job
+from rq.utils import utcparse
 
 from judoscale.core.config import Config
 from judoscale.core.logger import logger
@@ -55,13 +56,29 @@ class RQMetricsCollector(JobMetricsCollector):
             )
             return None
 
-    def _busy_jobs(self, queue: Queue) -> Optional[int]:
+    def _busy_jobs(self, queue: Queue) -> Optional[Tuple[int, Optional[float]]]:
+        """
+        Get the number of jobs being processed for the queue, and when the
+        longest-running one started (a Unix timestamp, or None).
+        """
         # `StartedJobRegistry.count` runs `cleanup()` first, which writes to
-        # Redis (moving abandoned jobs to the failed registry). Count only the
-        # unexpired entries instead, which gives the same number read-only.
+        # Redis (moving abandoned jobs to the failed registry). Read only the
+        # unexpired entries instead, which gives the same jobs read-only.
         try:
-            key = queue.started_job_registry.key
-            return int(self.redis.zcount(key, f"({time.time()}", "+inf"))
+            registry = queue.started_job_registry
+            entries = self.redis.zrangebyscore(registry.key, f"({time.time()}", "+inf")
+            pipeline = self.redis.pipeline()
+            for entry in entries:
+                # RQ 2 stores `<job_id>:<execution_id>` entries, RQ 1 job IDs.
+                job_id = entry.decode().split(":")[0]
+                pipeline.hget(Job.key_for(job_id), "started_at")
+            # RQ 1 parses to a naive datetime, though the time is in UTC.
+            started_ats = [
+                utcparse(started_at.decode()).replace(tzinfo=timezone.utc).timestamp()
+                for started_at in pipeline.execute()
+                if started_at
+            ]
+            return len(entries), min(started_ats, default=None)
         except Exception as e:
             logger.warning(
                 f"Unable to get busy jobs for queue: {queue.name}", exc_info=e
@@ -80,10 +97,16 @@ class RQMetricsCollector(JobMetricsCollector):
         for queue in queues:
             if (
                 self.adapter_config["TRACK_BUSY_JOBS"]
-                and (busy_jobs := self._busy_jobs(queue)) is not None
+                and (busy := self._busy_jobs(queue)) is not None
             ):
+                busy_jobs, oldest_job_start_ts = busy
                 metrics.append(
                     Metric.for_busy_queue(queue_name=queue.name, busy_jobs=busy_jobs)
+                )
+                metrics.append(
+                    Metric.for_busy_time(
+                        queue_name=queue.name, oldest_job_start_ts=oldest_job_start_ts
+                    )
                 )
 
             if job := self.oldest_job(queue):
