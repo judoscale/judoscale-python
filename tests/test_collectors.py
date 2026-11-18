@@ -406,7 +406,26 @@ class TestCeleryMetricsCollector:
 
         inspect = Mock()
         inspect.active.return_value = {
-            "some_worker": [{"name": "a_task", "delivery_info": {"routing_key": "foo"}}]
+            "some_worker": [
+                {
+                    "name": "a_task",
+                    "delivery_info": {"routing_key": "foo"},
+                    "time_start": now - 30,
+                },
+                {
+                    "name": "a_task",
+                    "delivery_info": {"routing_key": "foo"},
+                    "time_start": now - 600,
+                },
+            ],
+            # Not yet accepted by the pool, so it has no start time.
+            "other_worker": [
+                {
+                    "name": "a_task",
+                    "delivery_info": {"routing_key": "foo"},
+                    "time_start": None,
+                }
+            ],
         }
 
         monkeypatch.setattr(celery.control, "inspect", lambda **kwargs: inspect)
@@ -421,19 +440,23 @@ class TestCeleryMetricsCollector:
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics = collector.collect()
 
-        assert len(metrics) == 3
+        assert len(metrics) == 4
 
         assert metrics[0].measurement == "busy"
         assert metrics[0].queue_name == "foo"
-        assert metrics[0].value == 1
+        assert metrics[0].value == 3
 
-        assert metrics[1].measurement == "qt"
+        assert metrics[1].measurement == "bt"
         assert metrics[1].queue_name == "foo"
-        assert metrics[1].value == approx(60000, abs=100)
+        assert metrics[1].value == approx(600000, abs=100)
 
-        assert metrics[2].measurement == "qd"
+        assert metrics[2].measurement == "qt"
         assert metrics[2].queue_name == "foo"
-        assert metrics[2].value == 1
+        assert metrics[2].value == approx(60000, abs=100)
+
+        assert metrics[3].measurement == "qd"
+        assert metrics[3].queue_name == "foo"
+        assert metrics[3].value == 1
 
     def test_collect_when_busy_jobs_fail(self, worker_1, celery, caplog):
         now = time.time()
@@ -594,33 +617,18 @@ class TestCeleryMetricsCollector:
         collector = CeleryMetricsCollector(worker_1, celery)
         metrics = collector.collect()
 
-        assert len(metrics) == 6
-        metrics = sorted(metrics, key=lambda m: m.queue_name)
-        metrics = sorted(metrics, key=lambda m: m.measurement)
-
-        assert metrics[0].measurement == "busy"
-        assert metrics[0].queue_name == "bar"
-        assert metrics[0].value == 0
-
-        assert metrics[1].measurement == "busy"
-        assert metrics[1].queue_name == "foo"
-        assert metrics[1].value == 1
-
-        assert metrics[2].measurement == "qd"
-        assert metrics[2].queue_name == "bar"
-        assert metrics[2].value == 1
-
-        assert metrics[3].measurement == "qd"
-        assert metrics[3].queue_name == "foo"
-        assert metrics[3].value == 1
-
-        assert metrics[4].measurement == "qt"
-        assert metrics[4].queue_name == "bar"
-        assert metrics[4].value == 0
-
-        assert metrics[5].measurement == "qt"
-        assert metrics[5].queue_name == "foo"
-        assert metrics[5].value == approx(60000, abs=100)
+        assert len(metrics) == 8
+        values = {(m.queue_name, m.measurement): m.value for m in metrics}
+        assert values == {
+            ("bar", "busy"): 0,
+            ("bar", "bt"): 0,
+            ("bar", "qd"): 1,
+            ("bar", "qt"): 0,
+            ("foo", "busy"): 1,
+            ("foo", "bt"): 0,
+            ("foo", "qd"): 1,
+            ("foo", "qt"): approx(60000, abs=100),
+        }
 
     def test_collect_queue_depth_read_fails(self, worker_1, celery, caplog):
         now = time.time()
@@ -789,13 +797,14 @@ class TestRQMetricsCollector:
     def test_collect_empty_queue(self, worker_1):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
-        redis.zcount.return_value = 0
+        redis.zrangebyscore.return_value = []
+        redis.pipeline.return_value.execute.return_value = []
         redis.lrange.return_value = []
         redis.llen.return_value = 0
 
         collector = RQMetricsCollector(worker_1, redis)
         metrics: List[Metric] = collector.collect()
-        assert len(metrics) == 3
+        assert len(metrics) == 4
         qt_metrics = [m for m in metrics if m.measurement == "qt"]
         qd_metrics = [m for m in metrics if m.measurement == "qd"]
         assert len(qt_metrics) == 1
@@ -809,7 +818,8 @@ class TestRQMetricsCollector:
     def test_collect_response_error(self, worker_1, caplog):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
-        redis.zcount.return_value = 0
+        redis.zrangebyscore.return_value = []
+        redis.pipeline.return_value.execute.return_value = []
         redis.lrange.side_effect = redis.exceptions.ResponseError
         redis.llen.return_value = 0
 
@@ -827,7 +837,8 @@ class TestRQMetricsCollector:
     def test_collect(self, worker_1):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
-        redis.zcount.return_value = 0
+        redis.zrangebyscore.return_value = []
+        redis.pipeline.return_value.execute.return_value = []
         redis.lrange.return_value = [b"123"]
         redis.llen.return_value = 1
         redis.hgetall.return_value = {
@@ -844,7 +855,7 @@ class TestRQMetricsCollector:
 
         collector = RQMetricsCollector(worker_1, redis)
         metrics: List[Metric] = collector.collect()
-        assert len(metrics) == 3
+        assert len(metrics) == 4
         qt_metrics = [m for m in metrics if m.measurement == "qt"]
         qd_metrics = [m for m in metrics if m.measurement == "qd"]
         assert len(qt_metrics) == 1
@@ -858,7 +869,8 @@ class TestRQMetricsCollector:
     def test_collect_missing_enqueued_at(self, worker_1):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
-        redis.zcount.return_value = 0
+        redis.zrangebyscore.return_value = []
+        redis.pipeline.return_value.execute.return_value = []
         redis.lrange.return_value = [b"123"]
         redis.llen.return_value = 1
         redis.hgetall.return_value = {
@@ -876,17 +888,22 @@ class TestRQMetricsCollector:
         assert qd_metrics[0].value == 1
 
     def test_collect_with_busy_job_tracking(self, worker_1):
+        now = datetime.now(tz=timezone.utc).replace(tzinfo=None)
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
-        redis.zcount.return_value = 1
+        # RQ 2 registry entries are `<job_id>:<execution_id>`; RQ 1 job IDs.
+        redis.zrangebyscore.return_value = [b"job1:exec1", b"job2:exec2", b"job3"]
+        # The jobs started 1 and 10 minutes ago; the third hasn't saved a start.
+        redis.pipeline.return_value.execute.return_value = [
+            rq_utils.utcformat(now - timedelta(minutes=1)).encode(),
+            rq_utils.utcformat(now - timedelta(minutes=10)).encode(),
+            None,
+        ]
         redis.lrange.return_value = [b"123"]
         redis.llen.return_value = 1
         redis.hgetall.return_value = {
             # Simulate a job that was enqueued 1 minute ago
-            b"enqueued_at": rq_utils.utcformat(
-                datetime.now(tz=timezone.utc).replace(tzinfo=None)
-                - timedelta(minutes=1)
-            ).encode(),
+            b"enqueued_at": rq_utils.utcformat(now - timedelta(minutes=1)).encode(),
             # Job origin has to match the queue name
             b"origin": b"foo",
             # Job data key is required but can be empty
@@ -896,32 +913,57 @@ class TestRQMetricsCollector:
         collector = RQMetricsCollector(worker_1, redis)
         metrics: List[Metric] = collector.collect()
 
-        assert len(metrics) == 3
+        assert len(metrics) == 4
 
         assert metrics[0].measurement == "busy"
         assert metrics[0].queue_name == "foo"
-        assert metrics[0].value == 1
+        assert metrics[0].value == 3
 
-        # Counts only unexpired jobs, without RQ's registry cleanup writes.
-        key, min_score, max_score = redis.zcount.call_args.args
+        assert metrics[1].measurement == "bt"
+        assert metrics[1].queue_name == "foo"
+        assert metrics[1].value == approx(600000, abs=100)
+
+        # Reads only unexpired jobs, without RQ's registry cleanup writes.
+        key, min_score, max_score = redis.zrangebyscore.call_args.args
         assert key == "rq:wip:foo"
         assert float(min_score.lstrip("(")) == approx(time.time(), abs=5)
         assert max_score == "+inf"
         redis.zremrangebyscore.assert_not_called()
-        redis.zrangebyscore.assert_not_called()
+        hgets = redis.pipeline.return_value.hget.call_args_list
+        assert [c.args for c in hgets] == [
+            (b"rq:job:job1", "started_at"),
+            (b"rq:job:job2", "started_at"),
+            (b"rq:job:job3", "started_at"),
+        ]
 
-        assert metrics[1].measurement == "qt"
-        assert metrics[1].queue_name == "foo"
-        assert metrics[1].value == approx(60000, abs=100)
-
-        assert metrics[2].measurement == "qd"
+        assert metrics[2].measurement == "qt"
         assert metrics[2].queue_name == "foo"
-        assert metrics[2].value == 1
+        assert metrics[2].value == approx(60000, abs=100)
+
+        assert metrics[3].measurement == "qd"
+        assert metrics[3].queue_name == "foo"
+        assert metrics[3].value == 1
+
+    def test_collect_busy_time_without_running_jobs(self, worker_1):
+        redis = Mock()
+        redis.smembers.return_value = [b"rq:queue:foo"]
+        redis.zrangebyscore.return_value = []
+        redis.pipeline.return_value.execute.return_value = []
+        redis.lrange.return_value = []
+        redis.llen.return_value = 0
+
+        metrics = RQMetricsCollector(worker_1, redis).collect()
+
+        busy = {
+            m.measurement: m.value for m in metrics if m.measurement in ("busy", "bt")
+        }
+        assert busy == {"busy": 0, "bt": 0}
 
     def test_collect_queue_depth_read_fails(self, worker_1, caplog):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
-        redis.zcount.return_value = 0
+        redis.zrangebyscore.return_value = []
+        redis.pipeline.return_value.execute.return_value = []
         redis.lrange.return_value = [b"123"]
         redis.llen.side_effect = redis.exceptions.ResponseError
         redis.hgetall.return_value = {
@@ -943,7 +985,7 @@ class TestRQMetricsCollector:
     def test_collect_busy_jobs_read_fails(self, worker_1, caplog):
         redis = Mock()
         redis.smembers.return_value = [b"rq:queue:foo"]
-        redis.zcount.side_effect = redis.exceptions.ResponseError
+        redis.zrangebyscore.side_effect = redis.exceptions.ResponseError
         redis.lrange.return_value = []
         redis.llen.return_value = 3
 
@@ -951,7 +993,7 @@ class TestRQMetricsCollector:
         metrics = collector.collect()
 
         # An unknown busy count is omitted rather than reported as 0.
-        assert [m for m in metrics if m.measurement == "busy"] == []
+        assert [m for m in metrics if m.measurement in ("busy", "bt")] == []
         assert [m for m in metrics if m.measurement == "qt"]
         qd_metrics = [m for m in metrics if m.measurement == "qd"]
         assert len(qd_metrics) == 1

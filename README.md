@@ -221,7 +221,7 @@ An example configuration dictionary accepted by `extra_config`:
         "QUEUES": [],
 
         # Enable (default) or disable tracking how many jobs are currently being
-        # processed in each queue.
+        # processed in each queue, and how long the longest one has been running.
         # This allows Judoscale to avoid downscaling workers that are executing jobs.
         # See documentation: https://judoscale.com/docs/long-running-jobs
         # NOTE: This option requires workers to have unique names. If you are running
@@ -433,7 +433,7 @@ An example configuration dictionary accepted by `extra_config`:
         "QUEUES": [],
 
         # Enable (default) or disable tracking how many jobs are currently being
-        # processed in each queue.
+        # processed in each queue, and how long the longest one has been running.
         # This allows Judoscale to avoid downscaling workers that are executing jobs.
         # See documentation: https://judoscale.com/docs/long-running-jobs
         "TRACK_BUSY_JOBS": True,

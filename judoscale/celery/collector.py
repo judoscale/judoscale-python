@@ -234,14 +234,29 @@ class CeleryMetricsCollector(JobMetricsCollector):
             return []
 
         busy_counts = defaultdict(lambda: 0)
+        oldest_start_by_queue: Dict[str, float] = {}
         for active_tasks in workers_tasks.values():
             for task in active_tasks:
-                busy_counts[task["delivery_info"]["routing_key"]] += 1
+                queue = task["delivery_info"]["routing_key"]
+                busy_counts[queue] += 1
+                # `time_start` is unset until the pool accepts the task.
+                if time_start := task.get("time_start"):
+                    oldest_start_by_queue[queue] = min(
+                        time_start, oldest_start_by_queue.get(queue, time_start)
+                    )
 
-        return [
-            Metric.for_busy_queue(queue_name=queue, busy_jobs=busy_counts[queue])
-            for queue in self.queues
-        ]
+        metrics = []
+        for queue in self.queues:
+            metrics.append(
+                Metric.for_busy_queue(queue_name=queue, busy_jobs=busy_counts[queue])
+            )
+            metrics.append(
+                Metric.for_busy_time(
+                    queue_name=queue,
+                    oldest_job_start_ts=oldest_start_by_queue.get(queue),
+                )
+            )
+        return metrics
 
     def collect(self) -> List[Metric]:
         metrics = []

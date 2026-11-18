@@ -153,6 +153,33 @@ class Metric:
         return metric
 
     @classmethod
+    def for_busy_time(
+        cls, queue_name: str, oldest_job_start_ts: Optional[float]
+    ) -> "Metric":
+        """
+        Calculate how long the longest-running job in a queue has been running,
+        log and return a Metric instance. The value is 0 when no job is running.
+
+        queue_name:
+            The name of the queue.
+
+        oldest_job_start_ts:
+            The Unix timestamp when the longest-running job started, or None.
+        """
+        if oldest_job_start_ts is None:
+            metric = cls(
+                measurement="bt", queue_name=queue_name, value=0, timestamp=time.time()
+            )
+        else:
+            metric = Metric.new(
+                start_ms=int(oldest_job_start_ts * 1000),
+                queue_name=queue_name,
+                measurement="bt",
+            )
+        logger.debug(f"queue_name={queue_name}, busy_time={metric.value}ms")
+        return metric
+
+    @classmethod
     def for_queue_depth(cls, queue_name: str, depth: int) -> "Metric":
         """
         Log and return a Metric instance for the number of jobs waiting in a
