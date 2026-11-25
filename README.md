@@ -41,6 +41,11 @@ Optionally, you can customize Judoscale in `settings.py`:
 JUDOSCALE = {
     # Log level defaults to ENV["LOG_LEVEL"] or "INFO".
     "LOG_LEVEL": "DEBUG",
+    # Leave requests with a body over this many bytes out of queue time. Some
+    # web servers read the whole body before the app sees the request, so a
+    # slow upload shows up as queue time. Defaults to 100_000 (100 KB).
+    # Set to None to count every request.
+    "MAX_REQUEST_SIZE_BYTES": 100_000,
 }
 ```
 
@@ -87,6 +92,11 @@ Optionally, you can override Judoscale's own configuration via your application'
 JUDOSCALE = {
     # Log level defaults to ENV["LOG_LEVEL"] or "INFO".
     "LOG_LEVEL": "DEBUG",
+    # Leave requests with a body over this many bytes out of queue time. Some
+    # web servers read the whole body before the app sees the request, so a
+    # slow upload shows up as queue time. Defaults to 100_000 (100 KB).
+    # Set to None to count every request.
+    "MAX_REQUEST_SIZE_BYTES": 100_000,
 }
 ```
 
@@ -127,6 +137,12 @@ Optionally, you can override Judoscale's configuration by passing in extra confi
 
 ```py
 app.add_middleware(FastAPIRequestQueueTimeMiddleware, extra_config={"LOG_LEVEL": "DEBUG"})
+```
+
+Requests with a body over `MAX_REQUEST_SIZE_BYTES` (100_000 bytes, or 100 KB, by default) are left out of queue time. Set it to `None` to count every request:
+
+```py
+app.add_middleware(FastAPIRequestQueueTimeMiddleware, extra_config={"MAX_REQUEST_SIZE_BYTES": None})
 ```
 
 ## Other ASGI frameworks
