@@ -1,8 +1,10 @@
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
+from judoscale.core.config import Config
+from judoscale.core.config import config as judoconfig
 from judoscale.core.logger import logger
 
 # Adapted from https://github.com/scoutapp/scout_apm_python/blob/86d14920a59a7a3b5dfffe680586646ee29bdd7a/src/scout_apm/core/web_requests.py#L139-L162 # noqa: E501
@@ -60,7 +62,12 @@ class Metric:
         return cls(timestamp=now, value=latency_ms, **kwargs)
 
     @classmethod
-    def for_web(cls, header_value: str) -> Optional["Metric"]:
+    def for_web(
+        cls,
+        header_value: str,
+        content_length: Optional[Union[int, str]] = None,
+        config: Optional[Config] = None,
+    ) -> Optional["Metric"]:
         """
         Parse the X-Request-Start header value and return a Metric instance.
 
@@ -73,7 +80,31 @@ class Metric:
 
         Calculate how long a request has been waiting to be handled, log and
         return a Metric instance.
+
+        Return None when the request's Content-Length is over the config's
+        MAX_REQUEST_SIZE_BYTES. Some web servers, such as waitress, read the
+        whole request body before they call the app, so a slow upload of a
+        large body shows up as queue time that says nothing about capacity.
+
+        content_length:
+            The request's Content-Length header, as a string or an int.
+
+        config:
+            The Judoscale config to read settings from. Defaults to
+            Judoscale's own.
         """
+
+        if config is None:
+            config = judoconfig
+
+        try:
+            request_size = int(content_length or 0)
+        except ValueError:
+            request_size = 0
+
+        max_request_size_bytes = config["MAX_REQUEST_SIZE_BYTES"]
+        if max_request_size_bytes is not None and request_size > max_request_size_bytes:
+            return None
 
         if header_value.startswith("t="):
             header_value = header_value[2:]

@@ -192,13 +192,28 @@ class TestConfig:
             "JUDOSCALE_URL": "https://api.example.com",
         }
         config = Config.initialize(fake_env)
-        assert config.for_report == {"log_level": "WARN", "report_interval_seconds": 10}
+        assert config.for_report == {
+            "log_level": "WARN",
+            "report_interval_seconds": 10,
+            "max_request_size_bytes": 100_000,
+        }
 
-        config.update({"LOG_LEVEL": "ERROR", "REPORT_INTERVAL_SECONDS": 20})
+        config.update(
+            {
+                "LOG_LEVEL": "ERROR",
+                "REPORT_INTERVAL_SECONDS": 20,
+                "MAX_REQUEST_SIZE_BYTES": None,
+            }
+        )
         assert config.for_report == {
             "log_level": "ERROR",
             "report_interval_seconds": 20,
+            "max_request_size_bytes": None,
         }
+
+    def test_max_request_size_bytes_defaults_to_100k(self):
+        config = Config(Unknown(""), {})
+        assert config["MAX_REQUEST_SIZE_BYTES"] == 100_000
 
     def test_update(self):
         fake_env = {

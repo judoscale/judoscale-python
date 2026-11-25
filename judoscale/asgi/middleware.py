@@ -40,12 +40,12 @@ class RequestQueueTimeMiddleware:
             return await self.app(scope, receive, send)
 
         with self.track_utilization():
-            for header, value in scope["headers"]:
-                if header.lower() == b"x-request-start":
-                    request_start = value.decode()
-                    if metric := Metric.for_web(request_start):
-                        self.collector.add(metric)
-                    break
+            headers = {name.lower(): value for name, value in scope["headers"]}
+            request_start = headers.get(b"x-request-start", b"").decode()
+            content_length = headers.get(b"content-length", b"").decode()
+
+            if metric := Metric.for_web(request_start, content_length):
+                self.collector.add(metric)
 
             reporter.ensure_running()
 
