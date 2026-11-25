@@ -16,7 +16,7 @@ from judoscale.core.utilization_tracker import utilization_tracker
 def store_queue_time_metric(collector: WebMetricsCollector):
     def inner():
         request_start_header = request.headers.get("x-request-start", "")
-        if metric := Metric.for_web(request_start_header):
+        if metric := Metric.for_web(request_start_header, request.content_length):
             collector.add(metric)
         reporter.ensure_running()
 
