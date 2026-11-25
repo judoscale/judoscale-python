@@ -76,3 +76,24 @@ class TestApp(TestCase):
         self.assertEqual(metrics[2].measurement, "qt")
         self.assertGreaterEqual(metrics[2].value, 0)
         self.assertGreater(metrics[2].timestamp, now)
+
+    def test_reporter_skips_queue_time_for_large_requests(self):
+        now = datetime.datetime.now().timestamp()
+
+        response = client.post(
+            "/",
+            data=b"x" * 100_001,
+            content_type="application/octet-stream",
+            HTTP_X_REQUEST_START=f"{now}",
+            HTTP_X_REQUEST_ID="00000000-0000-0000-0000-000000000000",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(reporter.is_running, True)
+        self.assertEqual(utilization_tracker.is_started, True)
+
+        # no queue time metrics gathered, only app time & utilization
+        metrics = reporter.all_metrics
+        self.assertEqual(len(metrics), 2)
+        self.assertEqual(metrics[0].measurement, "up")
+        self.assertEqual(metrics[1].measurement, "at")

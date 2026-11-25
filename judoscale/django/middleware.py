@@ -26,8 +26,9 @@ class RequestQueueTimeMiddleware:
     def __call__(self, request):
         with self.track_utilization():
             request_start_header = request.META.get("HTTP_X_REQUEST_START", "")
+            content_length = request.META.get("CONTENT_LENGTH")
 
-            if metric := Metric.for_web(request_start_header):
+            if metric := Metric.for_web(request_start_header, content_length):
                 self.collector.add(metric)
             reporter.ensure_running()
 
