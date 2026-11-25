@@ -2,7 +2,10 @@ import time
 
 from pytest import approx
 
+from judoscale.core.config import Config
+from judoscale.core.config import config as judoconfig
 from judoscale.core.metric import Metric
+from judoscale.core.platform import Unknown
 
 
 class TestMetricsForWeb:
@@ -41,6 +44,38 @@ class TestMetricsForWeb:
 
     def test_garbage_value(self):
         assert Metric.for_web("t=abc") is None
+
+    def test_request_over_max_size(self):
+        request_start = str(round(time.time() * 1000))
+        config = Config(Unknown(""), {})
+
+        assert Metric.for_web(request_start, "100001", config=config) is None
+        assert Metric.for_web(request_start, 100_001, config=config) is None
+
+    def test_request_up_to_max_size(self):
+        request_start = str(round(time.time() * 1000))
+        config = Config(Unknown(""), {})
+
+        assert Metric.for_web(request_start, None, config=config) is not None
+        assert Metric.for_web(request_start, "", config=config) is not None
+        assert Metric.for_web(request_start, "512", config=config) is not None
+        assert Metric.for_web(request_start, 512, config=config) is not None
+        assert Metric.for_web(request_start, "100000", config=config) is not None
+        assert Metric.for_web(request_start, "not-a-number", config=config) is not None
+
+    def test_no_max_request_size(self):
+        request_start = str(round(time.time() * 1000))
+        config = Config(Unknown(""), {})
+        config.update({"MAX_REQUEST_SIZE_BYTES": None})
+
+        assert Metric.for_web(request_start, "10000000", config=config) is not None
+
+    def test_max_request_size_from_judoscale_config(self, monkeypatch):
+        request_start = str(round(time.time() * 1000))
+        monkeypatch.setitem(judoconfig, "MAX_REQUEST_SIZE_BYTES", 1_000)
+
+        assert Metric.for_web(request_start, "1000") is not None
+        assert Metric.for_web(request_start, "1001") is None
 
 
 class TestMetricsForQueueDepth:

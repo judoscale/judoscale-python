@@ -6,7 +6,11 @@ from typing import Mapping
 from judoscale.core.logger import logger
 from judoscale.core.platform import Platform
 
-DEFAULTS = {"REPORT_INTERVAL_SECONDS": 10, "LOG_LEVEL": "WARN"}
+DEFAULTS = {
+    "LOG_LEVEL": "WARN",
+    "REPORT_INTERVAL_SECONDS": 10,
+    "MAX_REQUEST_SIZE_BYTES": 100_000,
+}
 
 
 class Config(UserDict):
@@ -60,6 +64,7 @@ class Config(UserDict):
         return {
             "log_level": self["LOG_LEVEL"],
             "report_interval_seconds": self["REPORT_INTERVAL_SECONDS"],
+            "max_request_size_bytes": self["MAX_REQUEST_SIZE_BYTES"],
         }
 
     def _prepare_logging(self):
