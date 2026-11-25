@@ -39,7 +39,7 @@ Optionally, you can customize Judoscale in `settings.py`:
 
 ```python
 JUDOSCALE = {
-    # Log level defaults to ENV["LOG_LEVEL"] or "INFO".
+    # Log level defaults to ENV["JUDOSCALE_LOG_LEVEL"], then ENV["LOG_LEVEL"], then "WARN".
     "LOG_LEVEL": "DEBUG",
 }
 ```
@@ -85,7 +85,7 @@ Optionally, you can override Judoscale's own configuration via your application'
 
 ```python
 JUDOSCALE = {
-    # Log level defaults to ENV["LOG_LEVEL"] or "INFO".
+    # Log level defaults to ENV["JUDOSCALE_LOG_LEVEL"], then ENV["LOG_LEVEL"], then "WARN".
     "LOG_LEVEL": "DEBUG",
 }
 ```
