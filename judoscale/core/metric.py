@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional, Tuple
 
+from judoscale.core.config import Config
+from judoscale.core.config import config as judoconfig
 from judoscale.core.logger import logger
 
 # Adapted from https://github.com/scoutapp/scout_apm_python/blob/86d14920a59a7a3b5dfffe680586646ee29bdd7a/src/scout_apm/core/web_requests.py#L139-L162 # noqa: E501
@@ -60,7 +62,11 @@ class Metric:
         return cls(timestamp=now, value=latency_ms, **kwargs)
 
     @classmethod
-    def for_web(cls, header_value: str) -> Optional["Metric"]:
+    def for_web(
+        cls,
+        header_value: str,
+        config: Optional[Config] = None,
+    ) -> Optional["Metric"]:
         """
         Parse the X-Request-Start header value and return a Metric instance.
 
@@ -73,7 +79,14 @@ class Metric:
 
         Calculate how long a request has been waiting to be handled, log and
         return a Metric instance.
+
+        config:
+            The Judoscale config to read settings from. Defaults to
+            Judoscale's own.
         """
+
+        if config is None:
+            config = judoconfig
 
         if header_value.startswith("t="):
             header_value = header_value[2:]
