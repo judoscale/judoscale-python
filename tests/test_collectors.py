@@ -7,6 +7,7 @@ from unittest.mock import Mock
 import redis.exceptions
 import rq.utils as rq_utils
 from pytest import approx, fixture, raises
+from rq.job import Job
 
 from judoscale.celery.collector import CeleryMetricsCollector
 from judoscale.core.metric import Metric
@@ -931,9 +932,9 @@ class TestRQMetricsCollector:
         redis.zremrangebyscore.assert_not_called()
         hgets = redis.pipeline.return_value.hget.call_args_list
         assert [c.args for c in hgets] == [
-            (b"rq:job:job1", "started_at"),
-            (b"rq:job:job2", "started_at"),
-            (b"rq:job:job3", "started_at"),
+            (Job.key_for("job1"), "started_at"),
+            (Job.key_for("job2"), "started_at"),
+            (Job.key_for("job3"), "started_at"),
         ]
 
         assert metrics[2].measurement == "qt"
